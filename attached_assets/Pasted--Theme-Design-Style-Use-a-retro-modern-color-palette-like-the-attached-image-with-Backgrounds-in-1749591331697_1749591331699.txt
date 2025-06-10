@@ -1,0 +1,95 @@
+ Theme & Design Style
+Use a retro-modern color palette like the attached image with:
+
+Backgrounds in soft pastels (teal, cream, peach, mint green)
+
+Accent elements in coral red, mustard yellow, and navy blue
+
+Fonts should be playful but readable, with a vintage but friendly look (similar to "Be Mindful" and "Take help" button styles).
+
+Icons should be flat and outlined, matching those shown in the image.
+
+Maintain rounded corners and soft shadows.
+
+📱 Screens Overview
+1. Splash Screen
+Display the app name: Deite
+
+Background: Vibrant and colorful stripes/rays (just like the "Load" screen in the image)
+
+Add a center button (with an arrow or "Get Started")
+
+2. Onboarding Screen
+Title: "Welcome to Deite"
+
+Show 4 feature cards in a 2x2 grid
+
+Each card includes:
+
+An image (icon/illustration)
+
+Short text like:
+
+“Deite is private and secure”
+
+“Helps you channel your thoughts”
+
+“Your safe mental space”
+
+“Therapy & reflection combined”
+
+Keep card color blocks and fonts in the same style as in the “Home” screen image
+
+3. Authentication Screen
+Allow users to Sign In or Create Account
+
+Integrate with Firebase using:
+
+Project ID: deitea2-659f5
+
+Project Number: 974533520189
+
+Web API Key: AIzaSyBxtRJ8NPp0TiqjxFNM7ci5UZnowyQhwVU
+
+Use Firebase Authentication (Email/Password)
+
+4. About You Page
+Ask for: Name, Age, Gender
+
+Form style should be card-based or bordered fields in retro UI theme
+
+Save these details to Firestore under user’s UID
+
+5. Dashboard (Main Page)
+Top: Title text Blish (bold and standout like “Be Mindful” in your image)
+
+Center: Large circle with today’s date
+
+Left/right arrows to browse previous or future dates
+
+Below: Day Reflect section
+
+If no chat exists: "You haven't written anything today"
+
+If chat exists: preview of that day’s journal/chat
+
+Button below: “Chat with Deite” (styled like the "Book Appointment" button)
+
+🧩 Firebase Details to Implement
+Authentication via Firebase Auth
+
+User profile info saved to Firestore collection: users
+
+Fields: name, age, gender, uid
+
+Chat and reflections stored in reflections collection with:
+
+uid, date, content
+
+✨ Bonus Features to Match UI Aesthetic
+Add subtle animations (e.g., wiggling brain or bouncing buttons)
+
+Keep button labels playful like “Let’s go!”, “Reflect now”, etc.
+
+Use a similar illustrated style for avatars or therapists
+
