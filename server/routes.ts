@@ -1,15 +1,69 @@
-import type { Express } from "express";
-import { createServer, type Server } from "http";
+import { Express } from "express";
+import { Server } from "http";
 import { storage } from "./storage";
+import { insertUserSchema, insertReflectionSchema } from "@shared/schema";
+import { Request, Response } from "express";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // put application routes here
-  // prefix all routes with /api
+  // Get user by Firebase UID
+  app.get("/api/users/:uid", async (req: Request, res: Response) => {
+    try {
+      const { uid } = req.params;
+      const user = await storage.getUserByUid(uid);
+      
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      res.json(user);
+    } catch (error) {
+      console.error("Error getting user:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
 
-  // use storage to perform CRUD operations on the storage interface
-  // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
+  // Create new user
+  app.post("/api/users", async (req: Request, res: Response) => {
+    try {
+      const userData = insertUserSchema.parse(req.body);
+      const user = await storage.createUser(userData);
+      res.status(201).json(user);
+    } catch (error) {
+      console.error("Error creating user:", error);
+      res.status(400).json({ error: "Invalid user data" });
+    }
+  });
 
-  const httpServer = createServer(app);
+  // Get reflection by UID and date
+  app.get("/api/reflections/:uid/:date", async (req: Request, res: Response) => {
+    try {
+      const { uid, date } = req.params;
+      const reflection = await storage.getReflection(uid, date);
+      
+      if (!reflection) {
+        return res.status(404).json({ error: "Reflection not found" });
+      }
+      
+      res.json(reflection);
+    } catch (error) {
+      console.error("Error getting reflection:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
 
-  return httpServer;
+  // Create or update reflection
+  app.post("/api/reflections", async (req: Request, res: Response) => {
+    try {
+      const reflectionData = insertReflectionSchema.parse(req.body);
+      const reflection = await storage.createOrUpdateReflection(reflectionData);
+      res.json(reflection);
+    } catch (error) {
+      console.error("Error saving reflection:", error);
+      res.status(400).json({ error: "Invalid reflection data" });
+    }
+  });
+
+  // Don't start the server here, just return a dummy server object
+  // The actual server will be started in index.ts
+  return {} as Server;
 }
