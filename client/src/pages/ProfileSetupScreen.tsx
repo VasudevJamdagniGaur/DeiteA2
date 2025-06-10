@@ -18,30 +18,40 @@ export default function ProfileSetupScreen({ onComplete }: ProfileSetupScreenPro
   const [age, setAge] = useState("");
   const [gender, setGender] = useState<"male" | "female" | "other" | "">("");
   const [loading, setLoading] = useState(false);
-  const { user } = useAuthContext();
+  const { user, refreshProfile } = useAuthContext();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user) {
+      console.error("No user found");
+      return;
+    }
 
+    console.log("Starting profile save for user:", user.uid);
     setLoading(true);
 
     try {
-      await saveUserProfile({
+      const profileData = {
         uid: user.uid,
         name,
         age: parseInt(age),
         gender: gender as "male" | "female" | "other",
-      });
+      };
+      
+      console.log("Saving profile:", profileData);
+      await saveUserProfile(profileData);
+      console.log("Profile saved successfully");
 
       toast({
         title: "Profile saved!",
         description: "Welcome to your mindful journey with Deite.",
       });
 
+      console.log("Calling onComplete to navigate to dashboard");
       onComplete();
     } catch (error: any) {
+      console.error("Error saving profile:", error);
       toast({
         title: "Error saving profile",
         description: error.message || "Please try again.",

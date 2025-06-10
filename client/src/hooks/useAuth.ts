@@ -9,13 +9,30 @@ export const useAuth = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const refreshProfile = async () => {
+    if (user) {
+      try {
+        console.log("Manually refreshing profile for user:", user.uid);
+        const userProfile = await getUserProfile(user.uid);
+        console.log("Profile refreshed:", userProfile);
+        setProfile(userProfile);
+      } catch (error) {
+        console.error("Error refreshing user profile:", error);
+        setProfile(null);
+      }
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log("Auth state changed:", firebaseUser ? firebaseUser.uid : "no user");
       setUser(firebaseUser);
       
       if (firebaseUser) {
         try {
+          console.log("Fetching profile for user:", firebaseUser.uid);
           const userProfile = await getUserProfile(firebaseUser.uid);
+          console.log("Profile fetched:", userProfile);
           setProfile(userProfile);
         } catch (error) {
           console.error("Error fetching user profile:", error);
@@ -37,5 +54,6 @@ export const useAuth = () => {
     loading,
     isAuthenticated: !!user,
     hasProfile: !!profile,
+    refreshProfile,
   };
 };
