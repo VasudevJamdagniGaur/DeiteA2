@@ -1,10 +1,9 @@
 import { Express } from "express";
-import { Server } from "http";
 import { storage } from "./storage";
 import { insertUserSchema, insertReflectionSchema } from "@shared/schema";
 import { Request, Response } from "express";
 
-export async function registerRoutes(app: Express): Promise<Server> {
+export async function registerRoutes(app: Express): Promise<void> {
   // Get user by Firebase UID
   app.get("/api/users/:uid", async (req: Request, res: Response) => {
     try {
@@ -63,7 +62,5 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Don't start the server here, just return a dummy server object
-  // The actual server will be started in index.ts
-  return {} as Server;
+
 }
