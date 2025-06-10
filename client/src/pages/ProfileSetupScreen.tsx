@@ -43,6 +43,11 @@ export default function ProfileSetupScreen({ onComplete }: ProfileSetupScreenPro
       await saveUserProfile(profileData);
       console.log("Profile saved successfully");
 
+      // Refresh the profile state to trigger navigation
+      console.log("Refreshing profile state...");
+      await refreshProfile();
+      console.log("Profile state refreshed");
+
       toast({
         title: "Profile saved!",
         description: "Welcome to your mindful journey with Deite.",
