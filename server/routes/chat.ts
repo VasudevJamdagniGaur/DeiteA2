@@ -12,7 +12,7 @@ router.post('/chat', async (req, res) => {
     }
 
     // Use the exact same format as the working curl request
-    const response = await axios.post('https://k670uqiu1be72h-11434.proxy.runpod.net/api/generate', {
+    const response = await axios.post('https://pplp6pu0mp8yoc-11434.proxy.runpod.net/api/generate', {
       model: "llama3",
       prompt: message,
       stream: false
