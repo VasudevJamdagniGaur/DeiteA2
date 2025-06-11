@@ -38,7 +38,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
     try {
       const reflection = await getReflection(user.uid, date);
       if (reflection && reflection.content) {
-        // Parse existing messages from content or create initial conversation
+        // Parse existing messages from content
         const initialMessages = parseMessagesFromContent(reflection.content);
         setMessages(initialMessages);
       } else {
@@ -67,7 +67,6 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
   };
 
   const parseMessagesFromContent = (content: string): ChatMessage[] => {
-    // Simple parsing - in a real app, you'd store messages in a more structured format
     const lines = content.split('\n').filter(line => line.trim());
     const messages: ChatMessage[] = [];
     
@@ -99,23 +98,8 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
     ];
   };
 
-  const generateDeiteResponse = (userMessage: string): string => {
-    // Simple response generation - in a real app, you'd use AI/ML or predefined responses
-    const responses = [
-      "That sounds challenging. Can you tell me more about what specifically is making you feel this way?",
-      "I hear you. It's completely normal to feel overwhelmed sometimes. What do you think might help you feel more balanced?",
-      "Thank you for sharing that with me. How long have you been experiencing these feelings?",
-      "It takes courage to acknowledge these feelings. What would you like to focus on right now?",
-      "I'm here to support you through this. What does your ideal day look like when you're feeling your best?",
-      "That's an important insight. How do you usually cope when things feel difficult?",
-      "It sounds like you're really self-aware. What small step could you take today to feel a bit better?",
-    ];
-
-    return responses[Math.floor(Math.random() * responses.length)];
-  };
-
   const handleSendMessage = async () => {
-    if (!inputValue.trim() || !user) return;
+    if (!inputValue.trim() || !user || isLoading) return;
 
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
@@ -128,21 +112,48 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
     setInputValue("");
     setIsLoading(true);
 
-    // Simulate Deite's response delay
-    setTimeout(() => {
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          message: `You are Deite, a mindful AI companion. Help the user reflect on their thoughts and feelings in a supportive way. User says: ${userMessage.content}`
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response');
+      }
+
+      const data = await response.json();
+      
+      if (!data.reply) {
+        throw new Error('Invalid response format');
+      }
+
       const deiteResponse: ChatMessage = {
         id: `deite-${Date.now()}`,
         sender: "deite",
-        content: generateDeiteResponse(userMessage.content),
+        content: data.reply,
         timestamp: new Date(),
       };
 
       setMessages(prev => [...prev, deiteResponse]);
-      setIsLoading(false);
-      
-      // Save the conversation
       saveConversation([...messages, userMessage, deiteResponse]);
-    }, 1000 + Math.random() * 2000); // 1-3 second delay
+    } catch (error) {
+      console.error("Chat error:", error);
+      const errorMessage: ChatMessage = {
+        id: `deite-${Date.now()}`,
+        sender: "deite",
+        content: "I apologize, but I'm having trouble responding right now. Please try again.",
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const saveConversation = async (messagesToSave: ChatMessage[]) => {
