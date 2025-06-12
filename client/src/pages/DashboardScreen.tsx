@@ -16,6 +16,8 @@ export default function DashboardScreen({ onStartReflection }: DashboardScreenPr
   const [currentDate, setCurrentDate] = useState(new Date());
   const [hasReflection, setHasReflection] = useState(false);
   const [reflectionPreview, setReflectionPreview] = useState("");
+  const [journalReflection, setJournalReflection] = useState("");
+  const [isGeneratingReflection, setIsGeneratingReflection] = useState(false);
 
   const dateString = format(currentDate, "yyyy-MM-dd");
 
@@ -30,16 +32,61 @@ export default function DashboardScreen({ onStartReflection }: DashboardScreenPr
     
     try {
       const reflection = await getReflection(user.uid, dateString);
-      if (reflection) {
+      if (reflection && reflection.content) {
         setHasReflection(true);
         setReflectionPreview(reflection.content?.substring(0, 100) + "..." || "");
+        
+        // Generate journal reflection from messages
+        await generateJournalReflection(reflection.content);
       } else {
         setHasReflection(false);
         setReflectionPreview("");
+        setJournalReflection("");
       }
     } catch (error) {
       console.error("Error checking reflection:", error);
       setHasReflection(false);
+      setJournalReflection("");
+    }
+  };
+
+  const parseMessagesFromContent = (content: string) => {
+    const lines = content.split('\n');
+    return lines.map((line, index) => {
+      const [sender, ...contentParts] = line.split(': ');
+      return {
+        id: (index + 1).toString(),
+        sender: sender.toLowerCase() === 'deite' ? 'deite' : 'user',
+        content: contentParts.join(': '),
+        timestamp: new Date(),
+      };
+    }).filter(msg => msg.content && msg.content.trim() !== '');
+  };
+
+  const generateJournalReflection = async (content: string) => {
+    if (!content || isGeneratingReflection) return;
+    
+    setIsGeneratingReflection(true);
+    try {
+      const messages = parseMessagesFromContent(content);
+      if (messages.length === 0) return;
+
+      const response = await fetch('/api/reflection', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ messages }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setJournalReflection(data.reflection);
+      }
+    } catch (error) {
+      console.error('Error generating reflection:', error);
+    } finally {
+      setIsGeneratingReflection(false);
     }
   };
 
@@ -146,9 +193,9 @@ export default function DashboardScreen({ onStartReflection }: DashboardScreenPr
               {!hasReflection ? (
                 <div className="text-center py-8">
                   <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <MessageCircle className="h-6 w-6 text-gray-400" />
+                    <BookOpen className="h-6 w-6 text-gray-400" />
                   </div>
-                  <p className="text-gray-500 mb-6">You haven't written anything today</p>
+                  <p className="text-gray-400 mb-6 italic">No entries yet</p>
                   <Button
                     onClick={() => onStartReflection(dateString)}
                     className="bg-coral text-white px-8 py-4 rounded-2xl font-nunito font-bold text-lg hover:bg-coral/90 transition-colors duration-300 shadow-lg hover:shadow-xl animate-bounce-gentle"
@@ -158,10 +205,29 @@ export default function DashboardScreen({ onStartReflection }: DashboardScreenPr
                 </div>
               ) : (
                 <div>
-                  <div className="bg-gradient-to-r from-mint/20 to-peach/20 rounded-2xl p-6 mb-6">
-                    <p className="text-gray-700 mb-2">{reflectionPreview}</p>
-                    <p className="text-sm text-gray-500">Tap to continue your conversation with Deite</p>
-                  </div>
+                  {/* Journal Reflection */}
+                  {isGeneratingReflection ? (
+                    <div className="bg-gradient-to-r from-mint/20 to-peach/20 rounded-2xl p-6 mb-6">
+                      <div className="flex items-center space-x-2">
+                        <div className="animate-spin w-4 h-4 border-2 border-coral border-t-transparent rounded-full"></div>
+                        <p className="text-gray-600 italic">Generating your reflection...</p>
+                      </div>
+                    </div>
+                  ) : journalReflection ? (
+                    <div className="bg-gradient-to-r from-mint/20 to-peach/20 rounded-2xl p-6 mb-6">
+                      <div className="flex items-center mb-3">
+                        <BookOpen className="h-5 w-5 text-soft-teal mr-2" />
+                        <h3 className="font-nunito font-semibold text-navy">Today's Reflection</h3>
+                      </div>
+                      <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{journalReflection}</p>
+                    </div>
+                  ) : (
+                    <div className="bg-gradient-to-r from-mint/20 to-peach/20 rounded-2xl p-6 mb-6">
+                      <p className="text-gray-700 mb-2">{reflectionPreview}</p>
+                      <p className="text-sm text-gray-500">Tap to continue your conversation with Deite</p>
+                    </div>
+                  )}
+                  
                   <Button
                     onClick={() => onStartReflection(dateString)}
                     className="w-full bg-mustard text-white py-4 rounded-2xl font-nunito font-bold text-lg hover:bg-mustard/90 transition-colors duration-300 shadow-lg"
