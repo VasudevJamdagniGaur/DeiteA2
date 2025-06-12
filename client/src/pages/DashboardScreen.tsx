@@ -240,26 +240,7 @@ export default function DashboardScreen({ onStartReflection }: DashboardScreenPr
           </Card>
         </motion.div>
         
-        {/* Quick Actions */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.6 }}
-          className="grid grid-cols-2 gap-4"
-        >
-          <Card className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-mint/20">
-            <CardContent className="p-6 text-center">
-              <div className="text-3xl mb-2">😊</div>
-              <p className="font-nunito font-semibold text-navy">Mood Check</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-peach/20">
-            <CardContent className="p-6 text-center">
-              <div className="text-3xl mb-2">📖</div>
-              <p className="font-nunito font-semibold text-navy">My Journal</p>
-            </CardContent>
-          </Card>
-        </motion.div>
+        
       </div>
     </div>
   );
