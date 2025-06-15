@@ -6,13 +6,13 @@ const router = express.Router();
 router.post('/chat', async (req, res) => {
   try {
     const { message } = req.body;
-    
+
     if (!message) {
       return res.status(400).json({ error: 'Message is required' });
     }
 
     // Use the exact same format as the working curl request
-    const response = await axios.post('https://pplp6pu0mp8yoc-11434.proxy.runpod.net/api/generate', {
+    const response = await axios.post('https://n7fk3drszp7b6y-11434.proxy.runpod.net/api/generate', {
       model: "llama3",
       prompt: message,
       stream: false
@@ -35,7 +35,7 @@ router.post('/chat', async (req, res) => {
 router.post('/reflection', async (req, res) => {
   try {
     const { messages } = req.body;
-    
+
     if (!messages || messages.length === 0) {
       return res.status(400).json({ error: 'Messages are required' });
     }
@@ -52,7 +52,7 @@ ${conversationText}
 
 Journal Entry:`;
 
-    const response = await axios.post('https://pplp6pu0mp8yoc-11434.proxy.runpod.net/api/generate', {
+    const response = await axios.post('https://n7fk3drszp7b6y-11434.proxy.runpod.net/api/generate', {
       model: "llama3",
       prompt: reflectionPrompt,
       stream: false
@@ -75,4 +75,4 @@ router.get('/chat/test', (req, res) => {
   res.json({ status: 'Chat router is working' });
 });
 
-export default router; 
+export default router;
