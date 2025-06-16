@@ -20,9 +20,13 @@ router.post("/chat", async (req, res) => {
       .join("\n");
 
     // Add system prompt with conversation context
-    const fullPrompt = `You are Deite, a mindful AI companion. Respond in 1-2 short sentences. Be supportive but concise. Always stay on-topic and refer to previous parts of the conversation when relevant.
+    const fullPrompt = `You are Deite, an AI mental health companion. Use the **entire conversation history** to understand context, but **only respond to the latest user message**. Your tone should be concise, supportive, emotionally intelligent, and grounded. Avoid repeating or responding to older messages again.
 
+Conversation history:
 ${conversationText}
+
+Only reply to the latest message from the user in this context. Do not summarize or revisit old messages. 
+
 Deite:`;
 
     const response = await axios.post(
