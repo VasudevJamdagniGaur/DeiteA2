@@ -5,32 +5,18 @@ const router = express.Router();
 
 router.post("/chat", async (req, res) => {
   try {
-    const { message, conversationHistory } = req.body;
+    const { message } = req.body;
 
     if (!message) {
       return res.status(400).json({ error: "Message is required" });
     }
-
-    // Construct conversation context from history
-    let conversationContext = "You are Deite, a mindful AI companion. Help the user reflect on their thoughts and feelings in a supportive way and keep your responses short. Be supportive but concise.\n\n";
-    
-    if (conversationHistory && conversationHistory.length > 0) {
-      conversationContext += "Previous conversation:\n";
-      conversationHistory.forEach((msg) => {
-        const speaker = msg.sender === "deite" ? "Deite" : "User";
-        conversationContext += `${speaker}: ${msg.content}\n`;
-      });
-      conversationContext += "\n";
-    }
-    
-    conversationContext += `User: ${message}\nDeite:`;
 
     // Use the exact same format as the working curl request
     const response = await axios.post(
       "https://aryiopfqwg111a-11434.proxy.runpod.net/api/generate",
       {
         model: "llama3",
-        prompt: conversationContext,
+        prompt: message,
         stream: false,
       },
     );

@@ -47,36 +47,6 @@ export const saveReflection = async (uid: string, date: string, content: string)
   }, { merge: true });
 };
 
-export const saveChatHistory = async (uid: string, date: string, messages: any[]) => {
-  const chatRef = doc(db, "chat_history", `${uid}_${date}`);
-  await setDoc(chatRef, {
-    uid,
-    date,
-    messages,
-    updatedAt: new Date().toISOString(),
-  }, { merge: true });
-};
-
-export const getChatHistory = async (uid: string, date: string) => {
-  const chatRef = doc(db, "chat_history", `${uid}_${date}`);
-  const chatSnap = await getDoc(chatRef);
-  
-  if (chatSnap.exists()) {
-    return chatSnap.data();
-  }
-  return null;
-};
-
-export const getReflection = async (uid: string, date: string) => {
-  const reflectionRef = doc(db, "reflections", `${uid}_${date}`);
-  const reflectionSnap = await getDoc(reflectionRef);
-  
-  if (reflectionSnap.exists()) {
-    return reflectionSnap.data();
-  }
-  return null;
-};
-
 export const getReflection = async (uid: string, date: string) => {
   const reflectionRef = doc(db, "reflections", `${uid}_${date}`);
   const reflectionSnap = await getDoc(reflectionRef);

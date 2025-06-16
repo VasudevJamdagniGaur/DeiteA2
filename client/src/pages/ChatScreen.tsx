@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuthContext } from "../components/AuthProvider";
-import { saveReflection, getReflection, saveChatHistory, getChatHistory } from "../lib/auth";
+import { saveReflection, getReflection } from "../lib/auth";
 import { ArrowLeft, Send, Brain } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChatMessage } from "../types";
@@ -36,34 +36,33 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
     if (!user) return;
 
     try {
-      const chatHistory = await getChatHistory(user.uid, date);
-      if (chatHistory && chatHistory.messages && chatHistory.messages.length > 0) {
-        setMessages(chatHistory.messages);
+      const reflection = await getReflection(user.uid, date);
+      if (reflection && reflection.content) {
+        // Parse existing messages from content
+        const initialMessages = parseMessagesFromContent(reflection.content);
+        setMessages(initialMessages);
       } else {
         // Start with Deite's greeting
-        const initialMessages = [
+        setMessages([
           {
             id: "1",
             sender: "deite",
             content: "Hi there! How are you feeling today? I'm here to listen and help you reflect.",
             timestamp: new Date(),
           },
-        ];
-        setMessages(initialMessages);
-        await saveChatHistory(user.uid, date, initialMessages);
+        ]);
       }
     } catch (error) {
-      console.error("Error loading chat history:", error);
+      console.error("Error loading reflection:", error);
       // Start with greeting on error
-      const initialMessages = [
+      setMessages([
         {
           id: "1",
           sender: "deite",
           content: "Hi there! How are you feeling today? I'm here to listen and help you reflect.",
           timestamp: new Date(),
         },
-      ];
-      setMessages(initialMessages);
+      ]);
     }
   };
 
@@ -120,8 +119,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ 
-          message: userMessage.content,
-          conversationHistory: messages
+          message: `You are Deite, a mindful AI companion. Respond in 1-2 short sentences. Be supportive but concise. User says: ${userMessage.content}`
         }),
       });
 
@@ -142,14 +140,8 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
         timestamp: new Date(),
       };
 
-      const updatedMessages = [...messages, userMessage, deiteResponse];
-      setMessages(updatedMessages);
-      
-      // Save chat history to Firebase
-      await saveChatHistory(user.uid, date, updatedMessages);
-      
-      // Also save as reflection for backward compatibility
-      saveConversation(updatedMessages);
+      setMessages(prev => [...prev, deiteResponse]);
+      saveConversation([...messages, userMessage, deiteResponse]);
     } catch (error) {
       console.error("Chat error:", error);
       const errorMessage: ChatMessage = {
