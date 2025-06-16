@@ -5,23 +5,35 @@ const router = express.Router();
 
 router.post("/chat", async (req, res) => {
   try {
-    const { message } = req.body;
+    const { messages } = req.body;
 
-    if (!message) {
-      return res.status(400).json({ error: "Message is required" });
+    if (!messages || messages.length === 0) {
+      return res.status(400).json({ error: "Messages are required" });
     }
 
-    // Use the exact same format as the working curl request
+    // Format messages into conversation text
+    const conversationText = messages
+      .map(
+        (msg) =>
+          `${msg.sender === "deite" ? "Deite" : "User"}: ${msg.content}`
+      )
+      .join("\n");
+
+    // Add system prompt with conversation context
+    const fullPrompt = `You are Deite, a mindful AI companion. Respond in 1-2 short sentences. Be supportive but concise. Always stay on-topic and refer to previous parts of the conversation when relevant.
+
+${conversationText}
+Deite:`;
+
     const response = await axios.post(
       "https://aryiopfqwg111a-11434.proxy.runpod.net/api/generate",
       {
         model: "llama3",
-        prompt: message,
+        prompt: fullPrompt,
         stream: false,
       },
     );
 
-    // Return the exact response format from the API
     return res.json({
       reply: response.data.response,
     });

@@ -113,13 +113,16 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
     setIsLoading(true);
 
     try {
+      // Include the new user message in the conversation history
+      const updatedMessages = [...messages, userMessage];
+      
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ 
-          message: `You are Deite, a mindful AI companion. Respond in 1-2 short sentences. Be supportive but concise. User says: ${userMessage.content}`
+          messages: updatedMessages
         }),
       });
 
@@ -140,8 +143,9 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
         timestamp: new Date(),
       };
 
-      setMessages(prev => [...prev, deiteResponse]);
-      saveConversation([...messages, userMessage, deiteResponse]);
+      const finalMessages = [...messages, userMessage, deiteResponse];
+      setMessages(finalMessages);
+      saveConversation(finalMessages);
     } catch (error) {
       console.error("Chat error:", error);
       const errorMessage: ChatMessage = {
