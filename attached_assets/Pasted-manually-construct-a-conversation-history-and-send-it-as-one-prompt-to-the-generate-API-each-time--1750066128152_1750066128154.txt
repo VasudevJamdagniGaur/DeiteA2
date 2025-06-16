@@ -1,0 +1,66 @@
+manually construct a conversation history and send it as one prompt to the /generate API each time.
+
+✅ Step-by-Step Fix
+Update your /chat endpoint like this:
+
+js
+Copy
+Edit
+// Create and maintain a conversation history
+// You need to store past messages somewhere — for now assume it's passed from client
+
+router.post("/chat", async (req, res) => {
+  try {
+    const { messages } = req.body; // Array of past chat messages like [{ sender: "user", content: "hi" }, ...]
+
+    if (!messages || messages.length === 0) {
+      return res.status(400).json({ error: "Messages are required" });
+    }
+
+    // Format messages into prompt text
+    const conversationText = messages
+      .map(
+        (msg) =>
+          `${msg.sender === "deite" ? "Deite" : "User"}: ${msg.content}`
+      )
+      .join("\n");
+
+    // Add concise and empathetic system prompt
+    const fullPrompt = `You are Deite, an AI therapist. Respond to the user in short, supportive, and emotionally aware replies. Always stay on-topic and refer to previous parts of the conversation when relevant.
+
+${conversationText}
+Deite:`;
+
+    const response = await axios.post(
+      "https://<your_runpod_url>/api/generate",
+      {
+        model: "llama3",
+        prompt: fullPrompt,
+        stream: false,
+      },
+    );
+
+    return res.json({
+      reply: response.data.response,
+    });
+  } catch (error) {
+    console.error("Chat error:", error);
+    return res.status(500).json({
+      error: "Failed to get response from AI",
+    });
+  }
+});
+✅ What the Frontend Needs to Send
+Your frontend (Replit or mobile app) should store chat history and send it like this:
+
+json
+Copy
+Edit
+{
+  "messages": [
+    { "sender": "user", "content": "I'm feeling overwhelmed today." },
+    { "sender": "deite", "content": "That sounds hard. Do you know what's causing it?" },
+    { "sender": "user", "content": "I have too many deadlines and can't focus." }
+  ]
+}
+Each new message is appended to this list, and the whole list is sent to the backend on every request.
