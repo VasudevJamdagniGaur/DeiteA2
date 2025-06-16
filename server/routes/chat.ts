@@ -50,12 +50,12 @@ router.post("/reflection", async (req, res) => {
       )
       .join("\n");
 
-    const reflectionPrompt = `Based on the user's chat messages today, generate a concise and realistic daily journal entry. Do not invent or exaggerate events. Summarize the main emotions, concerns, and insights discussed during the conversation. Write in a grounded, honest tone — like a real person journaling about their day. Only use the content actually discussed in the messages. Do not make up metaphors or fictional events. The tone should be factual.
+    const reflectionPrompt = `Based on the user's chat messages, generate a concise and realistic daily journal entry. Do not invent or exaggerate events. Summarize the main emotions, concerns, and insights discussed during the conversation. Write in a grounded, honest tone — like a real person journaling about their day. Only use the content actually discussed in the messages. Do not make up metaphors or fictional events. The tone should be factual. Keep it brief and to the point.
 
 Conversation:
 ${conversationText}
 
-Journal Entry:`;
+Write a short, factual journal entry (2-3 sentences maximum):`;
 
     const response = await axios.post(
       "https://n7fk3drszp7b6y-11434.proxy.runpod.net/api/generate",
