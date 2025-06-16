@@ -187,7 +187,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream to-soft-teal/20 flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
       {/* Chat Header */}
       <div className="bg-white/90 backdrop-blur-sm shadow-lg p-4 flex items-center space-x-4">
         <Button
@@ -215,7 +215,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
       
       {/* Chat Messages */}
       <div className="flex-1 p-4 overflow-y-auto">
-        <div className="max-w-md mx-auto space-y-4">
+        <div className="max-w-sm mx-auto space-y-4">
           <AnimatePresence>
             {messages.map((message) => (
               <motion.div
@@ -224,34 +224,17 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3 }}
-                className={`flex items-start space-x-3 ${
-                  message.sender === "user" ? "flex-row-reverse space-x-reverse" : ""
-                }`}
+                className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    message.sender === "deite"
-                      ? "bg-gradient-to-br from-coral to-mustard"
-                      : "bg-gradient-to-br from-mint to-soft-teal"
+                  className={`max-w-xs px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+                    message.sender === "user"
+                      ? "bg-blue-500 text-white rounded-br-md"
+                      : "bg-gray-200 text-gray-900 rounded-bl-md"
                   }`}
                 >
-                  {message.sender === "deite" ? (
-                    <Brain className="h-4 w-4 text-white" />
-                  ) : (
-                    <span className="text-white text-xs font-bold">{getUserInitial()}</span>
-                  )}
+                  {message.content}
                 </div>
-                <Card
-                  className={`max-w-xs shadow-lg ${
-                    message.sender === "deite"
-                      ? "bg-white rounded-2xl rounded-tl-md"
-                      : "bg-mint/80 rounded-2xl rounded-tr-md"
-                  }`}
-                >
-                  <CardContent className="p-4">
-                    <p className="text-gray-800 text-sm leading-relaxed">{message.content}</p>
-                  </CardContent>
-                </Card>
               </motion.div>
             ))}
           </AnimatePresence>
@@ -260,29 +243,24 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex items-start space-x-3"
+              className="flex justify-start"
             >
-              <div className="w-8 h-8 bg-gradient-to-br from-coral to-mustard rounded-full flex items-center justify-center">
-                <Brain className="h-4 w-4 text-white" />
+              <div className="bg-gray-200 text-gray-900 rounded-2xl rounded-bl-md px-4 py-3">
+                <div className="flex space-x-1">
+                  {[0, 1, 2].map((i) => (
+                    <motion.div
+                      key={i}
+                      className="w-2 h-2 bg-gray-400 rounded-full"
+                      animate={{ y: [0, -6, 0] }}
+                      transition={{
+                        duration: 0.6,
+                        repeat: Infinity,
+                        delay: i * 0.1,
+                      }}
+                    />
+                  ))}
+                </div>
               </div>
-              <Card className="bg-white rounded-2xl rounded-tl-md shadow-lg">
-                <CardContent className="p-4">
-                  <div className="flex space-x-1">
-                    {[0, 1, 2].map((i) => (
-                      <motion.div
-                        key={i}
-                        className="w-2 h-2 bg-gray-400 rounded-full"
-                        animate={{ y: [0, -6, 0] }}
-                        transition={{
-                          duration: 0.6,
-                          repeat: Infinity,
-                          delay: i * 0.1,
-                        }}
-                      />
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
             </motion.div>
           )}
           
