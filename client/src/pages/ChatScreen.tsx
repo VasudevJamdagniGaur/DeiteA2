@@ -119,7 +119,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ 
-          message: `You are Deite, a mindful AI companion. Respond in 1-2 short sentences. Be supportive but concise. User says: ${userMessage.content}`
+          message: `You are Deite, a mindful AI companion.Help the user reflect on their thoughts and feelings in a supportive way and keep your responses short. Be supportive but concise. Also read the past conversations that you had with user and on the basis of that context reply to the user as a thereapist User says: ${userMessage.content}`
         }),
       });
 
