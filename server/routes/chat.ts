@@ -13,7 +13,7 @@ router.post("/chat", async (req, res) => {
 
     // Use the exact same format as the working curl request
     const response = await axios.post(
-      "https://n7fk3drszp7b6y-11434.proxy.runpod.net/api/generate",
+      "https://aryiopfqwg111a-11434.proxy.runpod.net/api/generate",
       {
         model: "llama3",
         prompt: message,
@@ -58,7 +58,7 @@ ${conversationText}
 Write a short, factual journal entry (2-3 sentences maximum):`;
 
     const response = await axios.post(
-      "https://n7fk3drszp7b6y-11434.proxy.runpod.net/api/generate",
+      "https://aryiopfqwg111a-11434.proxy.runpod.net/api/generate",
       {
         model: "llama3",
         prompt: reflectionPrompt,
