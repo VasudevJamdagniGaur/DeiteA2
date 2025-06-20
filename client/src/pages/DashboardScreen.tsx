@@ -1,23 +1,22 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuthContext } from "../components/AuthProvider";
 import { getReflection, signOut } from "../lib/auth";
-import { 
-  Settings, 
-  ChevronLeft, 
-  ChevronRight, 
-  MessageCircle, 
-  BookOpen, 
+import {
+  Settings,
+  ChevronLeft,
+  ChevronRight,
+  MessageCircle,
+  BookOpen,
   Sparkles,
   Brain,
   Heart,
   Sun,
   Calendar,
   Star,
-  Flower2
+  Flower2,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { format, addDays, subDays } from "date-fns";
@@ -26,7 +25,9 @@ interface DashboardScreenProps {
   onStartReflection: (date: string) => void;
 }
 
-export default function DashboardScreen({ onStartReflection }: DashboardScreenProps) {
+export default function DashboardScreen({
+  onStartReflection,
+}: DashboardScreenProps) {
   const { user, profile } = useAuthContext();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [hasReflection, setHasReflection] = useState(false);
@@ -44,13 +45,15 @@ export default function DashboardScreen({ onStartReflection }: DashboardScreenPr
 
   const checkReflection = async () => {
     if (!user) return;
-    
+
     try {
       const reflection = await getReflection(user.uid, dateString);
       if (reflection && reflection.content) {
         setHasReflection(true);
-        setReflectionPreview(reflection.content?.substring(0, 100) + "..." || "");
-        
+        setReflectionPreview(
+          reflection.content?.substring(0, 100) + "..." || "",
+        );
+
         // Generate journal reflection from messages
         await generateJournalReflection(reflection.content);
       } else {
@@ -66,30 +69,32 @@ export default function DashboardScreen({ onStartReflection }: DashboardScreenPr
   };
 
   const parseMessagesFromContent = (content: string) => {
-    const lines = content.split('\n');
-    return lines.map((line, index) => {
-      const [sender, ...contentParts] = line.split(': ');
-      return {
-        id: (index + 1).toString(),
-        sender: sender.toLowerCase() === 'deite' ? 'deite' : 'user',
-        content: contentParts.join(': '),
-        timestamp: new Date(),
-      };
-    }).filter(msg => msg.content && msg.content.trim() !== '');
+    const lines = content.split("\n");
+    return lines
+      .map((line, index) => {
+        const [sender, ...contentParts] = line.split(": ");
+        return {
+          id: (index + 1).toString(),
+          sender: sender.toLowerCase() === "deite" ? "deite" : "user",
+          content: contentParts.join(": "),
+          timestamp: new Date(),
+        };
+      })
+      .filter((msg) => msg.content && msg.content.trim() !== "");
   };
 
   const generateJournalReflection = async (content: string) => {
     if (!content || isGeneratingReflection) return;
-    
+
     setIsGeneratingReflection(true);
     try {
       const messages = parseMessagesFromContent(content);
       if (messages.length === 0) return;
 
-      const response = await fetch('/api/reflection', {
-        method: 'POST',
+      const response = await fetch("/api/reflection", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ messages }),
       });
@@ -99,7 +104,7 @@ export default function DashboardScreen({ onStartReflection }: DashboardScreenPr
         setJournalReflection(data.reflection);
       }
     } catch (error) {
-      console.error('Error generating reflection:', error);
+      console.error("Error generating reflection:", error);
     } finally {
       setIsGeneratingReflection(false);
     }
@@ -122,7 +127,11 @@ export default function DashboardScreen({ onStartReflection }: DashboardScreenPr
   };
 
   const getUserInitial = () => {
-    return profile?.name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || "U";
+    return (
+      profile?.name?.charAt(0).toUpperCase() ||
+      user?.email?.charAt(0).toUpperCase() ||
+      "U"
+    );
   };
 
   return (
@@ -131,7 +140,7 @@ export default function DashboardScreen({ onStartReflection }: DashboardScreenPr
         {/* Header with cute brain illustration */}
         <div className="text-center py-8 relative">
           <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-4">
-            <motion.div 
+            <motion.div
               className="w-16 h-16 bg-gradient-to-br from-pink-200 to-purple-200 rounded-full flex items-center justify-center"
               animate={{ scale: [1, 1.1, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
@@ -151,14 +160,14 @@ export default function DashboardScreen({ onStartReflection }: DashboardScreenPr
           </div>
 
           {/* Floating cute elements */}
-          <motion.div 
+          <motion.div
             className="absolute top-4 left-4"
             animate={{ y: [0, -10, 0] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
             <Heart className="w-6 h-6 text-pink-400" />
           </motion.div>
-          <motion.div 
+          <motion.div
             className="absolute top-8 right-8"
             animate={{ y: [0, -10, 0] }}
             transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
@@ -188,21 +197,33 @@ export default function DashboardScreen({ onStartReflection }: DashboardScreenPr
         <Card className="bg-white/80 backdrop-blur-sm border-2 border-purple-100 shadow-lg hover:shadow-xl transition-all duration-300">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
-              <Button variant="ghost" size="icon" className="rounded-full hover:bg-purple-100" onClick={handlePreviousDay}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full hover:bg-purple-100"
+                onClick={handlePreviousDay}
+              >
                 <ChevronLeft className="w-4 h-4 text-purple-600" />
               </Button>
 
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-1">
                   <Calendar className="w-4 h-4 text-purple-500" />
-                  <span className="text-sm text-purple-600 font-medium">Selected Date</span>
+                  <span className="text-sm text-purple-600 font-medium">
+                    Selected Date
+                  </span>
                 </div>
                 <div className="text-lg font-semibold text-gray-800">
                   {format(currentDate, "EEEE, MMMM d, yyyy")}
                 </div>
               </div>
 
-              <Button variant="ghost" size="icon" className="rounded-full hover:bg-purple-100" onClick={handleNextDay}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full hover:bg-purple-100"
+                onClick={handleNextDay}
+              >
                 <ChevronRight className="w-4 h-4 text-purple-600" />
               </Button>
             </div>
@@ -216,7 +237,7 @@ export default function DashboardScreen({ onStartReflection }: DashboardScreenPr
               <div className="w-10 h-10 bg-gradient-to-br from-green-200 to-teal-200 rounded-full flex items-center justify-center">
                 <Sun className="w-5 h-5 text-green-600" />
               </div>
-              <h2 className="text-xl font-bold text-gray-800">Daily Brain Boost</h2>
+              <h2 className="text-xl font-bold text-gray-800">Day Reflect</h2>
             </div>
 
             {!hasReflection ? (
@@ -224,35 +245,41 @@ export default function DashboardScreen({ onStartReflection }: DashboardScreenPr
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <BookOpen className="h-6 w-6 text-gray-400" />
                 </div>
-                <p className="text-gray-400 mb-4 italic">No entries yet - let's create some magic! ✨</p>
+                <p className="text-gray-400 mb-4 italic">
+                  No entries yet - let's create some magic! ✨
+                </p>
               </div>
             ) : (
               <div className="mb-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-sm font-medium text-gray-600">Mood Summary</span>
+                  <span className="text-sm font-medium text-gray-600">
+                    Mood Summary
+                  </span>
                   <div className="flex gap-1">
-                    <motion.div 
+                    <motion.div
                       className="w-2 h-2 bg-green-400 rounded-full"
                       animate={{ scale: [1, 1.2, 1] }}
                       transition={{ duration: 1, repeat: Infinity }}
                     />
-                    <motion.div 
+                    <motion.div
                       className="w-2 h-2 bg-green-400 rounded-full"
                       animate={{ scale: [1, 1.2, 1] }}
                       transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
                     />
-                    <motion.div 
+                    <motion.div
                       className="w-2 h-2 bg-green-400 rounded-full"
                       animate={{ scale: [1, 1.2, 1] }}
                       transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
                     />
                   </div>
                 </div>
-                
+
                 {isGeneratingReflection ? (
                   <div className="flex items-center space-x-2 mb-4">
                     <div className="animate-spin w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full"></div>
-                    <p className="text-gray-600 italic">Generating your reflection...</p>
+                    <p className="text-gray-600 italic">
+                      Generating your reflection...
+                    </p>
                   </div>
                 ) : journalReflection ? (
                   <p className="text-gray-700 mb-4 leading-relaxed">
@@ -260,7 +287,8 @@ export default function DashboardScreen({ onStartReflection }: DashboardScreenPr
                   </p>
                 ) : (
                   <p className="text-gray-700 mb-4">
-                    Today feels like a wonderful day for reflection! Your brain is making amazing progress. 🌟
+                    Today feels like a wonderful day for reflection! Your brain
+                    is making amazing progress. 🌟
                   </p>
                 )}
 
@@ -283,7 +311,7 @@ export default function DashboardScreen({ onStartReflection }: DashboardScreenPr
         {/* Chat with Deite - Extra Cute */}
         <Card className="bg-gradient-to-br from-purple-400 via-pink-400 to-blue-400 border-0 shadow-xl overflow-hidden relative">
           <div className="absolute top-2 right-2">
-            <motion.div 
+            <motion.div
               className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center"
               animate={{ rotate: 360 }}
               transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
@@ -298,21 +326,22 @@ export default function DashboardScreen({ onStartReflection }: DashboardScreenPr
               </div>
               <div>
                 <h2 className="text-xl font-bold">Chat with Deite</h2>
-                <p className="text-white/90 text-sm">Your AI brain buddy is here! 🤗</p>
+                <p className="text-white/90 text-sm">
+                  Your AI brain buddy is here! 🤗
+                </p>
               </div>
             </div>
             <p className="text-white/90 mb-4">
-              {hasReflection 
-                ? "Continue your healing conversation and discover new insights! ✨" 
-                : "Get personalized guidance and support to make your brain sparkle! ✨"
-              }
+              {hasReflection
+                ? "Continue your healing conversation and discover new insights! ✨"
+                : "Get personalized guidance and support to make your brain sparkle! ✨"}
             </p>
-            <Button 
+            <Button
               className="bg-white text-purple-600 hover:bg-white/90 font-medium rounded-full px-6 shadow-lg"
               onClick={() => onStartReflection(dateString)}
             >
               <MessageCircle className="w-4 h-4 mr-2" />
-              {hasReflection ? "Continue Healing Chat" : "Start Healing Chat"}
+              {hasReflection ? "Continue Chat with Deite" : "Chat with Deite"}
             </Button>
           </CardContent>
         </Card>
