@@ -2,11 +2,9 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useAuthContext } from "../components/AuthProvider";
 import { getReflection, signOut } from "../lib/auth";
-import { Settings, ChevronLeft, ChevronRight, MessageCircle, BookOpen, Heart, Calendar as CalendarIcon } from "lucide-react";
+import { Settings, ChevronLeft, ChevronRight, MessageCircle, BookOpen, Heart } from "lucide-react";
 import { motion } from "framer-motion";
 import { format, addDays, subDays } from "date-fns";
 
@@ -21,7 +19,6 @@ export default function DashboardScreen({ onStartReflection }: DashboardScreenPr
   const [reflectionPreview, setReflectionPreview] = useState("");
   const [journalReflection, setJournalReflection] = useState("");
   const [isGeneratingReflection, setIsGeneratingReflection] = useState(false);
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const dateString = format(currentDate, "yyyy-MM-dd");
 
@@ -102,17 +99,6 @@ export default function DashboardScreen({ onStartReflection }: DashboardScreenPr
     setCurrentDate(addDays(currentDate, 1));
   };
 
-  const handleDateSelect = (date: Date | undefined) => {
-    if (date) {
-      setCurrentDate(date);
-      setIsCalendarOpen(false);
-    }
-  };
-
-  const handleGoToToday = () => {
-    setCurrentDate(new Date());
-  };
-
   const handleSignOut = async () => {
     try {
       await signOut();
@@ -167,36 +153,10 @@ export default function DashboardScreen({ onStartReflection }: DashboardScreenPr
                   <ChevronLeft className="w-4 h-4 text-slate-600" />
                 </Button>
                 
-                <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                  <PopoverTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      className="text-center hover:bg-rose-50 rounded-xl p-4"
-                    >
-                      <div>
-                        <div className="text-2xl font-bold text-slate-700 mb-1">{format(currentDate, "d")}</div>
-                        <div className="text-sm text-slate-600">{format(currentDate, "MMM")}</div>
-                      </div>
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-white/95 backdrop-blur-sm border-white/50" align="center">
-                    <Calendar
-                      mode="single"
-                      selected={currentDate}
-                      onSelect={handleDateSelect}
-                      initialFocus
-                      className="rounded-xl"
-                    />
-                    <div className="p-3 border-t">
-                      <Button
-                        onClick={handleGoToToday}
-                        className="w-full bg-gradient-to-r from-rose-300 to-pink-300 hover:from-rose-400 hover:to-pink-400 text-white border-0 rounded-xl py-2 font-medium"
-                      >
-                        Today
-                      </Button>
-                    </div>
-                  </PopoverContent>
-                </Popover>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-slate-700 mb-1">{format(currentDate, "d")}</div>
+                  <div className="text-sm text-slate-600">{format(currentDate, "MMM")}</div>
+                </div>
                 
                 <Button
                   variant="ghost"
