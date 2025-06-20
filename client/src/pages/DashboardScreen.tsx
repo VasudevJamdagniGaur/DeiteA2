@@ -2,9 +2,23 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useAuthContext } from "../components/AuthProvider";
 import { getReflection, signOut } from "../lib/auth";
-import { Settings, ChevronLeft, ChevronRight, MessageCircle, BookOpen, Heart } from "lucide-react";
+import { 
+  Settings, 
+  ChevronLeft, 
+  ChevronRight, 
+  MessageCircle, 
+  BookOpen, 
+  Sparkles,
+  Brain,
+  Heart,
+  Sun,
+  Calendar,
+  Star,
+  Flower2
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { format, addDays, subDays } from "date-fns";
 
@@ -112,131 +126,205 @@ export default function DashboardScreen({ onStartReflection }: DashboardScreenPr
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-100 via-pink-50 to-emerald-50">
-      <div className="container mx-auto px-4 py-6 max-w-md">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8 pt-4">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-700 font-serif">Blish</h1>
-            <p className="text-slate-600 text-sm">Your mindful journal</p>
-          </div>
-          <div className="flex items-center space-x-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleSignOut}
-              className="w-10 h-10 rounded-full bg-white/50 hover:bg-white/70"
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 p-4">
+      <div className="max-w-2xl mx-auto space-y-6">
+        {/* Header with cute brain illustration */}
+        <div className="text-center py-8 relative">
+          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-4">
+            <motion.div 
+              className="w-16 h-16 bg-gradient-to-br from-pink-200 to-purple-200 rounded-full flex items-center justify-center"
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
             >
-              <Settings className="w-5 h-5 text-slate-600" />
-            </Button>
-            <div className="w-10 h-10 bg-gradient-to-br from-rose-200 to-pink-200 rounded-full flex items-center justify-center text-slate-700 font-bold">
-              <span>{getUserInitial()}</span>
+              <Brain className="w-8 h-8 text-purple-600" />
+            </motion.div>
+          </div>
+          <div className="mt-8">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-blue-500 bg-clip-text text-transparent mb-2">
+              Welcome back to Deite
+            </h1>
+            <p className="text-gray-600 flex items-center justify-center gap-2">
+              <Sparkles className="w-4 h-4 text-yellow-400" />
+              Continue your brain-healing journey
+              <Sparkles className="w-4 h-4 text-yellow-400" />
+            </p>
+          </div>
+
+          {/* Floating cute elements */}
+          <motion.div 
+            className="absolute top-4 left-4"
+            animate={{ y: [0, -10, 0] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <Heart className="w-6 h-6 text-pink-400" />
+          </motion.div>
+          <motion.div 
+            className="absolute top-8 right-8"
+            animate={{ y: [0, -10, 0] }}
+            transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+          >
+            <Flower2 className="w-5 h-5 text-purple-400" />
+          </motion.div>
+
+          {/* User avatar and settings */}
+          <div className="absolute top-4 right-4">
+            <div className="flex items-center space-x-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSignOut}
+                className="p-2 rounded-full bg-white/50 text-purple-600 hover:bg-white/70 transition-colors duration-300"
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+              <div className="w-10 h-10 bg-gradient-to-br from-peach to-coral rounded-full flex items-center justify-center text-white font-bold shadow-lg">
+                <span>{getUserInitial()}</span>
+              </div>
             </div>
           </div>
         </div>
-        
-        {/* Date Navigation */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <Card className="mb-6 bg-white/70 backdrop-blur-sm border-white/50 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handlePreviousDay}
-                  className="w-8 h-8 rounded-full hover:bg-rose-100"
-                >
-                  <ChevronLeft className="w-4 h-4 text-slate-600" />
-                </Button>
-                
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-slate-700 mb-1">{format(currentDate, "d")}</div>
-                  <div className="text-sm text-slate-600">{format(currentDate, "MMM")}</div>
-                </div>
-                
-                <Button
-                  variant="ghost"
-                  size="sm"  
-                  onClick={handleNextDay}
-                  className="w-8 h-8 rounded-full hover:bg-rose-100"
-                >
-                  <ChevronRight className="w-4 h-4 text-slate-600" />
-                </Button>
-              </div>
-              <div className="text-center">
-                <p className="text-slate-600 font-medium">
-                  {format(currentDate, "EEEE, MMMM d")}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-        
-        {/* Day Reflect Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
-        >
-          <Card className="mb-6 bg-white/70 backdrop-blur-sm border-white/50 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center mb-4">
-                <BookOpen className="w-6 h-6 text-rose-400 mr-3" />
-                <h2 className="text-xl font-semibold text-slate-700 font-serif">Day Reflect</h2>
-              </div>
-              
-              {hasReflection && (
-                <div>
-                  {/* Journal Reflection */}
-                  {isGeneratingReflection ? (
-                    <div className="bg-gradient-to-r from-rose-50 to-pink-50 rounded-2xl p-6 mb-6">
-                      <div className="flex items-center space-x-2">
-                        <div className="animate-spin w-4 h-4 border-2 border-rose-400 border-t-transparent rounded-full"></div>
-                        <p className="text-slate-600 italic">Generating your reflection...</p>
-                      </div>
-                    </div>
-                  ) : journalReflection ? (
-                    <div className="bg-gradient-to-r from-rose-50 to-pink-50 rounded-2xl p-6 mb-6">
-                      <div className="flex items-center mb-3">
-                        <BookOpen className="h-5 w-5 text-rose-400 mr-2" />
-                        <h3 className="font-medium text-slate-700">Today's Reflection</h3>
-                      </div>
-                      <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">{journalReflection}</p>
-                    </div>
-                  ) : (
-                    <div className="bg-gradient-to-r from-rose-50 to-pink-50 rounded-2xl p-6 mb-6">
-                      <p className="text-slate-600 mb-2">{reflectionPreview}</p>
-                      <p className="text-sm text-slate-500">Tap to continue your conversation with Deite</p>
-                    </div>
-                  )}
-                  
-                  <Button
-                    onClick={() => onStartReflection(dateString)}
-                    className="w-full bg-gradient-to-r from-rose-300 to-pink-300 hover:from-rose-400 hover:to-pink-400 text-white border-0 rounded-xl py-3 font-medium shadow-md transition-all duration-300"
-                  >
-                    Continue Reflecting
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-        
-        {/* Chat with Deite Button */}
-        <Button 
-          onClick={() => onStartReflection(dateString)}
-          className="w-full h-14 bg-gradient-to-r from-rose-400 to-pink-400 hover:from-rose-500 hover:to-pink-500 text-white font-semibold text-lg rounded-2xl shadow-lg border-0 transition-all duration-300 transform hover:scale-105 mb-6"
-        >
-          <MessageCircle className="w-5 h-5 mr-3" />
-          Chat with Deite
-          <Heart className="w-4 h-4 ml-2 fill-white" />
-        </Button>
 
-        
+        {/* Date Selector - Cute Card */}
+        <Card className="bg-white/80 backdrop-blur-sm border-2 border-purple-100 shadow-lg hover:shadow-xl transition-all duration-300">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <Button variant="ghost" size="icon" className="rounded-full hover:bg-purple-100" onClick={handlePreviousDay}>
+                <ChevronLeft className="w-4 h-4 text-purple-600" />
+              </Button>
+
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <Calendar className="w-4 h-4 text-purple-500" />
+                  <span className="text-sm text-purple-600 font-medium">Selected Date</span>
+                </div>
+                <div className="text-lg font-semibold text-gray-800">
+                  {format(currentDate, "EEEE, MMMM d, yyyy")}
+                </div>
+              </div>
+
+              <Button variant="ghost" size="icon" className="rounded-full hover:bg-purple-100" onClick={handleNextDay}>
+                <ChevronRight className="w-4 h-4 text-purple-600" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Daily Reflection - Super Cute */}
+        <Card className="bg-gradient-to-br from-green-50 to-teal-50 border-2 border-green-200 shadow-lg">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-gradient-to-br from-green-200 to-teal-200 rounded-full flex items-center justify-center">
+                <Sun className="w-5 h-5 text-green-600" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-800">Daily Brain Boost</h2>
+            </div>
+
+            {!hasReflection ? (
+              <div className="text-center py-4">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <BookOpen className="h-6 w-6 text-gray-400" />
+                </div>
+                <p className="text-gray-400 mb-4 italic">No entries yet - let's create some magic! ✨</p>
+              </div>
+            ) : (
+              <div className="mb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-sm font-medium text-gray-600">Mood Summary</span>
+                  <div className="flex gap-1">
+                    <motion.div 
+                      className="w-2 h-2 bg-green-400 rounded-full"
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 1, repeat: Infinity }}
+                    />
+                    <motion.div 
+                      className="w-2 h-2 bg-green-400 rounded-full"
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
+                    />
+                    <motion.div 
+                      className="w-2 h-2 bg-green-400 rounded-full"
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
+                    />
+                  </div>
+                </div>
+                
+                {isGeneratingReflection ? (
+                  <div className="flex items-center space-x-2 mb-4">
+                    <div className="animate-spin w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full"></div>
+                    <p className="text-gray-600 italic">Generating your reflection...</p>
+                  </div>
+                ) : journalReflection ? (
+                  <p className="text-gray-700 mb-4 leading-relaxed">
+                    {journalReflection} 🌟
+                  </p>
+                ) : (
+                  <p className="text-gray-700 mb-4">
+                    Today feels like a wonderful day for reflection! Your brain is making amazing progress. 🌟
+                  </p>
+                )}
+
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <Badge className="bg-gradient-to-r from-blue-400 to-blue-500 text-white hover:from-blue-500 hover:to-blue-600">
+                    ✨ Grateful
+                  </Badge>
+                  <Badge className="bg-gradient-to-r from-purple-400 to-purple-500 text-white hover:from-purple-500 hover:to-purple-600">
+                    🎯 Focused
+                  </Badge>
+                  <Badge className="bg-gradient-to-r from-pink-400 to-pink-500 text-white hover:from-pink-500 hover:to-pink-600">
+                    🧘 Calm
+                  </Badge>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Chat with Deite - Extra Cute */}
+        <Card className="bg-gradient-to-br from-purple-400 via-pink-400 to-blue-400 border-0 shadow-xl overflow-hidden relative">
+          <div className="absolute top-2 right-2">
+            <motion.div 
+              className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+            >
+              <Sparkles className="w-4 h-4 text-white" />
+            </motion.div>
+          </div>
+          <CardContent className="p-6 text-white relative">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                <MessageCircle className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold">Chat with Deite</h2>
+                <p className="text-white/90 text-sm">Your AI brain buddy is here! 🤗</p>
+              </div>
+            </div>
+            <p className="text-white/90 mb-4">
+              {hasReflection 
+                ? "Continue your healing conversation and discover new insights! ✨" 
+                : "Get personalized guidance and support to make your brain sparkle! ✨"
+              }
+            </p>
+            <Button 
+              className="bg-white text-purple-600 hover:bg-white/90 font-medium rounded-full px-6 shadow-lg"
+              onClick={() => onStartReflection(dateString)}
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              {hasReflection ? "Continue Healing Chat" : "Start Healing Chat"}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Footer cute message */}
+        <div className="text-center py-4">
+          <p className="text-gray-600 flex items-center justify-center gap-2">
+            <Brain className="w-4 h-4 text-purple-500" />
+            Your brain deserves all the love and care!
+            <Heart className="w-4 h-4 text-pink-500" />
+          </p>
+        </div>
       </div>
     </div>
   );
