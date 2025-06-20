@@ -186,7 +186,7 @@ export default function DashboardScreen({
               >
                 <Settings className="h-4 w-4" />
               </Button>
-              <div className="w-10 h-10 bg-gradient-to-br from-peach to-coral rounded-full flex items-center justify-center text-white font-bold shadow-lg">
+              <div className="w-10 h-10 bg-gradient-to-br from-slate-700 via-purple-600 to-indigo-700 rounded-full flex items-center justify-center text-white font-bold shadow-lg border-2 border-white/20">
                 <span>{getUserInitial()}</span>
               </div>
             </div>
