@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuthContext } from "../components/AuthProvider";
 import { getReflection, signOut } from "../lib/auth";
-import { Settings, ChevronLeft, ChevronRight, MessageCircle, BookOpen, Smile } from "lucide-react";
+import { Settings, ChevronLeft, ChevronRight, MessageCircle, BookOpen, Heart } from "lucide-react";
 import { motion } from "framer-motion";
 import { format, addDays, subDays } from "date-fns";
 
@@ -111,70 +112,65 @@ export default function DashboardScreen({ onStartReflection }: DashboardScreenPr
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream via-mint/20 to-soft-teal/20">
-      {/* Header */}
-      <div className="bg-white/80 backdrop-blur-sm shadow-lg p-6 sticky top-0 z-10">
-        <div className="flex items-center justify-between max-w-md mx-auto">
-          <h1 className="font-nunito font-bold text-3xl text-navy">Blish</h1>
+    <div className="min-h-screen bg-gradient-to-br from-rose-100 via-pink-50 to-emerald-50">
+      <div className="container mx-auto px-4 py-6 max-w-md">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8 pt-4">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-700 font-serif">Blish</h1>
+            <p className="text-slate-600 text-sm">Your mindful journal</p>
+          </div>
           <div className="flex items-center space-x-3">
             <Button
               variant="ghost"
               size="sm"
               onClick={handleSignOut}
-              className="p-2 rounded-full bg-coral/10 text-coral hover:bg-coral/20 transition-colors duration-300"
+              className="w-10 h-10 rounded-full bg-white/50 hover:bg-white/70"
             >
-              <Settings className="h-4 w-4" />
+              <Settings className="w-5 h-5 text-slate-600" />
             </Button>
-            <div className="w-10 h-10 bg-gradient-to-br from-peach to-coral rounded-full flex items-center justify-center text-white font-bold">
+            <div className="w-10 h-10 bg-gradient-to-br from-rose-200 to-pink-200 rounded-full flex items-center justify-center text-slate-700 font-bold">
               <span>{getUserInitial()}</span>
             </div>
           </div>
         </div>
-      </div>
-      
-      <div className="p-6 max-w-md mx-auto">
+        
         {/* Date Navigation */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <Card className="bg-white rounded-3xl shadow-2xl mb-6 border border-white/50">
-            <CardContent className="p-8">
+          <Card className="mb-6 bg-white/70 backdrop-blur-sm border-white/50 shadow-lg">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={handlePreviousDay}
-                  className="p-3 rounded-full bg-soft-teal/10 text-soft-teal hover:bg-soft-teal/20 transition-colors duration-300"
+                  className="w-8 h-8 rounded-full hover:bg-rose-100"
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="w-4 h-4 text-slate-600" />
                 </Button>
                 
                 <div className="text-center">
-                  <motion.div
-                    className="w-24 h-24 bg-gradient-to-br from-coral to-mustard rounded-full flex items-center justify-center text-white shadow-xl mb-2 mx-auto"
-                    whileHover={{ scale: 1.05 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                  >
-                    <div className="text-center">
-                      <div className="text-2xl font-bold">{format(currentDate, "d")}</div>
-                      <div className="text-xs uppercase">{format(currentDate, "MMM")}</div>
-                    </div>
-                  </motion.div>
-                  <p className="text-navy font-nunito font-semibold">
-                    {format(currentDate, "EEEE, MMMM d")}
-                  </p>
+                  <div className="text-2xl font-bold text-slate-700 mb-1">{format(currentDate, "d")}</div>
+                  <div className="text-sm text-slate-600">{format(currentDate, "MMM")}</div>
                 </div>
                 
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size="sm"  
                   onClick={handleNextDay}
-                  className="p-3 rounded-full bg-soft-teal/10 text-soft-teal hover:bg-soft-teal/20 transition-colors duration-300"
+                  className="w-8 h-8 rounded-full hover:bg-rose-100"
                 >
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="w-4 h-4 text-slate-600" />
                 </Button>
+              </div>
+              <div className="text-center">
+                <p className="text-slate-600 font-medium">
+                  {format(currentDate, "EEEE, MMMM d")}
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -186,51 +182,54 @@ export default function DashboardScreen({ onStartReflection }: DashboardScreenPr
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.6 }}
         >
-          <Card className="bg-white rounded-3xl shadow-2xl border border-white/50 mb-6">
-            <CardContent className="p-8">
-              <h2 className="font-nunito font-bold text-2xl text-navy mb-6">Day Reflect</h2>
+          <Card className="mb-6 bg-white/70 backdrop-blur-sm border-white/50 shadow-lg">
+            <CardContent className="p-6">
+              <div className="flex items-center mb-4">
+                <BookOpen className="w-6 h-6 text-rose-400 mr-3" />
+                <h2 className="text-xl font-semibold text-slate-700 font-serif">Day Reflect</h2>
+              </div>
               
               {!hasReflection ? (
                 <div className="text-center py-8">
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <BookOpen className="h-6 w-6 text-gray-400" />
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-rose-200 to-pink-200 rounded-2xl flex items-center justify-center">
+                    <BookOpen className="w-8 h-8 text-rose-400" />
                   </div>
-                  <p className="text-gray-400 mb-6 italic">No entries yet</p>
+                  <p className="text-slate-500 mb-6">No entries yet</p>
                   <Button
                     onClick={() => onStartReflection(dateString)}
-                    className="bg-coral text-white px-8 py-4 rounded-2xl font-nunito font-bold text-lg hover:bg-coral/90 transition-colors duration-300 shadow-lg hover:shadow-xl animate-bounce-gentle"
+                    className="bg-gradient-to-r from-rose-300 to-pink-300 hover:from-rose-400 hover:to-pink-400 text-white border-0 rounded-xl px-6 py-2 font-medium shadow-md transition-all duration-300"
                   >
-                    Chat with Deite <MessageCircle className="ml-2 h-5 w-5" />
+                    Start Writing
                   </Button>
                 </div>
               ) : (
                 <div>
                   {/* Journal Reflection */}
                   {isGeneratingReflection ? (
-                    <div className="bg-gradient-to-r from-mint/20 to-peach/20 rounded-2xl p-6 mb-6">
+                    <div className="bg-gradient-to-r from-rose-50 to-pink-50 rounded-2xl p-6 mb-6">
                       <div className="flex items-center space-x-2">
-                        <div className="animate-spin w-4 h-4 border-2 border-coral border-t-transparent rounded-full"></div>
-                        <p className="text-gray-600 italic">Generating your reflection...</p>
+                        <div className="animate-spin w-4 h-4 border-2 border-rose-400 border-t-transparent rounded-full"></div>
+                        <p className="text-slate-600 italic">Generating your reflection...</p>
                       </div>
                     </div>
                   ) : journalReflection ? (
-                    <div className="bg-gradient-to-r from-mint/20 to-peach/20 rounded-2xl p-6 mb-6">
+                    <div className="bg-gradient-to-r from-rose-50 to-pink-50 rounded-2xl p-6 mb-6">
                       <div className="flex items-center mb-3">
-                        <BookOpen className="h-5 w-5 text-soft-teal mr-2" />
-                        <h3 className="font-nunito font-semibold text-navy">Today's Reflection</h3>
+                        <BookOpen className="h-5 w-5 text-rose-400 mr-2" />
+                        <h3 className="font-medium text-slate-700">Today's Reflection</h3>
                       </div>
-                      <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{journalReflection}</p>
+                      <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">{journalReflection}</p>
                     </div>
                   ) : (
-                    <div className="bg-gradient-to-r from-mint/20 to-peach/20 rounded-2xl p-6 mb-6">
-                      <p className="text-gray-700 mb-2">{reflectionPreview}</p>
-                      <p className="text-sm text-gray-500">Tap to continue your conversation with Deite</p>
+                    <div className="bg-gradient-to-r from-rose-50 to-pink-50 rounded-2xl p-6 mb-6">
+                      <p className="text-slate-600 mb-2">{reflectionPreview}</p>
+                      <p className="text-sm text-slate-500">Tap to continue your conversation with Deite</p>
                     </div>
                   )}
                   
                   <Button
                     onClick={() => onStartReflection(dateString)}
-                    className="w-full bg-mustard text-white py-4 rounded-2xl font-nunito font-bold text-lg hover:bg-mustard/90 transition-colors duration-300 shadow-lg"
+                    className="w-full bg-gradient-to-r from-rose-300 to-pink-300 hover:from-rose-400 hover:to-pink-400 text-white border-0 rounded-xl py-3 font-medium shadow-md transition-all duration-300"
                   >
                     Continue Reflecting
                   </Button>
@@ -240,7 +239,22 @@ export default function DashboardScreen({ onStartReflection }: DashboardScreenPr
           </Card>
         </motion.div>
         
-        
+        {/* Chat with Deite Button */}
+        <Button 
+          onClick={() => onStartReflection(dateString)}
+          className="w-full h-14 bg-gradient-to-r from-rose-400 to-pink-400 hover:from-rose-500 hover:to-pink-500 text-white font-semibold text-lg rounded-2xl shadow-lg border-0 transition-all duration-300 transform hover:scale-105 mb-6"
+        >
+          <MessageCircle className="w-5 h-5 mr-3" />
+          Chat with Deite
+          <Heart className="w-4 h-4 ml-2 fill-white" />
+        </Button>
+
+        {/* Bottom Navigation Dots */}
+        <div className="flex justify-center space-x-2">
+          <div className="w-2 h-2 bg-rose-400 rounded-full"></div>
+          <div className="w-2 h-2 bg-rose-200 rounded-full"></div>
+          <div className="w-2 h-2 bg-rose-200 rounded-full"></div>
+        </div>
       </div>
     </div>
   );
