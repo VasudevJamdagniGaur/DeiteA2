@@ -189,20 +189,7 @@ export default function DashboardScreen({ onStartReflection }: DashboardScreenPr
                 <h2 className="text-xl font-semibold text-slate-700 font-serif">Day Reflect</h2>
               </div>
               
-              {!hasReflection ? (
-                <div className="text-center py-8">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-rose-200 to-pink-200 rounded-2xl flex items-center justify-center">
-                    <BookOpen className="w-8 h-8 text-rose-400" />
-                  </div>
-                  <p className="text-slate-500 mb-6">No entries yet</p>
-                  <Button
-                    onClick={() => onStartReflection(dateString)}
-                    className="bg-gradient-to-r from-rose-300 to-pink-300 hover:from-rose-400 hover:to-pink-400 text-white border-0 rounded-xl px-6 py-2 font-medium shadow-md transition-all duration-300"
-                  >
-                    Start Writing
-                  </Button>
-                </div>
-              ) : (
+              {hasReflection && (
                 <div>
                   {/* Journal Reflection */}
                   {isGeneratingReflection ? (
@@ -249,12 +236,7 @@ export default function DashboardScreen({ onStartReflection }: DashboardScreenPr
           <Heart className="w-4 h-4 ml-2 fill-white" />
         </Button>
 
-        {/* Bottom Navigation Dots */}
-        <div className="flex justify-center space-x-2">
-          <div className="w-2 h-2 bg-rose-400 rounded-full"></div>
-          <div className="w-2 h-2 bg-rose-200 rounded-full"></div>
-          <div className="w-2 h-2 bg-rose-200 rounded-full"></div>
-        </div>
+        
       </div>
     </div>
   );
