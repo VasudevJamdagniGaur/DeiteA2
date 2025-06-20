@@ -308,43 +308,32 @@ export default function DashboardScreen({
           </CardContent>
         </Card>
 
-        {/* Chat with Deite - Extra Cute */}
-        <Card className="bg-gradient-to-br from-purple-400 via-pink-400 to-blue-400 border-0 shadow-xl overflow-hidden relative">
-          <div className="absolute top-2 right-2">
-            <motion.div
-              className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-            >
-              <Sparkles className="w-4 h-4 text-white" />
-            </motion.div>
-          </div>
-          <CardContent className="p-6 text-white relative">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                <MessageCircle className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold">Chat with Deite</h2>
-                <p className="text-white/90 text-sm">
-                  Your AI brain buddy is here! 🤗
-                </p>
-              </div>
+        {/* Chat with Deite Button */}
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="relative"
+        >
+          <Button
+            className="w-full bg-gradient-to-br from-purple-400 via-pink-400 to-blue-400 hover:from-purple-500 hover:via-pink-500 hover:to-blue-500 text-white font-bold py-6 px-8 rounded-3xl shadow-xl border-0 text-lg relative overflow-hidden group"
+            onClick={() => onStartReflection(dateString)}
+          >
+            <div className="absolute top-2 right-4">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+              >
+                <Sparkles className="w-5 h-5 text-white/80" />
+              </motion.div>
             </div>
-            <p className="text-white/90 mb-4">
-              {hasReflection
-                ? "Continue your healing conversation and discover new insights! ✨"
-                : "Get personalized guidance and support to make your brain sparkle! ✨"}
-            </p>
-            <Button
-              className="bg-white text-purple-600 hover:bg-white/90 font-medium rounded-full px-6 shadow-lg"
-              onClick={() => onStartReflection(dateString)}
-            >
-              <MessageCircle className="w-4 h-4 mr-2" />
-              {hasReflection ? "Continue Chat with Deite" : "Chat with Deite"}
-            </Button>
-          </CardContent>
-        </Card>
+            <div className="flex items-center justify-center gap-3">
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                <MessageCircle className="w-5 h-5 text-white" />
+              </div>
+              <span>{hasReflection ? "Continue Chat with Deite" : "Chat with Deite"}</span>
+            </div>
+          </Button>
+        </motion.div>
 
         {/* Footer cute message */}
         <div className="text-center py-4">
