@@ -2,6 +2,13 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuthContext } from "../components/AuthProvider";
 import { getReflection, signOut } from "../lib/auth";
 import {
@@ -18,6 +25,8 @@ import {
   Calendar,
   Star,
   Flower2,
+  User,
+  LogOut,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { format, addDays, subDays } from "date-fns";
@@ -214,9 +223,45 @@ export default function DashboardScreen({
                   <Moon className="h-4 w-4" />
                 )}
               </Button>
-              <div className="w-10 h-10 bg-gradient-to-br from-slate-700 via-purple-600 to-indigo-700 rounded-full flex items-center justify-center text-white font-bold shadow-lg border-2 border-white/20">
-                <span>{getUserInitial()}</span>
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="w-10 h-10 bg-gradient-to-br from-slate-700 via-purple-600 to-indigo-700 rounded-full flex items-center justify-center text-white font-bold shadow-lg border-2 border-white/20 hover:shadow-xl transition-all duration-300 p-0"
+                  >
+                    <span>{getUserInitial()}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent 
+                  align="end" 
+                  className={`w-48 ${
+                    isDarkMode 
+                      ? "bg-slate-800 border-purple-500/30 text-white" 
+                      : "bg-white border-purple-100"
+                  }`}
+                >
+                  <DropdownMenuItem className={`cursor-pointer ${
+                    isDarkMode 
+                      ? "hover:bg-purple-500/20 focus:bg-purple-500/20" 
+                      : "hover:bg-purple-50 focus:bg-purple-50"
+                  }`}>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>User Profile</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className={isDarkMode ? "bg-purple-500/30" : "bg-purple-100"} />
+                  <DropdownMenuItem 
+                    className={`cursor-pointer ${
+                      isDarkMode 
+                        ? "hover:bg-red-500/20 focus:bg-red-500/20 text-red-400" 
+                        : "hover:bg-red-50 focus:bg-red-50 text-red-600"
+                    }`}
+                    onClick={handleSignOut}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
