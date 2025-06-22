@@ -30,7 +30,7 @@ Only reply to the latest message from the user in this context. Do not summarize
 Deite:`;
 
     const response = await axios.post(
-      "https://aryiopfqwg111a-11434.proxy.runpod.net/api/generate",
+      "https://7rd2nfoe1zi006-11434.proxy.runpod.net/api/generate",
       {
         model: "llama3",
         prompt: fullPrompt,
@@ -74,7 +74,7 @@ ${conversationText}
 Write a short, factual journal entry (2-3 sentences maximum):`;
 
     const response = await axios.post(
-      "https://aryiopfqwg111a-11434.proxy.runpod.net/api/generate",
+      "https://7rd2nfoe1zi006-11434.proxy.runpod.net/api/generate",
       {
         model: "llama3",
         prompt: reflectionPrompt,
