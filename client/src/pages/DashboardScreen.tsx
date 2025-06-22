@@ -14,6 +14,7 @@ import {
   Brain,
   Heart,
   Sun,
+  Moon,
   Calendar,
   Star,
   Flower2,
@@ -34,6 +35,7 @@ export default function DashboardScreen({
   const [reflectionPreview, setReflectionPreview] = useState("");
   const [journalReflection, setJournalReflection] = useState("");
   const [isGeneratingReflection, setIsGeneratingReflection] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   const dateString = format(currentDate, "yyyy-MM-dd");
 
@@ -134,25 +136,43 @@ export default function DashboardScreen({
     );
   };
 
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 p-4">
+    <div className={`min-h-screen p-4 transition-all duration-500 ${
+      isDarkMode 
+        ? "bg-gradient-to-br from-slate-900 via-purple-900 to-slate-800" 
+        : "bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50"
+    }`}>
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header with cute brain illustration */}
         <div className="text-center py-8 relative">
           <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-4">
             <motion.div
-              className="w-16 h-16 bg-gradient-to-br from-pink-200 to-purple-200 rounded-full flex items-center justify-center"
+              className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                isDarkMode 
+                  ? "bg-gradient-to-br from-purple-400 to-pink-400 shadow-lg shadow-purple-500/50" 
+                  : "bg-gradient-to-br from-pink-200 to-purple-200"
+              }`}
               animate={{ scale: [1, 1.1, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
-              <Brain className="w-8 h-8 text-purple-600" />
+              <Brain className={`w-8 h-8 ${isDarkMode ? "text-white" : "text-purple-600"}`} />
             </motion.div>
           </div>
           <div className="mt-8">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-blue-500 bg-clip-text text-transparent mb-2">
+            <h1 className={`text-4xl font-bold bg-gradient-to-r bg-clip-text text-transparent mb-2 ${
+              isDarkMode 
+                ? "from-purple-400 via-pink-400 to-blue-400" 
+                : "from-purple-600 via-pink-500 to-blue-500"
+            }`}>
               Welcome back to Deite
             </h1>
-            <p className="text-gray-600 flex items-center justify-center gap-2">
+            <p className={`flex items-center justify-center gap-2 ${
+              isDarkMode ? "text-gray-300" : "text-gray-600"
+            }`}>
               <Sparkles className="w-4 h-4 text-yellow-400" />
               Continue your brain-healing journey
               <Sparkles className="w-4 h-4 text-yellow-400" />
@@ -165,45 +185,75 @@ export default function DashboardScreen({
             animate={{ y: [0, -10, 0] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            <Heart className="w-6 h-6 text-pink-400" />
+            <Heart className={`w-6 h-6 ${isDarkMode ? "text-pink-400 drop-shadow-lg" : "text-pink-400"}`} />
           </motion.div>
           <motion.div
             className="absolute top-8 right-8"
             animate={{ y: [0, -10, 0] }}
             transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
           >
-            <Flower2 className="w-5 h-5 text-purple-400" />
+            <Flower2 className={`w-5 h-5 ${isDarkMode ? "text-purple-400 drop-shadow-lg" : "text-purple-400"}`} />
           </motion.div>
 
-          {/* User avatar */}
+          {/* User avatar and theme toggle */}
           <div className="absolute top-4 right-4">
-            <div className="w-10 h-10 bg-gradient-to-br from-slate-700 via-purple-600 to-indigo-700 rounded-full flex items-center justify-center text-white font-bold shadow-lg border-2 border-white/20">
-              <span>{getUserInitial()}</span>
+            <div className="flex items-center space-x-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleTheme}
+                className={`p-2 rounded-full transition-colors duration-300 ${
+                  isDarkMode 
+                    ? "bg-white/10 text-yellow-400 hover:bg-white/20" 
+                    : "bg-white/50 text-purple-600 hover:bg-white/70"
+                }`}
+              >
+                {isDarkMode ? (
+                  <Sun className="h-4 w-4" />
+                ) : (
+                  <Moon className="h-4 w-4" />
+                )}
+              </Button>
+              <div className="w-10 h-10 bg-gradient-to-br from-slate-700 via-purple-600 to-indigo-700 rounded-full flex items-center justify-center text-white font-bold shadow-lg border-2 border-white/20">
+                <span>{getUserInitial()}</span>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Date Selector - Cute Card */}
-        <Card className="bg-white/80 backdrop-blur-sm border-2 border-purple-100 shadow-lg hover:shadow-xl transition-all duration-300">
+        <Card className={`backdrop-blur-sm border-2 shadow-lg hover:shadow-xl transition-all duration-300 ${
+          isDarkMode 
+            ? "bg-slate-800/80 border-purple-500/30 shadow-purple-500/10 hover:shadow-purple-500/20" 
+            : "bg-white/80 border-purple-100"
+        }`}>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <Button
                 variant="ghost"
                 size="icon"
-                className="rounded-full hover:bg-purple-100"
+                className={`rounded-full ${
+                  isDarkMode 
+                    ? "hover:bg-purple-500/20 text-purple-400" 
+                    : "hover:bg-purple-100 text-purple-600"
+                }`}
                 onClick={handlePreviousDay}
               >
-                <ChevronLeft className="w-4 h-4 text-purple-600" />
+                <ChevronLeft className="w-4 h-4" />
               </Button>
 
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-1">
-                  <Calendar className="w-4 h-4 text-purple-500" />
-                  <span className="text-sm text-purple-600 font-medium">
+                  <Calendar className={`w-4 h-4 ${isDarkMode ? "text-purple-400" : "text-purple-500"}`} />
+                  <span className={`text-sm font-medium ${
+                    isDarkMode ? "text-purple-400" : "text-purple-600"
+                  }`}>
                     Selected Date
                   </span>
                 </div>
-                <div className="text-lg font-semibold text-gray-800">
+                <div className={`text-lg font-semibold ${
+                  isDarkMode ? "text-white" : "text-gray-800"
+                }`}>
                   {format(currentDate, "EEEE, MMMM d, yyyy")}
                 </div>
               </div>
@@ -211,53 +261,89 @@ export default function DashboardScreen({
               <Button
                 variant="ghost"
                 size="icon"
-                className="rounded-full hover:bg-purple-100"
+                className={`rounded-full ${
+                  isDarkMode 
+                    ? "hover:bg-purple-500/20 text-purple-400" 
+                    : "hover:bg-purple-100 text-purple-600"
+                }`}
                 onClick={handleNextDay}
               >
-                <ChevronRight className="w-4 h-4 text-purple-600" />
+                <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
           </CardContent>
         </Card>
 
         {/* Daily Reflection - Super Cute */}
-        <Card className="bg-gradient-to-br from-green-50 to-teal-50 border-2 border-green-200 shadow-lg">
+        <Card className={`border-2 shadow-lg ${
+          isDarkMode 
+            ? "bg-gradient-to-br from-emerald-900/50 to-teal-900/50 border-emerald-500/30 shadow-emerald-500/10" 
+            : "bg-gradient-to-br from-green-50 to-teal-50 border-green-200"
+        }`}>
           <CardContent className="p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-green-200 to-teal-200 rounded-full flex items-center justify-center">
-                <Sun className="w-5 h-5 text-green-600" />
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                isDarkMode 
+                  ? "bg-gradient-to-br from-emerald-400 to-teal-400 shadow-lg shadow-emerald-500/30" 
+                  : "bg-gradient-to-br from-green-200 to-teal-200"
+              }`}>
+                {isDarkMode ? (
+                  <Moon className="w-5 h-5 text-white" />
+                ) : (
+                  <Sun className="w-5 h-5 text-green-600" />
+                )}
               </div>
-              <h2 className="text-xl font-bold text-gray-800">Day Reflect</h2>
+              <h2 className={`text-xl font-bold ${
+                isDarkMode ? "text-white" : "text-gray-800"
+              }`}>
+                {isDarkMode ? "Daily Brain Boost" : "Day Reflect"}
+              </h2>
             </div>
 
             {!hasReflection ? (
               <div className="text-center py-4">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <BookOpen className="h-6 w-6 text-gray-400" />
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
+                  isDarkMode ? "bg-gray-700" : "bg-gray-100"
+                }`}>
+                  <BookOpen className={`h-6 w-6 ${isDarkMode ? "text-gray-400" : "text-gray-400"}`} />
                 </div>
-                <p className="text-gray-400 mb-4 italic">
+                <p className={`mb-4 italic ${isDarkMode ? "text-gray-400" : "text-gray-400"}`}>
                   No entries yet - let's create some magic! ✨
                 </p>
               </div>
             ) : (
               <div className="mb-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-sm font-medium text-gray-600">
+                  <span className={`text-sm font-medium ${
+                    isDarkMode ? "text-gray-300" : "text-gray-600"
+                  }`}>
                     Mood Summary
                   </span>
                   <div className="flex gap-1">
                     <motion.div
-                      className="w-2 h-2 bg-green-400 rounded-full"
+                      className={`w-2 h-2 rounded-full ${
+                        isDarkMode 
+                          ? "bg-emerald-400 shadow-sm shadow-emerald-400" 
+                          : "bg-green-400"
+                      }`}
                       animate={{ scale: [1, 1.2, 1] }}
                       transition={{ duration: 1, repeat: Infinity }}
                     />
                     <motion.div
-                      className="w-2 h-2 bg-green-400 rounded-full"
+                      className={`w-2 h-2 rounded-full ${
+                        isDarkMode 
+                          ? "bg-emerald-400 shadow-sm shadow-emerald-400" 
+                          : "bg-green-400"
+                      }`}
                       animate={{ scale: [1, 1.2, 1] }}
                       transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
                     />
                     <motion.div
-                      className="w-2 h-2 bg-green-400 rounded-full"
+                      className={`w-2 h-2 rounded-full ${
+                        isDarkMode 
+                          ? "bg-emerald-400 shadow-sm shadow-emerald-400" 
+                          : "bg-green-400"
+                      }`}
                       animate={{ scale: [1, 1.2, 1] }}
                       transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
                     />
@@ -266,30 +352,46 @@ export default function DashboardScreen({
 
                 {isGeneratingReflection ? (
                   <div className="flex items-center space-x-2 mb-4">
-                    <div className="animate-spin w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full"></div>
-                    <p className="text-gray-600 italic">
+                    <div className={`animate-spin w-4 h-4 border-2 border-t-transparent rounded-full ${
+                      isDarkMode ? "border-emerald-500" : "border-green-500"
+                    }`}></div>
+                    <p className={`italic ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>
                       Generating your reflection...
                     </p>
                   </div>
                 ) : journalReflection ? (
-                  <p className="text-gray-700 mb-4 leading-relaxed">
+                  <p className={`mb-4 leading-relaxed ${
+                    isDarkMode ? "text-gray-200" : "text-gray-700"
+                  }`}>
                     {journalReflection} 🌟
                   </p>
                 ) : (
-                  <p className="text-gray-700 mb-4">
+                  <p className={`mb-4 ${isDarkMode ? "text-gray-200" : "text-gray-700"}`}>
                     Today feels like a wonderful day for reflection! Your brain
                     is making amazing progress. 🌟
                   </p>
                 )}
 
                 <div className="flex flex-wrap gap-2 mb-4">
-                  <Badge className="bg-gradient-to-r from-blue-400 to-blue-500 text-white hover:from-blue-500 hover:to-blue-600">
+                  <Badge className={`bg-gradient-to-r text-white ${
+                    isDarkMode 
+                      ? "from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg shadow-blue-500/30" 
+                      : "from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600"
+                  }`}>
                     ✨ Grateful
                   </Badge>
-                  <Badge className="bg-gradient-to-r from-purple-400 to-purple-500 text-white hover:from-purple-500 hover:to-purple-600">
+                  <Badge className={`bg-gradient-to-r text-white ${
+                    isDarkMode 
+                      ? "from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 shadow-lg shadow-purple-500/30" 
+                      : "from-purple-400 to-purple-500 hover:from-purple-500 hover:to-purple-600"
+                  }`}>
                     🎯 Focused
                   </Badge>
-                  <Badge className="bg-gradient-to-r from-pink-400 to-pink-500 text-white hover:from-pink-500 hover:to-pink-600">
+                  <Badge className={`bg-gradient-to-r text-white ${
+                    isDarkMode 
+                      ? "from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 shadow-lg shadow-pink-500/30" 
+                      : "from-pink-400 to-pink-500 hover:from-pink-500 hover:to-pink-600"
+                  }`}>
                     🧘 Calm
                   </Badge>
                 </div>
@@ -327,10 +429,12 @@ export default function DashboardScreen({
 
         {/* Footer cute message */}
         <div className="text-center py-4">
-          <p className="text-gray-600 flex items-center justify-center gap-2">
-            <Brain className="w-4 h-4 text-purple-500" />
+          <p className={`flex items-center justify-center gap-2 ${
+            isDarkMode ? "text-gray-300" : "text-gray-600"
+          }`}>
+            <Brain className={`w-4 h-4 ${isDarkMode ? "text-purple-400" : "text-purple-500"}`} />
             Your brain deserves all the love and care!
-            <Heart className="w-4 h-4 text-pink-500" />
+            <Heart className={`w-4 h-4 ${isDarkMode ? "text-pink-400" : "text-pink-500"}`} />
           </p>
         </div>
       </div>
