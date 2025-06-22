@@ -175,20 +175,10 @@ export default function DashboardScreen({
             <Flower2 className="w-5 h-5 text-purple-400" />
           </motion.div>
 
-          {/* User avatar and settings */}
+          {/* User avatar */}
           <div className="absolute top-4 right-4">
-            <div className="flex items-center space-x-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleSignOut}
-                className="p-2 rounded-full bg-white/50 text-purple-600 hover:bg-white/70 transition-colors duration-300"
-              >
-                <Settings className="h-4 w-4" />
-              </Button>
-              <div className="w-10 h-10 bg-gradient-to-br from-slate-700 via-purple-600 to-indigo-700 rounded-full flex items-center justify-center text-white font-bold shadow-lg border-2 border-white/20">
-                <span>{getUserInitial()}</span>
-              </div>
+            <div className="w-10 h-10 bg-gradient-to-br from-slate-700 via-purple-600 to-indigo-700 rounded-full flex items-center justify-center text-white font-bold shadow-lg border-2 border-white/20">
+              <span>{getUserInitial()}</span>
             </div>
           </div>
         </div>
