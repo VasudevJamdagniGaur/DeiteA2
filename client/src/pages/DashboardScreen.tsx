@@ -23,12 +23,10 @@ import { format, addDays, subDays } from "date-fns";
 
 interface DashboardScreenProps {
   onStartReflection: (date: string) => void;
-  onOpenProfile: () => void;
 }
 
 export default function DashboardScreen({
   onStartReflection,
-  onOpenProfile,
 }: DashboardScreenProps) {
   const { user, profile } = useAuthContext();
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -188,12 +186,9 @@ export default function DashboardScreen({
               >
                 <Settings className="h-4 w-4" />
               </Button>
-              <button
-                onClick={onOpenProfile}
-                className="w-10 h-10 bg-gradient-to-br from-slate-700 via-purple-600 to-indigo-700 rounded-full flex items-center justify-center text-white font-bold shadow-lg border-2 border-white/20 hover:scale-105 transition-transform duration-200 cursor-pointer"
-              >
+              <div className="w-10 h-10 bg-gradient-to-br from-slate-700 via-purple-600 to-indigo-700 rounded-full flex items-center justify-center text-white font-bold shadow-lg border-2 border-white/20">
                 <span>{getUserInitial()}</span>
-              </button>
+              </div>
             </div>
           </div>
         </div>
