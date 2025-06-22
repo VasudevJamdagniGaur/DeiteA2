@@ -10,6 +10,7 @@ import AuthScreen from "./pages/AuthScreen";
 import ProfileSetupScreen from "./pages/ProfileSetupScreen";
 import DashboardScreen from "./pages/DashboardScreen";
 import ChatScreen from "./pages/ChatScreen";
+import ProfilePage from "./pages/ProfilePage";
 import NotFound from "@/pages/not-found";
 import { useState, useEffect } from "react";
 
