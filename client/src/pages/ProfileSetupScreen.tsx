@@ -54,8 +54,11 @@ export default function ProfileSetupScreen({ onComplete }: ProfileSetupScreenPro
         description: "Welcome to your mindful journey with Deite.",
       });
 
-      console.log("Calling onComplete to navigate to dashboard");
-      onComplete();
+      console.log("Profile setup complete, calling onComplete");
+      // Small delay to ensure state is updated before navigation
+      setTimeout(() => {
+        onComplete();
+      }, 100);
     } catch (error: any) {
       console.error("Error saving profile:", error);
       toast({

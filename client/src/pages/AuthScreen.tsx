@@ -38,6 +38,9 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
           description: "Successfully signed in to Deite.",
         });
       }
+      
+      // Let the auth state change trigger navigation
+      console.log("Authentication successful, letting auth state handle navigation");
       onSuccess();
     } catch (error: any) {
       toast({

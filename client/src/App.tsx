@@ -20,6 +20,8 @@ function AppContent() {
 
   useEffect(() => {
     if (!loading) {
+      console.log("Navigation logic - User:", !!user, "Profile:", !!profile, "Current screen:", currentScreen);
+      
       if (!user) {
         // Not authenticated - show splash/onboarding/auth flow
         if (currentScreen === "splash" || currentScreen === "onboarding" || currentScreen === "auth") {
@@ -28,11 +30,13 @@ function AppContent() {
           setCurrentScreen("splash");
         }
       } else if (user && !profile) {
-        // Authenticated but no profile - show profile setup
+        // Authenticated but no profile - always show profile setup
+        console.log("User authenticated but no profile, showing profile setup");
         setCurrentScreen("profile");
       } else if (user && profile) {
         // Fully set up - show dashboard or chat
         if (currentScreen === "splash" || currentScreen === "onboarding" || currentScreen === "auth" || currentScreen === "profile") {
+          console.log("User has profile, navigating to dashboard");
           setCurrentScreen("dashboard");
         }
       }
