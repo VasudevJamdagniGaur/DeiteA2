@@ -42,30 +42,13 @@ Deite is powered by **LLaMA 3**, trained to act as a therapeutic assistant, and 
 
 ## 🚀 Getting Started
 
-### Prerequisites
+## Prerequisites
 
 - Node.js or Flutter installed
 - Firebase account (for authentication and DB)
 - RunPod account for model deployment
 
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/deite-a2.git
-cd deite-a2
-
-# Frontend
-cd client
-npm install
-npm run dev
-
-# Backend
-cd ../server
-npm install
-npm run dev
-
-Contributing
+## Contributing
 We welcome community contributions!
 
 To contribute:
@@ -84,7 +67,7 @@ Open a pull request
 
 For major changes, open an issue first to discuss your ideas.
 
-Acknowledgments
+## Acknowledgments
 🧠 Meta AI for releasing LLaMA 3
 
 🔥 RunPod for GPU inference infrastructure
@@ -95,9 +78,26 @@ Acknowledgments
 
 🤝 Built with input from mental health professionals and real users
 
-📬 Contact
+## 📬 Contact
 Project Lead: Vasudev – GitHub
 
 Website: https://deite.in
 
 Email: vasudevjamdagnigaur@gmail.com
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/deite-a2.git
+cd deite-a2
+
+# Frontend
+cd client
+npm install
+npm run dev
+
+# Backend
+cd ../server
+npm install
+npm run dev
