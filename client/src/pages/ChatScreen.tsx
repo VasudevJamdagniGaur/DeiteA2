@@ -207,9 +207,9 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
           <ArrowLeft className="h-5 w-5" />
         </Button>
 
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-            <span className="text-white text-sm font-semibold">D</span>
+        <div className="flex flex-col items-center justify-center flex-1">
+          <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mb-2">
+            <span className="text-white text-sm font-semibold">🧠</span>
           </div>
           <div className="text-center">
             <h1 className={`text-lg font-semibold transition-colors duration-300 ${
@@ -220,7 +220,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
             <p className={`text-xs transition-colors duration-300 ${
               isDarkMode ? "text-gray-400" : "text-gray-500"
             }`}>
-              Your brain buddy 🧠💙
+              Your cute AI companion
             </p>
           </div>
         </div>
