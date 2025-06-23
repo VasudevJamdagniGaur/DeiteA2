@@ -85,6 +85,38 @@ Website: https://deite.in
 
 Email: vasudevjamdagnigaur@gmail.com
 
+## 📁 Project Structure
+
+deite-a2/
+├── client/ # Frontend (React or Flutter)
+├── server/ # Backend API (Node.js or Python)
+├── model/ # LLaMA 3 training/config
+├── runpod/ # RunPod Docker & deployment files
+├── prompts/ # Prompt templates and logic
+├── docs/ # Documentation
+└── README.md # This file
+
+## 🧪 Tech Stack
+
+- 🧠 LLaMA 3 (Meta AI)
+- 💬 React / Flutter (Frontend)
+- 🔥 Firebase (Auth + Firestore)
+- ☁️ RunPod (Model hosting/inference)
+- 🐳 Docker (Model containerization)
+- ⚙️ Node.js or FastAPI (Backend API)
+
+## ⚙️ Deployment
+
+To deploy the LLaMA 3 model with RunPod:
+
+```bash
+cd runpod
+docker build -t deite-llama3 .
+docker run -p 8000:8000 deite-llama3
+```
+After starting the server, update the .env file inside the client/ directory with your deployed API endpoint
+This ensures the frontend can communicate with the backend model server correctly.
+
 ### Installation
 
 ```bash
