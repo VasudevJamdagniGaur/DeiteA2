@@ -1,11 +1,13 @@
+
+"use client"
+
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuthContext } from "../components/AuthProvider";
-import { useTheme } from "../components/ThemeProvider";
 import { saveReflection, getReflection } from "../lib/auth";
-import { ArrowLeft, Send, Heart, Sparkles, Brain } from "lucide-react";
+import { ArrowLeft, Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChatMessage } from "../types";
 
@@ -16,7 +18,6 @@ interface ChatScreenProps {
 
 export default function ChatScreen({ date, onBack }: ChatScreenProps) {
   const { user, profile } = useAuthContext();
-  const { isDarkMode } = useTheme();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -40,28 +41,25 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
     try {
       const reflection = await getReflection(user.uid, date);
       if (reflection && reflection.content) {
-        // Parse existing messages from content
         const initialMessages = parseMessagesFromContent(reflection.content);
         setMessages(initialMessages);
       } else {
-        // Start with Deite's greeting
         setMessages([
           {
             id: "1",
             sender: "deite",
-            content: "Hi there! How are you feeling today? I'm here to listen and help you reflect. 🌸",
+            content: "Hi there! How are you feeling today? I'm here to listen and help you reflect. 💜",
             timestamp: new Date(),
           },
         ]);
       }
     } catch (error) {
       console.error("Error loading reflection:", error);
-      // Start with greeting on error
       setMessages([
         {
           id: "1",
           sender: "deite",
-          content: "Hi there! How are you feeling today? I'm here to listen and help you reflect. 🌸",
+          content: "Hi there! How are you feeling today? I'm here to listen and help you reflect. 💜",
           timestamp: new Date(),
         },
       ]);
@@ -94,7 +92,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
       {
         id: "1",
         sender: "deite",
-        content: "Hi there! How are you feeling today? I'm here to listen and help you reflect. 🌸",
+        content: "Hi there! How are you feeling today? I'm here to listen and help you reflect. 💜",
         timestamp: new Date(),
       },
     ];
@@ -115,7 +113,6 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
     setIsLoading(true);
 
     try {
-      // Include the new user message in the conversation history
       const updatedMessages = [...messages, userMessage];
 
       const response = await fetch('/api/chat', {
@@ -166,7 +163,6 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
     if (!user) return;
 
     try {
-      // Convert messages to a simple text format for storage
       const content = messagesToSave
         .map(msg => `${msg.sender === 'deite' ? 'Deite' : 'You'}: ${msg.content}`)
         .join('\n');
@@ -189,139 +185,116 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
   };
 
   return (
-    <div className={`min-h-screen p-4 flex flex-col transition-all duration-500 ${
-      isDarkMode 
-        ? "bg-gradient-to-br from-slate-900 via-purple-900 to-slate-800" 
-        : "bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50"
-    }`}>
-      {/* Chat Header */}
-      <div className="bg-white/90 backdrop-blur-sm shadow-lg p-4 flex items-center space-x-4 relative overflow-hidden">
-        {/* Floating decorative elements */}
-        <motion.div 
-          className="absolute top-2 right-8"
-          animate={{ y: [0, -5, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          <Sparkles className="w-4 h-4 text-purple-400" />
-        </motion.div>
-        <motion.div 
-          className="absolute bottom-2 right-16"
-          animate={{ y: [0, -8, 0] }}
-          transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }}
-        >
-          <Heart className="w-3 h-3 text-pink-400" />
-        </motion.div>
-
-        <Button
-          variant="ghost"
-          size="sm"
+    <div className="flex flex-col h-screen max-w-md mx-auto bg-white text-gray-900">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
           onClick={onBack}
-          className="p-2 rounded-full hover:bg-purple-100 transition-colors duration-300"
         >
-          <ArrowLeft className="h-4 w-4 text-purple-600" />
+          <ArrowLeft className="h-5 w-5" />
         </Button>
+
         <div className="flex items-center space-x-3">
-          <motion.div 
-            className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center shadow-lg"
-            animate={{ rotate: [0, 5, -5, 0] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <Brain className="h-5 w-5 text-white" />
-          </motion.div>
-          <div>
-            <h2 className="font-bold text-purple-600 text-lg">Deite</h2>
-            <p className="text-sm text-gray-500">Your brain buddy 🧠💙</p>
+          <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+            <span className="text-white text-sm font-semibold">D</span>
+          </div>
+          <div className="text-center">
+            <h1 className="text-lg font-semibold text-gray-900">Deite</h1>
+            <p className="text-xs text-gray-600">Your brain buddy 🧠💙</p>
           </div>
         </div>
       </div>
 
       {/* Chat Messages */}
-      <div className="flex-1 p-4 overflow-y-auto">
-        <div className="max-w-2xl mx-auto space-y-4">
-          <AnimatePresence>
-            {messages.map((message) => (
-              <motion.div
-                key={message.id}
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                transition={{ duration: 0.3 }}
-                className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}
-              >
-                <div className={`flex items-end space-x-2 max-w-xs ${message.sender === "user" ? "flex-row-reverse space-x-reverse" : ""}`}>
-                  {/* Avatar */}
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md ${
-                    message.sender === "user" 
-                      ? "bg-gradient-to-br from-blue-400 to-blue-500" 
-                      : "bg-gradient-to-br from-purple-400 to-pink-400"
-                  }`}>
-                    {message.sender === "user" ? getUserInitial() : "🧠"}
-                  </div>
-
-                  {/* Message bubble */}
-                  <div
-                    className={`px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-lg ${
-                      message.sender === "user"
-                        ? "bg-gradient-to-br from-blue-400 to-blue-500 text-white rounded-br-md"
-                        : "bg-white border-2 border-purple-100 text-gray-800 rounded-bl-md"
-                    }`}
-                  >
-                    {message.content}
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-
-          {isLoading && (
+      <div className="flex-1 p-4 space-y-4 overflow-y-auto">
+        <AnimatePresence>
+          {messages.map((message) => (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex justify-start"
+              key={message.id}
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.95 }}
+              transition={{ duration: 0.3 }}
             >
-              <div className="flex items-end space-x-2 max-w-xs">
-                <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-bold shadow-md">
-                  🧠
-                </div>
-                <div className="bg-white border-2 border-purple-100 text-gray-800 rounded-2xl rounded-bl-md px-4 py-3 shadow-lg">
-                  <div className="flex space-x-1">
-                    {[0, 1, 2].map((i) => (
-                      <motion.div
-                        key={i}
-                        className="w-2 h-2 bg-purple-400 rounded-full"
-                        animate={{ y: [0, -6, 0] }}
-                        transition={{
-                          duration: 0.6,
-                          repeat: Infinity,
-                          delay: i * 0.1,
-                        }}
-                      />
-                    ))}
+              {message.sender === "deite" ? (
+                <div className="flex items-start space-x-3">
+                  <Avatar className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 flex-shrink-0">
+                    <AvatarFallback className="bg-transparent text-white font-semibold">🧠</AvatarFallback>
+                  </Avatar>
+                  <div className="bg-gray-100 rounded-2xl rounded-tl-md p-4 max-w-[80%] border border-gray-200">
+                    <p className="text-gray-800 text-sm leading-relaxed">
+                      {message.content}
+                    </p>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="flex items-start space-x-3 justify-end">
+                  <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl rounded-tr-md p-4 max-w-[80%]">
+                    <p className="text-white text-sm leading-relaxed">
+                      {message.content}
+                    </p>
+                  </div>
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-white text-sm font-semibold">{getUserInitial()}</span>
+                  </div>
+                </div>
+              )}
             </motion.div>
-          )}
+          ))}
+        </AnimatePresence>
 
-          <div ref={messagesEndRef} />
-        </div>
+        {isLoading && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-start space-x-3"
+          >
+            <Avatar className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 flex-shrink-0">
+              <AvatarFallback className="bg-transparent text-white font-semibold">🧠</AvatarFallback>
+            </Avatar>
+            <div className="bg-gray-100 rounded-2xl rounded-tl-md p-4 max-w-[80%] border border-gray-200">
+              <div className="flex space-x-1">
+                {[0, 1, 2].map((i) => (
+                  <motion.div
+                    key={i}
+                    className="w-2 h-2 bg-purple-400 rounded-full"
+                    animate={{ y: [0, -6, 0] }}
+                    transition={{
+                      duration: 0.6,
+                      repeat: Infinity,
+                      delay: i * 0.1,
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        <div ref={messagesEndRef} />
       </div>
 
-      {/* Message Input */}
-      <div className="bg-white/90 backdrop-blur-sm p-4 border-t-2 border-purple-100">
-        <div className="flex items-center space-x-3 max-w-2xl mx-auto">
-          <Input
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={handleKeyPress}
-            className="flex-1 p-4 rounded-2xl border-2 border-purple-200 focus:border-purple-400 focus:outline-none transition-colors duration-300 bg-white/80"
-            placeholder="Share your thoughts... 💭"
-            disabled={isLoading}
-          />
+      {/* Input Area */}
+      <div className="p-4 border-t border-gray-200">
+        <div className="flex items-center space-x-2">
+          <div className="flex-1 relative">
+            <Input
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Share your thoughts..."
+              className="bg-gray-100 border-gray-300 text-gray-900 placeholder-gray-500 rounded-full pr-12 focus:border-purple-500 focus:ring-purple-500"
+              disabled={isLoading}
+            />
+          </div>
           <Button
             onClick={handleSendMessage}
             disabled={!inputValue.trim() || isLoading}
-            className="p-4 bg-gradient-to-br from-purple-400 to-pink-400 rounded-2xl text-white hover:from-purple-500 hover:to-pink-500 transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            size="icon"
+            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-full h-10 w-10 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="h-4 w-4" />
           </Button>
