@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +8,6 @@ import { saveReflection, getReflection } from "../lib/auth";
 import { ArrowLeft, Send, Heart, Sparkles, Brain } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChatMessage } from "../types";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface ChatScreenProps {
   date: string;
@@ -191,148 +188,145 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
     return profile?.name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || "U";
   };
 
-  const handleGoBack = () => {
-    window.history.back()
-  }
-
-  const [message, setMessage] = useState("")
-
-  const darkThemeClasses = `bg-gray-900 text-white`
-  const lightThemeClasses = `bg-white text-gray-900`
-  const themeClasses = isDarkMode ? darkThemeClasses : lightThemeClasses
-
-  const handleMessageSend = () => {
-    if (message.trim()) {
-      // Handle sending message logic here
-      console.log("Sending message:", message)
-      setMessage("")
-    }
-  }
-
-  const handleEnterPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleMessageSend()
-    }
-  }
-
   return (
-    <div className={`flex flex-col h-screen max-w-md mx-auto transition-colors duration-300 ${themeClasses}`}>
-      {/* Header */}
-      <div className={`flex items-center justify-between p-4 border-b transition-colors duration-300 ${
-        isDarkMode 
-          ? "border-gray-800" 
-          : "border-gray-200"
-      }`}>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={handleGoBack}
-          className={`transition-colors duration-300 ${
-            isDarkMode 
-              ? "text-gray-400 hover:text-white hover:bg-gray-800" 
-              : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-          }`}
+    <div className={`min-h-screen p-4 flex flex-col transition-all duration-500 ${
+      isDarkMode 
+        ? "bg-gradient-to-br from-slate-900 via-purple-900 to-slate-800" 
+        : "bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50"
+    }`}>
+      {/* Chat Header */}
+      <div className="bg-white/90 backdrop-blur-sm shadow-lg p-4 flex items-center space-x-4 relative overflow-hidden">
+        {/* Floating decorative elements */}
+        <motion.div 
+          className="absolute top-2 right-8"
+          animate={{ y: [0, -5, 0] }}
+          transition={{ duration: 2, repeat: Infinity }}
         >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
+          <Sparkles className="w-4 h-4 text-purple-400" />
+        </motion.div>
+        <motion.div 
+          className="absolute bottom-2 right-16"
+          animate={{ y: [0, -8, 0] }}
+          transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }}
+        >
+          <Heart className="w-3 h-3 text-pink-400" />
+        </motion.div>
 
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onBack}
+          className="p-2 rounded-full hover:bg-purple-100 transition-colors duration-300"
+        >
+          <ArrowLeft className="h-4 w-4 text-purple-600" />
+        </Button>
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
-            <Brain className="h-4 w-4 text-white" />
-          </div>
-          <div className="text-center">
-            <h1 className={`text-lg font-semibold transition-colors duration-300 ${
-              isDarkMode ? "text-white" : "text-gray-900"
-            }`}>
-              Deite
-            </h1>
-            <p className={`text-xs transition-colors duration-300 ${
-              isDarkMode ? "text-gray-400" : "text-gray-500"
-            }`}>
-              Your brain buddy 🧠💙
-            </p>
+          <motion.div 
+            className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center shadow-lg"
+            animate={{ rotate: [0, 5, -5, 0] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <Brain className="h-5 w-5 text-white" />
+          </motion.div>
+          <div>
+            <h2 className="font-bold text-purple-600 text-lg">Deite</h2>
+            <p className="text-sm text-gray-500">Your brain buddy 🧠💙</p>
           </div>
         </div>
-
-        <div className="w-8"></div> {/* Spacer for center alignment */}
       </div>
 
       {/* Chat Messages */}
-      <div className={`flex-1 p-4 space-y-4 overflow-y-auto scrollbar-thin transition-colors duration-300 ${
-        isDarkMode 
-          ? "scrollbar-track-slate-800 scrollbar-thumb-purple-600 hover:scrollbar-thumb-purple-500" 
-          : "scrollbar-track-pink-100 scrollbar-thumb-pink-300 hover:scrollbar-thumb-pink-400"
-      }`}>
-        <div className="flex items-start space-x-3">
-          <Avatar className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 flex-shrink-0 shadow-lg">
-            <AvatarFallback className="bg-transparent text-white font-semibold">
-              <Brain className="h-5 w-5" />
-            </AvatarFallback>
-          </Avatar>
-          <div className={`rounded-2xl rounded-tl-md p-4 max-w-[80%] border transition-colors duration-300 ${
-            isDarkMode 
-              ? "bg-gray-800 border-gray-700" 
-              : "bg-gray-50 border-gray-200"
-          }`}>
-            <p className={`text-sm leading-relaxed transition-colors duration-300 ${
-              isDarkMode ? "text-gray-100" : "text-gray-800"
-            }`}>
-              Hi there! How are you feeling today? I'm here to listen and help you reflect. 💜
-            </p>
-          </div>
-        </div>
+      <div className="flex-1 p-4 overflow-y-auto">
+        <div className="max-w-2xl mx-auto space-y-4">
+          <AnimatePresence>
+            {messages.map((message) => (
+              <motion.div
+                key={message.id}
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                transition={{ duration: 0.3 }}
+                className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}
+              >
+                <div className={`flex items-end space-x-2 max-w-xs ${message.sender === "user" ? "flex-row-reverse space-x-reverse" : ""}`}>
+                  {/* Avatar */}
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md ${
+                    message.sender === "user" 
+                      ? "bg-gradient-to-br from-blue-400 to-blue-500" 
+                      : "bg-gradient-to-br from-purple-400 to-pink-400"
+                  }`}>
+                    {message.sender === "user" ? getUserInitial() : "🧠"}
+                  </div>
 
-        {/* Welcome message */}
-        <div className="flex items-start space-x-3">
-          <Avatar className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 flex-shrink-0 shadow-lg">
-            <AvatarFallback className="bg-transparent text-white font-semibold">
-              <Brain className="h-5 w-5" />
-            </AvatarFallback>
-          </Avatar>
-          <div className={`rounded-2xl rounded-tl-md p-4 max-w-[80%] border transition-colors duration-300 ${
-            isDarkMode 
-              ? "bg-gray-800 border-gray-700" 
-              : "bg-gray-50 border-gray-200"
-          }`}>
-            <p className={`text-sm leading-relaxed transition-colors duration-300 ${
-              isDarkMode ? "text-gray-100" : "text-gray-800"
-            }`}>
-              You can share anything that's on your mind - your thoughts, feelings, worries, or even good moments from your day. I'm here to support your mental wellness journey! ✨
-            </p>
-          </div>
+                  {/* Message bubble */}
+                  <div
+                    className={`px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-lg ${
+                      message.sender === "user"
+                        ? "bg-gradient-to-br from-blue-400 to-blue-500 text-white rounded-br-md"
+                        : "bg-white border-2 border-purple-100 text-gray-800 rounded-bl-md"
+                    }`}
+                  >
+                    {message.content}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+
+          {isLoading && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex justify-start"
+            >
+              <div className="flex items-end space-x-2 max-w-xs">
+                <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-bold shadow-md">
+                  🧠
+                </div>
+                <div className="bg-white border-2 border-purple-100 text-gray-800 rounded-2xl rounded-bl-md px-4 py-3 shadow-lg">
+                  <div className="flex space-x-1">
+                    {[0, 1, 2].map((i) => (
+                      <motion.div
+                        key={i}
+                        className="w-2 h-2 bg-purple-400 rounded-full"
+                        animate={{ y: [0, -6, 0] }}
+                        transition={{
+                          duration: 0.6,
+                          repeat: Infinity,
+                          delay: i * 0.1,
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          <div ref={messagesEndRef} />
         </div>
       </div>
 
-      {/* Input Area */}
-      <div className={`p-4 border-t transition-colors duration-300 ${
-        isDarkMode 
-          ? "border-gray-800" 
-          : "border-gray-200"
-      }`}>
-        <div className="flex items-center space-x-2">
-          <div className="flex-1 relative">
-            <Input
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyPress={handleEnterPress}
-              placeholder="Share your thoughts..."
-              className={`rounded-full pr-12 transition-colors duration-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                isDarkMode 
-                  ? "bg-gray-800 border-gray-700 text-white placeholder-gray-400" 
-                  : "bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500"
-              }`}
-            />
-          </div>
+      {/* Message Input */}
+      <div className="bg-white/90 backdrop-blur-sm p-4 border-t-2 border-purple-100">
+        <div className="flex items-center space-x-3 max-w-2xl mx-auto">
+          <Input
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyPress={handleKeyPress}
+            className="flex-1 p-4 rounded-2xl border-2 border-purple-200 focus:border-purple-400 focus:outline-none transition-colors duration-300 bg-white/80"
+            placeholder="Share your thoughts... 💭"
+            disabled={isLoading}
+          />
           <Button
-            size="icon"
-            onClick={handleMessageSend}
-            disabled={!message.trim()}
-            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:from-gray-400 disabled:to-gray-500 rounded-full h-10 w-10 flex-shrink-0 shadow-lg transition-all duration-300"
+            onClick={handleSendMessage}
+            disabled={!inputValue.trim() || isLoading}
+            className="p-4 bg-gradient-to-br from-purple-400 to-pink-400 rounded-2xl text-white hover:from-purple-500 hover:to-pink-500 transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="h-4 w-4" />
           </Button>
         </div>
       </div>
     </div>
-  )
+  );
 }
