@@ -64,3 +64,40 @@ npm run dev
 cd ../server
 npm install
 npm run dev
+
+Contributing
+We welcome community contributions!
+
+To contribute:
+
+Fork the repository
+
+Create a new branch: git checkout -b feature-branch
+
+Make your changes
+
+Commit: git commit -m "Add new feature"
+
+Push to your fork: git push origin feature-branch
+
+Open a pull request
+
+For major changes, open an issue first to discuss your ideas.
+
+Acknowledgments
+🧠 Meta AI for releasing LLaMA 3
+
+🔥 RunPod for GPU inference infrastructure
+
+❤️ Firebase for backend tools and auth
+
+💡 Inspired by principles of journaling and CBT (Cognitive Behavioral Therapy)
+
+🤝 Built with input from mental health professionals and real users
+
+📬 Contact
+Project Lead: Vasudev – GitHub
+
+Website: https://deite.in
+
+Email: vasudevjamdagnigaur@gmail.com
