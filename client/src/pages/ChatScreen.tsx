@@ -1,11 +1,11 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuthContext } from "../components/AuthProvider";
+import { useTheme } from "../components/ThemeProvider";
 import { saveReflection, getReflection } from "../lib/auth";
-import { ArrowLeft, Send, Brain, Heart, Sparkles } from "lucide-react";
+import { ArrowLeft, Send, Heart, Sparkles, Brain } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChatMessage } from "../types";
 
@@ -16,6 +16,7 @@ interface ChatScreenProps {
 
 export default function ChatScreen({ date, onBack }: ChatScreenProps) {
   const { user, profile } = useAuthContext();
+  const { isDarkMode } = useTheme();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -70,7 +71,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
   const parseMessagesFromContent = (content: string): ChatMessage[] => {
     const lines = content.split('\n').filter(line => line.trim());
     const messages: ChatMessage[] = [];
-    
+
     lines.forEach((line, index) => {
       if (line.startsWith('Deite: ')) {
         messages.push({
@@ -116,7 +117,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
     try {
       // Include the new user message in the conversation history
       const updatedMessages = [...messages, userMessage];
-      
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -132,7 +133,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
       }
 
       const data = await response.json();
-      
+
       if (!data.reply) {
         throw new Error('Invalid response format');
       }
@@ -188,7 +189,11 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 flex flex-col">
+    <div className={`min-h-screen p-4 flex flex-col transition-all duration-500 ${
+      isDarkMode 
+        ? "bg-gradient-to-br from-slate-900 via-purple-900 to-slate-800" 
+        : "bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50"
+    }`}>
       {/* Chat Header */}
       <div className="bg-white/90 backdrop-blur-sm shadow-lg p-4 flex items-center space-x-4 relative overflow-hidden">
         {/* Floating decorative elements */}
@@ -229,7 +234,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
           </div>
         </div>
       </div>
-      
+
       {/* Chat Messages */}
       <div className="flex-1 p-4 overflow-y-auto">
         <div className="max-w-2xl mx-auto space-y-4">
@@ -252,7 +257,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
                   }`}>
                     {message.sender === "user" ? getUserInitial() : "🧠"}
                   </div>
-                  
+
                   {/* Message bubble */}
                   <div
                     className={`px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-lg ${
@@ -267,7 +272,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
               </motion.div>
             ))}
           </AnimatePresence>
-          
+
           {isLoading && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -297,11 +302,11 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
               </div>
             </motion.div>
           )}
-          
+
           <div ref={messagesEndRef} />
         </div>
       </div>
-      
+
       {/* Message Input */}
       <div className="bg-white/90 backdrop-blur-sm p-4 border-t-2 border-purple-100">
         <div className="flex items-center space-x-3 max-w-2xl mx-auto">

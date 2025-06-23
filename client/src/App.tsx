@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuthContext } from "./components/AuthProvider";
+import { ThemeProvider } from "./components/ThemeProvider";
 import SplashScreen from "./pages/SplashScreen";
 import OnboardingScreen from "./pages/OnboardingScreen";
 import AuthScreen from "./pages/AuthScreen";
@@ -104,12 +105,14 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <AuthProvider>
-          <div className="max-w-md mx-auto bg-white shadow-2xl min-h-screen relative overflow-hidden">
-            <AppContent />
-          </div>
-          <Toaster />
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <div className="max-w-md mx-auto bg-white dark:bg-slate-900 shadow-2xl min-h-screen relative overflow-hidden transition-colors duration-300">
+              <AppContent />
+            </div>
+            <Toaster />
+          </AuthProvider>
+        </ThemeProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

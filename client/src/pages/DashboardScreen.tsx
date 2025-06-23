@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuthContext } from "../components/AuthProvider";
+import { useTheme } from "../components/ThemeProvider";
 import { getReflection, signOut } from "../lib/auth";
 import { CalendarPopup } from "../components/CalendarPopup";
 import {
@@ -40,12 +41,12 @@ export default function DashboardScreen({
   onStartReflection,
 }: DashboardScreenProps) {
   const { user, profile } = useAuthContext();
+  const { isDarkMode, toggleTheme } = useTheme();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [hasReflection, setHasReflection] = useState(false);
   const [reflectionPreview, setReflectionPreview] = useState("");
   const [journalReflection, setJournalReflection] = useState("");
   const [isGeneratingReflection, setIsGeneratingReflection] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
 
   const dateString = format(currentDate, "yyyy-MM-dd");
@@ -149,9 +150,7 @@ export default function DashboardScreen({
     );
   };
 
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
-  };
+  
 
   const goToToday = () => {
     setCurrentDate(new Date());
