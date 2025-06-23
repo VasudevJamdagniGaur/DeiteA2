@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuthContext } from "../components/AuthProvider";
 import { getReflection, signOut } from "../lib/auth";
+import { CalendarPopup } from "../components/CalendarPopup";
 import {
   Settings,
   ChevronLeft,
@@ -45,8 +46,11 @@ export default function DashboardScreen({
   const [journalReflection, setJournalReflection] = useState("");
   const [isGeneratingReflection, setIsGeneratingReflection] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
 
   const dateString = format(currentDate, "yyyy-MM-dd");
+  const today = new Date();
+  const isToday = currentDate.toDateString() === today.toDateString();
 
   useEffect(() => {
     if (user) {
@@ -147,6 +151,14 @@ export default function DashboardScreen({
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
+  };
+
+  const goToToday = () => {
+    setCurrentDate(new Date());
+  };
+
+  const handleDateSelect = (date: Date) => {
+    setCurrentDate(date);
   };
 
   return (
@@ -287,7 +299,10 @@ export default function DashboardScreen({
                 <ChevronLeft className="w-4 h-4" />
               </Button>
 
-              <div className="text-center">
+              <div 
+                className="text-center relative cursor-pointer hover:bg-purple-500/10 rounded-lg p-3 transition-all duration-200"
+                onClick={() => setShowCalendar(true)}
+              >
                 <div className="flex items-center justify-center gap-2 mb-1">
                   <Calendar className={`w-4 h-4 ${isDarkMode ? "text-purple-400" : "text-purple-500"}`} />
                   <span className={`text-sm font-medium ${
@@ -295,11 +310,32 @@ export default function DashboardScreen({
                   }`}>
                     Selected Date
                   </span>
+                  {!isToday && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="ml-2 h-6 px-2 rounded-full bg-gradient-to-r from-yellow-500/20 to-orange-500/20 hover:from-yellow-500/30 hover:to-orange-500/30 border border-yellow-500/30 text-yellow-400 hover:text-yellow-300 transition-all duration-300"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        goToToday()
+                      }}
+                    >
+                      <div className="flex items-center gap-1">
+                        <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                        <span className="text-xs font-medium">Today</span>
+                      </div>
+                    </Button>
+                  )}
                 </div>
-                <div className={`text-lg font-semibold ${
-                  isDarkMode ? "text-white" : "text-gray-800"
+                <div className={`text-lg font-semibold transition-colors ${
+                  isDarkMode ? "text-white hover:text-purple-200" : "text-gray-800 hover:text-purple-600"
                 }`}>
                   {format(currentDate, "EEEE, MMMM d, yyyy")}
+                </div>
+                <div className={`text-xs mt-1 ${
+                  isDarkMode ? "text-gray-400" : "text-gray-500"
+                }`}>
+                  Click to open calendar
                 </div>
               </div>
 
@@ -483,6 +519,16 @@ export default function DashboardScreen({
           </p>
         </div>
       </div>
+
+      {/* Calendar Popup */}
+      {showCalendar && (
+        <CalendarPopup
+          selectedDate={currentDate}
+          onDateSelect={handleDateSelect}
+          onClose={() => setShowCalendar(false)}
+          isDarkMode={isDarkMode}
+        />
+      )}
     </div>
   );
 }
