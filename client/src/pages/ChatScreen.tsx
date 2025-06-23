@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuthContext } from "../components/AuthProvider";
+import { useTheme } from "../components/ThemeProvider";
 import { saveReflection, getReflection } from "../lib/auth";
 import { ArrowLeft, Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,8 +19,9 @@ interface ChatScreenProps {
 
 export default function ChatScreen({ date, onBack }: ChatScreenProps) {
   const { user, profile } = useAuthContext();
+  const { isDarkMode } = useTheme();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [inputValue, setInputValue] = useState("");
+  const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -99,17 +101,17 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
   };
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim() || !user || isLoading) return;
+    if (!message.trim() || !user || isLoading) return;
 
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
       sender: "user",
-      content: inputValue.trim(),
+      content: message.trim(),
       timestamp: new Date(),
     };
 
     setMessages(prev => [...prev, userMessage]);
-    setInputValue("");
+    setMessage("");
     setIsLoading(true);
 
     try {
@@ -185,14 +187,22 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
   };
 
   return (
-    <div className="flex flex-col h-screen max-w-md mx-auto bg-white text-gray-900">
+    <div className={`flex flex-col h-screen max-w-md mx-auto transition-colors duration-300 ${
+      isDarkMode ? "bg-gray-900 text-white" : "bg-white text-gray-900"
+    }`}>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+      <div className={`flex items-center justify-between p-4 border-b transition-colors duration-300 ${
+        isDarkMode ? "border-gray-800" : "border-gray-200"
+      }`}>
         <Button 
           variant="ghost" 
           size="icon" 
-          className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
           onClick={onBack}
+          className={`transition-colors duration-300 ${
+            isDarkMode 
+              ? "text-gray-400 hover:text-white hover:bg-gray-800" 
+              : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+          }`}
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
@@ -202,8 +212,16 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
             <span className="text-white text-sm font-semibold">D</span>
           </div>
           <div className="text-center">
-            <h1 className="text-lg font-semibold text-gray-900">Deite</h1>
-            <p className="text-xs text-gray-600">Your brain buddy 🧠💙</p>
+            <h1 className={`text-lg font-semibold transition-colors duration-300 ${
+              isDarkMode ? "text-white" : "text-gray-900"
+            }`}>
+              Deite
+            </h1>
+            <p className={`text-xs transition-colors duration-300 ${
+              isDarkMode ? "text-gray-400" : "text-gray-500"
+            }`}>
+              Your brain buddy 🧠💙
+            </p>
           </div>
         </div>
       </div>
@@ -211,37 +229,37 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
       {/* Chat Messages */}
       <div className="flex-1 p-4 space-y-4 overflow-y-auto">
         <AnimatePresence>
-          {messages.map((message) => (
+          {messages.map((msg) => (
             <motion.div
-              key={message.id}
-              initial={{ opacity: 0, y: 20, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.95 }}
-              transition={{ duration: 0.3 }}
+              key={msg.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className={`flex items-start space-x-3 ${msg.sender === "user" ? "flex-row-reverse space-x-reverse" : ""}`}
             >
-              {message.sender === "deite" ? (
-                <div className="flex items-start space-x-3">
-                  <Avatar className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 flex-shrink-0">
-                    <AvatarFallback className="bg-transparent text-white font-semibold">🧠</AvatarFallback>
-                  </Avatar>
-                  <div className="bg-gray-100 rounded-2xl rounded-tl-md p-4 max-w-[80%] border border-gray-200">
-                    <p className="text-gray-800 text-sm leading-relaxed">
-                      {message.content}
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-start space-x-3 justify-end">
-                  <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl rounded-tr-md p-4 max-w-[80%]">
-                    <p className="text-white text-sm leading-relaxed">
-                      {message.content}
-                    </p>
-                  </div>
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-sm font-semibold">{getUserInitial()}</span>
-                  </div>
-                </div>
-              )}
+              <Avatar className={`w-10 h-10 flex-shrink-0 ${
+                msg.sender === "user" 
+                  ? "bg-gradient-to-br from-blue-500 to-blue-600" 
+                  : "bg-gradient-to-br from-purple-500 to-pink-500"
+              }`}>
+                <AvatarFallback className="bg-transparent text-white font-semibold">
+                  {msg.sender === "user" ? getUserInitial() : "🧠"}
+                </AvatarFallback>
+              </Avatar>
+              
+              <div className={`rounded-2xl p-4 max-w-[80%] transition-colors duration-300 ${
+                msg.sender === "user"
+                  ? isDarkMode
+                    ? "bg-blue-600 text-white rounded-tr-md"
+                    : "bg-blue-500 text-white rounded-tr-md"
+                  : isDarkMode
+                    ? "bg-gray-800 border border-gray-700 text-gray-100 rounded-tl-md"
+                    : "bg-gray-100 border border-gray-200 text-gray-900 rounded-tl-md"
+              }`}>
+                <p className="text-sm leading-relaxed">
+                  {msg.content}
+                </p>
+              </div>
             </motion.div>
           ))}
         </AnimatePresence>
@@ -255,12 +273,16 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
             <Avatar className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 flex-shrink-0">
               <AvatarFallback className="bg-transparent text-white font-semibold">🧠</AvatarFallback>
             </Avatar>
-            <div className="bg-gray-100 rounded-2xl rounded-tl-md p-4 max-w-[80%] border border-gray-200">
+            <div className={`rounded-2xl rounded-tl-md p-4 max-w-[80%] transition-colors duration-300 ${
+              isDarkMode
+                ? "bg-gray-800 border border-gray-700"
+                : "bg-gray-100 border border-gray-200"
+            }`}>
               <div className="flex space-x-1">
                 {[0, 1, 2].map((i) => (
                   <motion.div
                     key={i}
-                    className="w-2 h-2 bg-purple-400 rounded-full"
+                    className="w-2 h-2 bg-purple-500 rounded-full"
                     animate={{ y: [0, -6, 0] }}
                     transition={{
                       duration: 0.6,
@@ -278,23 +300,29 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
       </div>
 
       {/* Input Area */}
-      <div className="p-4 border-t border-gray-200">
+      <div className={`p-4 border-t transition-colors duration-300 ${
+        isDarkMode ? "border-gray-800" : "border-gray-200"
+      }`}>
         <div className="flex items-center space-x-2">
           <div className="flex-1 relative">
             <Input
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Share your thoughts..."
-              className="bg-gray-100 border-gray-300 text-gray-900 placeholder-gray-500 rounded-full pr-12 focus:border-purple-500 focus:ring-purple-500"
               disabled={isLoading}
+              className={`rounded-full pr-12 transition-colors duration-300 ${
+                isDarkMode
+                  ? "bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-purple-500 focus:ring-purple-500"
+                  : "bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500 focus:border-purple-500 focus:ring-purple-500"
+              }`}
             />
           </div>
           <Button
             onClick={handleSendMessage}
-            disabled={!inputValue.trim() || isLoading}
+            disabled={!message.trim() || isLoading}
             size="icon"
-            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-full h-10 w-10 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-full h-10 w-10 flex-shrink-0 disabled:opacity-50"
           >
             <Send className="h-4 w-4" />
           </Button>
