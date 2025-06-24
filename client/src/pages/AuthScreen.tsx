@@ -129,8 +129,9 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full p-4 rounded-2xl border-2 border-purple-200 focus:border-purple-400 focus:outline-none transition-colors duration-300 bg-white/80"
+                  className="w-full p-4 rounded-2xl border-2 border-purple-200 focus:border-purple-400 focus:outline-none transition-colors duration-300 bg-white/80 text-gray-900"
                   placeholder="••••••••"
+                  style={{ WebkitTextSecurity: 'disc' }}
                   required
                 />
               </div>
