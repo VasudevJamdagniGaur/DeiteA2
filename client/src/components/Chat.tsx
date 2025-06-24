@@ -20,17 +20,10 @@ export const Chat = () => {
     const userMsg: ChatMessage = { sender: 'user', content: input };
     setMessages((prev) => [...prev, userMsg]);
     try {
-      // You'll need to get the userId from your auth context
-      // For now using a placeholder - replace with actual user ID
-      const userId = "user123"; // TODO: Replace with actual user ID from auth context
-      
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          userId: userId,
-          userInput: input 
-        }),
+        body: JSON.stringify({ message: input }),
       });
       if (!response.ok) throw new Error('Network response was not ok');
       const data = await response.json();
