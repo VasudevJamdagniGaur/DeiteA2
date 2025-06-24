@@ -1,4 +1,5 @@
 import express from "express";
+import axios from "axios";
 import { generateReply } from "../ai";
 
 const router = express.Router();
@@ -121,6 +122,39 @@ router.get("/chat/test", async (req, res) => {
   } catch (error: any) {
     console.error("Test endpoint error:", error);
     return res.status(500).json({ status: "Chat router test failed", error: "Failed to connect to RunPod", details: error.message });
+  }
+});
+
+// Add summary endpoint for end-of-day processing
+router.post("/summary", async (req, res) => {
+  try {
+    const { userId, date } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: "userId is required" });
+    }
+
+    const { summarizeToday } = await import("../memory");
+    const summary = await summarizeToday(userId);
+
+    if (!summary) {
+      return res.status(404).json({ error: "No messages found for today" });
+    }
+
+    return res.json({
+      summary: summary,
+      date: date || new Date().toISOString().slice(0, 10)
+    });
+  } catch (error: any) {
+    console.error("Summary error details:", {
+      message: error.message,
+      stack: error.stack,
+    });
+
+    return res.status(500).json({
+      error: "Failed to generate summary",
+      details: error.message
+    });
   }
 });
 

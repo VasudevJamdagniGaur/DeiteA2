@@ -26,6 +26,8 @@ Deite is a mental health companion application that combines therapy and reflect
 - **Database Provider**: Neon Database (serverless PostgreSQL)
 - **Authentication**: Firebase Authentication
 - **User Data**: Firestore for user profiles and reflections
+- **Short-term Memory**: Firestore for daily chat messages
+- **Long-term Memory**: PostgreSQL for conversation summaries and insights
 - **Schema Management**: Drizzle Kit for migrations and schema management
 
 ## Key Components
@@ -50,9 +52,12 @@ Deite is a mental health companion application that combines therapy and reflect
 
 ### AI Integration
 - External AI service (RunPod with Llama3 model)
-- Conversation context management
-- Prompt engineering for therapeutic responses
+- Anthropic Claude integration as primary AI service
+- Dual-layer memory system (short-term + long-term)
+- Conversation context management with persistent memory
+- Prompt engineering for therapeutic responses with memory injection
 - Error handling and timeout management
+- Daily conversation summarization for long-term insights
 
 ## Data Flow
 
@@ -101,6 +106,7 @@ Deite is a mental health companion application that combines therapy and reflect
 ```
 Changelog:
 - June 24, 2025. Initial setup
+- June 24, 2025. Implemented AI Memory System with short-term (Firestore) and long-term (PostgreSQL) memory
 ```
 
 ## User Preferences
