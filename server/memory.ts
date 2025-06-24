@@ -64,21 +64,46 @@ export async function getTodaysMessages(userId: string): Promise<ChatMessage[]> 
  * Fetch all messages for userId from a specific date
  */
 export async function getMessagesForDate(userId: string, date: string): Promise<ChatMessage[]> {
-  const messagesQuery = query(
-    collection(serverDb, "chat_messages"),
-    where("userId", "==", userId),
-    where("sessionDate", "==", date),
-    orderBy("timestamp", "asc")
-  );
+  try {
+    // First try with compound query
+    const messagesQuery = query(
+      collection(serverDb, "chat_messages"),
+      where("userId", "==", userId),
+      where("sessionDate", "==", date),
+      orderBy("timestamp", "asc")
+    );
 
-  const snapshot = await getDocs(messagesQuery);
-  return snapshot.docs.map(doc => {
-    const data = doc.data();
-    return {
-      ...data,
-      timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp)
-    } as ChatMessage;
-  });
+    const snapshot = await getDocs(messagesQuery);
+    return snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        ...data,
+        timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp)
+      } as ChatMessage;
+    });
+  } catch (error) {
+    console.log("Compound query failed, using fallback approach:", error.message);
+    
+    // Fallback: Query by userId only and filter locally
+    const userQuery = query(
+      collection(serverDb, "chat_messages"),
+      where("userId", "==", userId)
+    );
+
+    const snapshot = await getDocs(userQuery);
+    const allMessages = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        ...data,
+        timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp)
+      } as ChatMessage;
+    });
+
+    // Filter by date locally and sort
+    return allMessages
+      .filter(msg => msg.sessionDate === date)
+      .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+  }
 }
 
 // ---- Long-Term Memory Functions (PostgreSQL) ----

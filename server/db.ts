@@ -38,21 +38,43 @@ export async function saveMessage(msg: ChatMessage) {
  * Fetch all messages for userId from a specific date
  */
 export async function fetchMessagesForDate(userId: string, date: string): Promise<ChatMessage[]> {
-  const messagesQuery = query(
-    collection(serverDb, "chat_messages"),
-    where("userId", "==", userId),
-    where("sessionDate", "==", date),
-    orderBy("timestamp", "asc")
-  );
+  try {
+    const messagesQuery = query(
+      collection(serverDb, "chat_messages"),
+      where("userId", "==", userId),
+      where("sessionDate", "==", date),
+      orderBy("timestamp", "asc")
+    );
 
-  const snapshot = await getDocs(messagesQuery);
-  return snapshot.docs.map(doc => {
-    const data = doc.data();
-    return {
-      ...data,
-      timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp)
-    } as ChatMessage;
-  });
+    const snapshot = await getDocs(messagesQuery);
+    return snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        ...data,
+        timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp)
+      } as ChatMessage;
+    });
+  } catch (error) {
+    console.log("Using fallback query approach for fetchMessagesForDate");
+    
+    const userQuery = query(
+      collection(serverDb, "chat_messages"),
+      where("userId", "==", userId)
+    );
+
+    const snapshot = await getDocs(userQuery);
+    const allMessages = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        ...data,
+        timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp)
+      } as ChatMessage;
+    });
+
+    return allMessages
+      .filter(msg => msg.sessionDate === date)
+      .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+  }
 }
 
 /**
