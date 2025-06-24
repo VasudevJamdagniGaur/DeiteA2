@@ -153,7 +153,7 @@ export default function ProfileSetupScreen({ onComplete }: ProfileSetupScreenPro
                   type="number"
                   value={age}
                   onChange={(e) => setAge(e.target.value)}
-                  className="w-full p-4 rounded-2xl border-2 border-teal-200 focus:border-teal-400 focus:outline-none transition-colors duration-300 bg-white/80"
+                  className="w-full p-4 rounded-2xl border-2 border-teal-200 focus:border-teal-400 focus:outline-none transition-colors duration-300 bg-white/80 text-gray-900"
                   placeholder="Your age"
                   min="13"
                   max="120"
