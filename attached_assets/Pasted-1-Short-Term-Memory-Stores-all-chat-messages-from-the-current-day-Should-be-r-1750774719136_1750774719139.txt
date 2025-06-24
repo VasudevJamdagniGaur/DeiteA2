@@ -1,0 +1,42 @@
+1. **Short-Term Memory**:
+   - Stores all chat messages from the **current day**.
+   - Should be retrieved and injected into the AI prompt for every new message.
+   - Stored in **Firestore** (real-time messaging backend).
+   - Role-based schema: `{ role: "user" | "ai", content: string, timestamp: Date }`.
+
+2. **Long-Term Memory**:
+   - Stores **summarized emotional reflections** or user patterns (e.g., "User is often anxious about deadlines").
+   - Generated once per day or after a session using all messages from that day.
+   - Stored in **PostgreSQL** (`user_summaries` table with columns: `user_id`, `date`, `summary`, `created_at`).
+   - These summaries should be fetched and injected into future prompts.
+
+### 🔁 Workflow:
+
+- On **each user message**:
+  - Save message to Firestore.
+  - Fetch today's messages (short-term memory).
+  - Fetch long-term summaries (PostgreSQL).
+  - Construct a prompt using both memory types.
+  - Send to LLaMA3 endpoint.
+  - Save AI’s reply back to Firestore.
+
+- At **end of day** or when triggered:
+  - Summarize the day’s chat using a prompt like:  
+    `"Summarize the emotional state and concerns reflected in this chat history:" + allMessages`
+  - Store this in the `user_summaries` table (Postgres).
+
+### ⚙️ Requirements:
+
+- Use Firebase Admin SDK for Firestore.
+- Use `pg` or Prisma for PostgreSQL.
+- Ensure the system is modular: short-term, long-term, and prompt-construction functions.
+- Bonus: add a fallback if long-term memory is missing (e.g., on first chat).
+
+### ✨ Output I Expect from You:
+
+1. `saveMessage(userId, role, content)` → saves message to Firestore
+2. `getTodaysMessages(userId)` → fetches today’s chat
+3. `getLongTermMemory(userId)` → fetches past summaries
+4. `buildPrompt(userId, latestMessage)` → returns full prompt with memory injected
+5. `generateReply(userId, userMessage)` → core handler that uses above steps to get LLaMA reply
+6. `summarizeToday(userId)` → generates and stores summary in PostgreSQL
