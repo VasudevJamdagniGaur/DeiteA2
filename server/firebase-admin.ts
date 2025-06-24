@@ -1,18 +1,18 @@
-// Firebase Admin SDK configuration for server-side operations
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
+// Simplified Firebase configuration for memory storage
+// Using client SDK with server-side operations since Admin SDK requires service account
 
-// Initialize Firebase Admin if not already initialized
-let adminApp;
-if (getApps().length === 0) {
-  // For server-side, we use a simple configuration without service account
-  // In production, you would use proper service account credentials
-  adminApp = initializeApp({
-    projectId: process.env.VITE_FIREBASE_PROJECT_ID || 'deite-mental-health',
-  });
-} else {
-  adminApp = getApps()[0];
-}
+import { initializeApp } from "firebase/app";
+import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 
-export const adminDb = getFirestore(adminApp);
-export { adminApp };
+const firebaseConfig = {
+  apiKey: process.env.VITE_FIREBASE_API_KEY || "AIzaSyBxtRJ8NPp0TiqjxFNM7ci5UZnowyQhwVU",
+  authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN || "deitea2-659f5.firebaseapp.com",
+  projectId: process.env.VITE_FIREBASE_PROJECT_ID || "deitea2-659f5",
+  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET || "deitea2-659f5.firebasestorage.app",
+  messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "974533520189",
+  appId: process.env.VITE_FIREBASE_APP_ID || "1:974533520189:web:your_app_id_here",
+};
+
+const app = initializeApp(firebaseConfig, 'server-app');
+export const serverDb = getFirestore(app);
+export { app as serverApp };

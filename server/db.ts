@@ -1,6 +1,7 @@
 
 import { neon } from "@neondatabase/serverless";
-import { adminDb } from "./firebase-admin";
+import { serverDb } from "./firebase-admin";
+import { collection, addDoc, query, where, orderBy, getDocs, Timestamp } from "firebase/firestore";
 
 // PostgreSQL connection for structured data
 const sql = neon(process.env.DATABASE_URL!);
@@ -27,9 +28,9 @@ export interface DailySummary {
  * Save a single chat message to Firestore
  */
 export async function saveMessage(msg: ChatMessage) {
-  await adminDb.collection("chat_messages").add({
+  await addDoc(collection(serverDb, "chat_messages"), {
     ...msg,
-    timestamp: msg.timestamp
+    timestamp: Timestamp.fromDate(msg.timestamp)
   });
 }
 
@@ -37,18 +38,19 @@ export async function saveMessage(msg: ChatMessage) {
  * Fetch all messages for userId from a specific date
  */
 export async function fetchMessagesForDate(userId: string, date: string): Promise<ChatMessage[]> {
-  const snapshot = await adminDb
-    .collection("chat_messages")
-    .where("userId", "==", userId)
-    .where("sessionDate", "==", date)
-    .orderBy("timestamp", "asc")
-    .get();
+  const messagesQuery = query(
+    collection(serverDb, "chat_messages"),
+    where("userId", "==", userId),
+    where("sessionDate", "==", date),
+    orderBy("timestamp", "asc")
+  );
 
+  const snapshot = await getDocs(messagesQuery);
   return snapshot.docs.map(doc => {
     const data = doc.data();
     return {
       ...data,
-      timestamp: data.timestamp instanceof Date ? data.timestamp : new Date(data.timestamp)
+      timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp)
     } as ChatMessage;
   });
 }
