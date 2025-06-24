@@ -28,6 +28,8 @@ Only reply to the latest message from the user in this context. Do not summarize
 
 Deite:`;
 
+    console.log("Making request to RunPod with prompt:", fullPrompt.substring(0, 200) + "...");
+
     const response = await axios.post(
       "https://rnwdad74x90ram-11434.proxy.runpod.net/api/generate",
       {
@@ -35,15 +37,32 @@ Deite:`;
         prompt: fullPrompt,
         stream: false,
       },
+      {
+        timeout: 30000,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      }
     );
+
+    console.log("RunPod response status:", response.status);
+    console.log("RunPod response data:", response.data);
 
     return res.json({
       reply: response.data.response,
     });
-  } catch (error) {
-    console.error("Chat error:", error);
+  } catch (error: any) {
+    console.error("Chat error details:", {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      url: error.config?.url,
+    });
+
     return res.status(500).json({
       error: "Failed to get response from AI",
+      details: error.response?.status === 404 ? "RunPod endpoint not found - check if instance is running" : error.message
     });
   }
 });
@@ -72,6 +91,8 @@ ${conversationText}
 
 Write a short, factual journal entry (2-3 sentences maximum):`;
 
+    console.log("Making request to RunPod with prompt:", reflectionPrompt.substring(0, 200) + "...");
+
     const response = await axios.post(
       "https://rnwdad74x90ram-11434.proxy.runpod.net/api/generate",
       {
@@ -79,22 +100,63 @@ Write a short, factual journal entry (2-3 sentences maximum):`;
         prompt: reflectionPrompt,
         stream: false,
       },
+      {
+        timeout: 30000,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      }
     );
+
+    console.log("RunPod response status:", response.status);
+    console.log("RunPod response data:", response.data);
 
     return res.json({
       reflection: response.data.response,
     });
-  } catch (error) {
-    console.error("Reflection error:", error);
+  } catch (error: any) {
+    console.error("Reflection error details:", {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      url: error.config?.url,
+    });
     return res.status(500).json({
       error: "Failed to generate reflection",
+      details: error.response?.status === 404 ? "RunPod endpoint not found - check if instance is running" : error.message,
     });
   }
 });
 
 // Add a test endpoint to verify the router is working
-router.get("/chat/test", (req, res) => {
-  res.json({ status: "Chat router is working" });
+router.get("/chat/test", async (req, res) => {
+  try {
+    const response = await axios.post(
+      "https://rnwdad74x90ram-11434.proxy.runpod.net/api/generate",
+      {
+        model: "llama3",
+        prompt: "Hello, this is a test message. Please respond with 'Test successful!'",
+        stream: false,
+      },
+      {
+        timeout: 30000,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      }
+    );
+
+    if (response.data.response.includes("Test successful!")) {
+      return res.json({ status: "Chat router is working", test: "Test successful!" });
+    } else {
+      console.error("Test endpoint failed, unexpected response:", response.data);
+      return res.status(500).json({ status: "Chat router test failed", error: "Unexpected response from RunPod" });
+    }
+  } catch (error: any) {
+    console.error("Test endpoint error:", error);
+    return res.status(500).json({ status: "Chat router test failed", error: "Failed to connect to RunPod", details: error.message });
+  }
 });
 
 export default router;
