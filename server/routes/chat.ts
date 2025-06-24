@@ -1,34 +1,57 @@
 import express from "express";
 import axios from "axios";
+import {
+  saveMessage,
+  fetchTodayMessages,
+  fetchLastSummaries,
+  getCurrentDateString,
+  buildConversationContext,
+  buildHistoricalContext,
+  ChatMessage,
+} from "../db";
 
 const router = express.Router();
 
 router.post("/chat", async (req, res) => {
   try {
-    const { messages } = req.body;
+    const { userId, userInput } = req.body;
 
-    if (!messages || messages.length === 0) {
-      return res.status(400).json({ error: "Messages are required" });
+    if (!userId || !userInput) {
+      return res.status(400).json({ error: "userId and userInput are required" });
     }
 
-    // Format messages into conversation text
-    const conversationText = messages
-      .map(
-        (msg) => `${msg.sender === "deite" ? "Deite" : "User"}: ${msg.content}`,
-      )
-      .join("\n");
+    // 1. Save incoming user message
+    await saveMessage({
+      userId,
+      sender: "user",
+      text: userInput,
+      timestamp: new Date(),
+      sessionDate: getCurrentDateString(),
+    });
 
-    // Add system prompt with conversation context
-    const fullPrompt = `You are Deite, an AI mental health companion. Use the **entire conversation history** to understand context, but **only respond to the latest user message**. Your tone should be concise, supportive, emotionally intelligent, and grounded. Avoid repeating or responding to older messages again just answer to the last aka current message.
+    // 2. Build short-term context (today's conversation)
+    const todayMessages = await fetchTodayMessages(userId);
+    const shortTermContext = buildConversationContext(todayMessages);
 
-Conversation history:
-${conversationText}
+    // 3. Build long-term summary context (historical summaries)
+    const summaries = await fetchLastSummaries(userId);
+    const longTermContext = buildHistoricalContext(summaries);
 
-Only reply to the latest message from the user in this context. Do not summarize or revisit old messages. 
+    // 4. Build enhanced prompt with both contexts
+    const fullPrompt = `You are Deite, a compassionate AI mental health companion. You have access to the user's conversation history and past reflections to provide personalized support.
+
+${longTermContext}
+
+Today's conversation:
+${shortTermContext}
+
+User: ${userInput}
+
+Provide a supportive, empathetic response that acknowledges the user's current state while drawing on relevant context from their history. Keep your response concise, grounded, and focused on the user's current needs.
 
 Deite:`;
 
-    console.log("Making request to RunPod with prompt:", fullPrompt.substring(0, 200) + "...");
+    console.log("Making request to RunPod with enhanced context prompt:", fullPrompt.substring(0, 200) + "...");
 
     const response = await axios.post(
       "https://3hqchney1c4dte-11434.proxy.runpod.net/api/generate",
@@ -45,11 +68,22 @@ Deite:`;
       }
     );
 
+    const aiReply = response.data.response;
+
+    // 5. Save the AI's reply
+    await saveMessage({
+      userId,
+      sender: "ai",
+      text: aiReply,
+      timestamp: new Date(),
+      sessionDate: getCurrentDateString(),
+    });
+
     console.log("RunPod response status:", response.status);
-    console.log("RunPod response data:", response.data);
+    console.log("Saved conversation to database");
 
     return res.json({
-      reply: response.data.response,
+      reply: aiReply,
     });
   } catch (error: any) {
     console.error("Chat error details:", {
@@ -70,19 +104,21 @@ Deite:`;
 // Add reflection endpoint
 router.post("/reflection", async (req, res) => {
   try {
-    const { messages } = req.body;
+    const { userId } = req.body;
 
-    if (!messages || messages.length === 0) {
-      return res.status(400).json({ error: "Messages are required" });
+    if (!userId) {
+      return res.status(400).json({ error: "userId is required" });
+    }
+
+    // Get today's messages from database
+    const todayMessages = await fetchTodayMessages(userId);
+    
+    if (todayMessages.length === 0) {
+      return res.status(400).json({ error: "No messages found for today to generate reflection" });
     }
 
     // Format messages into a conversation for the AI to summarize
-    const conversationText = messages
-      .map(
-        (msg) =>
-          `${msg.sender === "deite" ? "Therapist" : "Me"}: ${msg.content}`,
-      )
-      .join("\n");
+    const conversationText = buildConversationContext(todayMessages);
 
     const reflectionPrompt = `Based on the user's chat messages, generate a concise and realistic daily journal entry. Do not invent or exaggerate events. Summarize the main emotions, concerns, and insights discussed during the conversation. Write in a grounded, honest tone — like a real person journaling about their day. Only use the content actually discussed in the messages. Do not make up metaphors or fictional events. The tone should be factual. Keep it brief and to the point.
 
@@ -91,7 +127,7 @@ ${conversationText}
 
 Write a short, factual journal entry (2-3 sentences maximum):`;
 
-    console.log("Making request to RunPod with prompt:", reflectionPrompt.substring(0, 200) + "...");
+    console.log("Making request to RunPod for reflection:", reflectionPrompt.substring(0, 200) + "...");
 
     const response = await axios.post(
       "https://3hqchney1c4dte-11434.proxy.runpod.net/api/generate",
@@ -108,11 +144,22 @@ Write a short, factual journal entry (2-3 sentences maximum):`;
       }
     );
 
+    const reflectionText = response.data.response;
+
+    // Save the daily summary to database
+    const { saveDailySummary } = await import("../db");
+    await saveDailySummary({
+      userId,
+      date: getCurrentDateString(),
+      summary: reflectionText,
+      createdAt: new Date(),
+    });
+
     console.log("RunPod response status:", response.status);
-    console.log("RunPod response data:", response.data);
+    console.log("Saved daily reflection to database");
 
     return res.json({
-      reflection: response.data.response,
+      reflection: reflectionText,
     });
   } catch (error: any) {
     console.error("Reflection error details:", {
