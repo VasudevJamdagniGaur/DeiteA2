@@ -14,8 +14,7 @@ router.post("/chat", async (req, res) => {
     // Format messages into conversation text
     const conversationText = messages
       .map(
-        (msg) =>
-          `${msg.sender === "deite" ? "Deite" : "User"}: ${msg.content}`
+        (msg) => `${msg.sender === "deite" ? "Deite" : "User"}: ${msg.content}`,
       )
       .join("\n");
 
@@ -30,7 +29,7 @@ Only reply to the latest message from the user in this context. Do not summarize
 Deite:`;
 
     const response = await axios.post(
-      "https://7rd2nfoe1zi006-11434.proxy.runpod.net/api/generate",
+      "https://rnwdad74x90ram-11434.proxy.runpod.net/api/generate",
       {
         model: "llama3",
         prompt: fullPrompt,
@@ -74,7 +73,7 @@ ${conversationText}
 Write a short, factual journal entry (2-3 sentences maximum):`;
 
     const response = await axios.post(
-      "https://7rd2nfoe1zi006-11434.proxy.runpod.net/api/generate",
+      "https://rnwdad74x90ram-11434.proxy.runpod.net/api/generate",
       {
         model: "llama3",
         prompt: reflectionPrompt,
