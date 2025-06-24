@@ -87,57 +87,77 @@ export async function getMessagesForDate(userId: string, date: string): Promise<
  * 3. getLongTermMemory(userId) → fetches past summaries
  */
 export async function getLongTermMemory(userId: string, limitCount = 5): Promise<string[]> {
-  const results = await sql`
-    SELECT summary
-    FROM user_summaries
-    WHERE user_id = ${userId}
-    ORDER BY date DESC
-    LIMIT ${limitCount}
-  `;
+  try {
+    const results = await sql`
+      SELECT summary
+      FROM user_summaries
+      WHERE user_id = ${userId}
+      ORDER BY date DESC
+      LIMIT ${limitCount}
+    `;
 
-  return results.map(row => row.summary as string);
+    return results.map(row => row.summary as string);
+  } catch (error) {
+    console.error("Error fetching long-term memory:", error);
+    return []; // Return empty array if table doesn't exist yet
+  }
 }
 
 /**
  * Save a daily summary to PostgreSQL
  */
 export async function saveDailySummary(userId: string, date: string, summary: string): Promise<void> {
-  await sql`
-    INSERT INTO user_summaries (user_id, date, summary, created_at)
-    VALUES (${userId}, ${date}, ${summary}, NOW())
-    ON CONFLICT (user_id, date) 
-    DO UPDATE SET 
-      summary = EXCLUDED.summary,
-      created_at = NOW()
-  `;
+  try {
+    await sql`
+      INSERT INTO user_summaries (user_id, date, summary, created_at)
+      VALUES (${userId}, ${date}, ${summary}, NOW())
+      ON CONFLICT (user_id, date) 
+      DO UPDATE SET 
+        summary = EXCLUDED.summary,
+        created_at = NOW()
+    `;
+  } catch (error) {
+    console.error("Error saving daily summary:", error);
+    throw error;
+  }
 }
 
 /**
  * Get daily summary for a specific date
  */
 export async function getDailySummary(userId: string, date: string): Promise<string | null> {
-  const results = await sql`
-    SELECT summary
-    FROM user_summaries
-    WHERE user_id = ${userId} AND date = ${date}
-    LIMIT 1
-  `;
+  try {
+    const results = await sql`
+      SELECT summary
+      FROM user_summaries
+      WHERE user_id = ${userId} AND date = ${date}
+      LIMIT 1
+    `;
 
-  return results.length > 0 ? results[0].summary as string : null;
+    return results.length > 0 ? results[0].summary as string : null;
+  } catch (error) {
+    console.error("Error getting daily summary:", error);
+    return null;
+  }
 }
 
 /**
  * Check if user has any previous summaries (for fallback handling)
  */
 export async function hasUserHistory(userId: string): Promise<boolean> {
-  const results = await sql`
-    SELECT COUNT(*) as count
-    FROM user_summaries
-    WHERE user_id = ${userId}
-    LIMIT 1
-  `;
+  try {
+    const results = await sql`
+      SELECT COUNT(*) as count
+      FROM user_summaries
+      WHERE user_id = ${userId}
+      LIMIT 1
+    `;
 
-  return parseInt(results[0].count as string) > 0;
+    return parseInt(results[0].count as string) > 0;
+  } catch (error) {
+    console.error("Error checking user history:", error);
+    return false; // Return false if table doesn't exist yet
+  }
 }
 
 // ---- Prompt Construction Functions ----

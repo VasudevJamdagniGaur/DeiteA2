@@ -123,7 +123,8 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ 
-          messages: updatedMessages
+          userId: user.uid,
+          message: userMessage.content
         }),
       });
 
