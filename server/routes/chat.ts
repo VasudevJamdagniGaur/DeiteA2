@@ -31,7 +31,7 @@ Deite:`;
     console.log("Making request to RunPod with prompt:", fullPrompt.substring(0, 200) + "...");
 
     const response = await axios.post(
-      "https://rnwdad74x90ram-11434.proxy.runpod.net/api/generate",
+      "https://3hqchney1c4dte-11434.proxy.runpod.net/api/generate",
       {
         model: "llama3",
         prompt: fullPrompt,
@@ -94,7 +94,7 @@ Write a short, factual journal entry (2-3 sentences maximum):`;
     console.log("Making request to RunPod with prompt:", reflectionPrompt.substring(0, 200) + "...");
 
     const response = await axios.post(
-      "https://rnwdad74x90ram-11434.proxy.runpod.net/api/generate",
+      "https://3hqchney1c4dte-11434.proxy.runpod.net/api/generate",
       {
         model: "llama3",
         prompt: reflectionPrompt,
@@ -133,7 +133,7 @@ Write a short, factual journal entry (2-3 sentences maximum):`;
 router.get("/chat/test", async (req, res) => {
   try {
     const response = await axios.post(
-      "https://rnwdad74x90ram-11434.proxy.runpod.net/api/generate",
+      "https://3hqchney1c4dte-11434.proxy.runpod.net/api/generate",
       {
         model: "llama3",
         prompt: "Hello, this is a test message. Please respond with 'Test successful!'",
