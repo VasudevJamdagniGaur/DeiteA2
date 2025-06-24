@@ -1,68 +1,33 @@
 import express from "express";
-import axios from "axios";
+import { generateReply } from "../ai";
 
 const router = express.Router();
 
 router.post("/chat", async (req, res) => {
   try {
-    const { messages } = req.body;
+    const { userId, message } = req.body;
 
-    if (!messages || messages.length === 0) {
-      return res.status(400).json({ error: "Messages are required" });
+    if (!userId || !message) {
+      return res.status(400).json({ error: "userId and message are required" });
     }
 
-    // Format messages into conversation text
-    const conversationText = messages
-      .map(
-        (msg) => `${msg.sender === "deite" ? "Deite" : "User"}: ${msg.content}`,
-      )
-      .join("\n");
+    console.log("Processing chat request for user:", userId);
 
-    // Add system prompt with conversation context
-    const fullPrompt = `You are Deite, an AI mental health companion. Use the **entire conversation history** to understand context, but **only respond to the latest user message**. Your tone should be concise, supportive, emotionally intelligent, and grounded. Avoid repeating or responding to older messages again just answer to the last aka current message.
-
-Conversation history:
-${conversationText}
-
-Only reply to the latest message from the user in this context. Do not summarize or revisit old messages. 
-
-Deite:`;
-
-    console.log("Making request to RunPod with prompt:", fullPrompt.substring(0, 200) + "...");
-
-    const response = await axios.post(
-      "https://3hqchney1c4dte-11434.proxy.runpod.net/api/generate",
-      {
-        model: "llama3",
-        prompt: fullPrompt,
-        stream: false,
-      },
-      {
-        timeout: 30000,
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      }
-    );
-
-    console.log("RunPod response status:", response.status);
-    console.log("RunPod response data:", response.data);
+    // Use the new memory-enhanced AI system
+    const reply = await generateReply(userId, message);
 
     return res.json({
-      reply: response.data.response,
+      reply: reply,
     });
   } catch (error: any) {
     console.error("Chat error details:", {
       message: error.message,
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      url: error.config?.url,
+      stack: error.stack,
     });
 
     return res.status(500).json({
       error: "Failed to get response from AI",
-      details: error.response?.status === 404 ? "RunPod endpoint not found - check if instance is running" : error.message
+      details: error.message
     });
   }
 });
