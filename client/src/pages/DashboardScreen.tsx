@@ -169,7 +169,7 @@ export default function DashboardScreen({
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header with cute brain illustration */}
         <div className="text-center py-8 relative">
-          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-2">
+          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 translate-y-1">
             <motion.div
               className={`w-16 h-16 rounded-full flex items-center justify-center ${
                 isDarkMode 
