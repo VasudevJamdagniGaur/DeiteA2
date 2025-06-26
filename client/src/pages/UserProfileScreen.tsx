@@ -360,35 +360,7 @@ export default function UserProfileScreen({ onBack }: UserProfileScreenProps) {
           </Card>
         </motion.div>
 
-        {/* Account Info Card */}
-        <Card className={`backdrop-blur-sm border-2 shadow-lg ${
-          isDarkMode 
-            ? "bg-slate-800/80 border-purple-500/30 shadow-purple-500/10" 
-            : "bg-white/80 border-purple-100"
-        }`}>
-          <CardHeader>
-            <CardTitle className={`text-lg ${isDarkMode ? "text-white" : "text-gray-800"}`}>
-              Account Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className={`p-4 rounded-xl ${
-              isDarkMode ? "bg-slate-700/50" : "bg-gray-50"
-            }`}>
-              <div className="flex items-center gap-3 mb-2">
-                <div className={`w-3 h-3 rounded-full ${
-                  user?.emailVerified ? "bg-green-500" : "bg-yellow-500"
-                }`}></div>
-                <span className={`font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>
-                  Email Status
-                </span>
-              </div>
-              <p className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
-                {user?.emailVerified ? "Email verified ✓" : "Email not verified"}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        
       </div>
     </div>
   );
