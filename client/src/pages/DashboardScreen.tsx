@@ -35,10 +35,12 @@ import { format, addDays, subDays } from "date-fns";
 
 interface DashboardScreenProps {
   onStartReflection: (date: string) => void;
+  onUserProfile: () => void;
 }
 
 export default function DashboardScreen({
   onStartReflection,
+  onUserProfile,
 }: DashboardScreenProps) {
   const { user, profile } = useAuthContext();
   const { isDarkMode, toggleTheme } = useTheme();
@@ -251,11 +253,14 @@ export default function DashboardScreen({
                       : "bg-white border-purple-100"
                   }`}
                 >
-                  <DropdownMenuItem className={`cursor-pointer ${
-                    isDarkMode 
-                      ? "hover:bg-purple-500/20 focus:bg-purple-500/20" 
-                      : "hover:bg-purple-50 focus:bg-purple-50"
-                  }`}>
+                  <DropdownMenuItem 
+                    className={`cursor-pointer ${
+                      isDarkMode 
+                        ? "hover:bg-purple-500/20 focus:bg-purple-500/20" 
+                        : "hover:bg-purple-50 focus:bg-purple-50"
+                    }`}
+                    onClick={onUserProfile}
+                  >
                     <User className="mr-2 h-4 w-4" />
                     <span>User Profile</span>
                   </DropdownMenuItem>

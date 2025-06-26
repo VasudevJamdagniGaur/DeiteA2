@@ -11,6 +11,7 @@ import AuthScreen from "./pages/AuthScreen";
 import ProfileSetupScreen from "./pages/ProfileSetupScreen";
 import DashboardScreen from "./pages/DashboardScreen";
 import ChatScreen from "./pages/ChatScreen";
+import UserProfileScreen from "./pages/UserProfileScreen";
 import NotFound from "@/pages/not-found";
 import { useState, useEffect } from "react";
 
@@ -22,7 +23,7 @@ function AppContent() {
   useEffect(() => {
     if (!loading) {
       console.log("Navigation logic - User:", !!user, "Profile:", !!profile, "Current screen:", currentScreen);
-      
+
       if (!user) {
         // Not authenticated - show splash/onboarding/auth flow
         if (currentScreen === "splash" || currentScreen === "onboarding" || currentScreen === "auth") {
@@ -87,12 +88,18 @@ function AppContent() {
         onStartReflection={(date) => {
           setChatDate(date);
           setCurrentScreen("chat");
-        }} 
+        }}
+        onUserProfile={() => setCurrentScreen("userProfile")}
       />
     ),
     chat: (
       <ChatScreen 
         date={chatDate}
+        onBack={() => setCurrentScreen("dashboard")} 
+      />
+    ),
+    userProfile: (
+      <UserProfileScreen 
         onBack={() => setCurrentScreen("dashboard")} 
       />
     ),
