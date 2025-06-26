@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "com.Deite.com"
+    namespace "com.Deite.app"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.Deite.com"
+        applicationId "com.Deite.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -16,6 +16,10 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+compileOptions {
+    sourceCompatibility = rootProject.ext.javaVersion
+    targetCompatibility = rootProject.ext.javaVersion
+}
     buildTypes {
         release {
             minifyEnabled false

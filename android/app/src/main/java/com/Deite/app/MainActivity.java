@@ -1,4 +1,4 @@
-package com.Deite.com;
+package com.Deite.app;
 
 import com.getcapacitor.BridgeActivity;
 
