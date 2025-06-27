@@ -435,14 +435,14 @@ export default function UserProfileScreen({ onBack }: UserProfileScreenProps) {
                   <p className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
                     Send us a message for quick support
                   </p>
-                  <div className="flex items-center justify-between">
-                    <p className={`text-lg font-semibold ${isDarkMode ? "text-white" : "text-gray-800"}`}>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <p className={`text-lg font-semibold whitespace-nowrap ${isDarkMode ? "text-white" : "text-gray-800"}`}>
                       +91 9536138120
                     </p>
                     <Button
                       onClick={() => window.open('https://wa.me/919536138120', '_blank')}
                       size="sm"
-                      className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold"
+                      className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold flex-shrink-0"
                     >
                       <MessageCircle className="w-4 h-4 mr-1" />
                       Message
