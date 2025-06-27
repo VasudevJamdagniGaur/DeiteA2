@@ -432,9 +432,14 @@ export default function UserProfileScreen({ onBack }: UserProfileScreenProps) {
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <p className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
-                    Send us a message for quick support
-                  </p>
+                  <div>
+                    <p className={`text-lg font-semibold ${isDarkMode ? "text-white" : "text-gray-800"}`}>
+                      +91 9536138120
+                    </p>
+                    <p className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
+                      Send us a message for quick support
+                    </p>
+                  </div>
                   <Button
                     onClick={() => window.open('https://wa.me/919536138120', '_blank')}
                     size="sm"
