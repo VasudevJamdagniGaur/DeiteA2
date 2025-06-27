@@ -24,6 +24,7 @@ import {
   HeadphonesIcon,
   Phone,
   MessageCircle,
+  Mail,
 } from "lucide-react";
 
 interface UserProfileScreenProps {
@@ -441,6 +442,30 @@ export default function UserProfileScreen({ onBack }: UserProfileScreenProps) {
                   >
                     <MessageCircle className="w-4 h-4 mr-1" />
                     Message
+                  </Button>
+                </div>
+              </div>
+
+              <div className={`p-4 rounded-xl ${
+                isDarkMode ? "bg-slate-700/50" : "bg-gray-50"
+              }`}>
+                <div className="flex items-center gap-3 mb-3">
+                  <Mail className={`w-5 h-5 ${isDarkMode ? "text-red-400" : "text-red-600"}`} />
+                  <span className={`font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>
+                    Email Support
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <p className={`text-lg font-semibold ${isDarkMode ? "text-white" : "text-gray-800"}`}>
+                    vasudevjamdagnigaur@gmail.com
+                  </p>
+                  <Button
+                    onClick={() => window.open('mailto:vasudevjamdagnigaur@gmail.com?subject=Support Request', '_blank')}
+                    size="sm"
+                    className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold"
+                  >
+                    <Mail className="w-4 h-4 mr-1" />
+                    Email
                   </Button>
                 </div>
               </div>
