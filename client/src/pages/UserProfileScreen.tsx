@@ -455,14 +455,14 @@ export default function UserProfileScreen({ onBack }: UserProfileScreenProps) {
                     Email Support
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <p className={`text-lg font-semibold ${isDarkMode ? "text-white" : "text-gray-800"}`}>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <p className={`text-sm sm:text-lg font-semibold break-all ${isDarkMode ? "text-white" : "text-gray-800"}`}>
                     vasudevjamdagnigaur@gmail.com
                   </p>
                   <Button
                     onClick={() => window.open('mailto:vasudevjamdagnigaur@gmail.com?subject=Support Request', '_blank')}
                     size="sm"
-                    className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold"
+                    className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold flex-shrink-0"
                   >
                     <Mail className="w-4 h-4 mr-1" />
                     Email
