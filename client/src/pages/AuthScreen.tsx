@@ -79,7 +79,7 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your@email.com"
-              className="border-gray-200 focus:border-purple-400 focus:ring-purple-400"
+              className="bg-white border-gray-200 focus:border-purple-400 focus:ring-purple-400 text-gray-900 placeholder:text-gray-500"
               required
             />
           </div>
@@ -94,7 +94,7 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="border-gray-200 focus:border-purple-400 focus:ring-purple-400"
+              className="bg-white border-gray-200 focus:border-purple-400 focus:ring-purple-400 text-gray-900 placeholder:text-gray-500"
               required
             />
           </div>
