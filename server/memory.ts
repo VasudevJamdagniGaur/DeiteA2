@@ -83,7 +83,7 @@ export async function getMessagesForDate(userId: string, date: string): Promise<
     });
   } catch (error) {
     console.log("Compound query failed, using fallback approach:", error.message);
-    
+
     // Fallback: Query by userId only and filter locally
     const userQuery = query(
       collection(serverDb, "chat_messages"),
@@ -219,17 +219,17 @@ export function formatLongTermMemory(summaries: string[]): string {
 export async function buildPrompt(userId: string, latestMessage: string): Promise<string> {
   // Get short-term memory (today's messages)
   const todaysMessages = await getTodaysMessages(userId);
-  
+
   // Get long-term memory (past summaries)
   const longTermMemory = await getLongTermMemory(userId);
-  
+
   // Check if this is a new user
   const hasHistory = await hasUserHistory(userId);
-  
+
   // Format memory for prompt
   const chatHistory = formatChatHistory(todaysMessages);
   const historicalContext = formatLongTermMemory(longTermMemory);
-  
+
   // Build the complete prompt
   const systemPrompt = `You are Deite — a compassionate, emotionally intelligent AI therapist, life coach, and journaling companion.
 
@@ -283,7 +283,7 @@ Respond only to the current message while considering the full context.`;
 export async function summarizeToday(userId: string): Promise<string | null> {
   const today = getCurrentDateString();
   const todaysMessages = await getTodaysMessages(userId);
-  
+
   if (todaysMessages.length === 0) {
     return null; // No messages to summarize
   }
@@ -297,7 +297,7 @@ export async function summarizeToday(userId: string): Promise<string | null> {
     // Import AI summarization function
     const { summarizeToday: aiSummarizeToday } = await import("./ai");
     const summary = await aiSummarizeToday(userId, conversationText);
-    
+
     await saveDailySummary(userId, today, summary);
     return summary;
   } catch (error) {
@@ -305,3 +305,56 @@ export async function summarizeToday(userId: string): Promise<string | null> {
     return null;
   }
 }
+
+// Get chat activity for a date range (for calendar highlighting)
+export async function getChatActivity(userId: string, startDate: string, endDate: string): Promise<{ [date: string]: number }> {
+  try {
+    //Need to find the database to connect to
+    //const query = `
+    //  SELECT 
+    //    DATE(timestamp) as date,
+    //    COUNT(*) as message_count
+    //  FROM messages 
+    //  WHERE user_id = ? 
+    //    AND DATE(timestamp) BETWEEN ? AND ?
+    //    AND role = 'user'
+    //  GROUP BY DATE(timestamp)
+    //  ORDER BY date
+    //`;
+
+    //const rows = db.prepare(query).all(userId, startDate, endDate);
+    const messagesQuery = query(
+      collection(serverDb, "chat_messages"),
+      where("userId", "==", userId),
+      where("timestamp", ">=", new Date(startDate)),
+      where("timestamp", "<=", new Date(endDate))
+    );
+    const snapshot = await getDocs(messagesQuery);
+    const activity: { [date: string]: number } = {};
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const date = getDateString(data.timestamp.toDate());
+      activity[date] = (activity[date] || 0) + 1;
+    });
+
+    // Convert to object with date strings as keys
+    //const activity: { [date: string]: number } = {};
+
+    //for (const row of rows as any[]) {
+    //  activity[row.date] = row.message_count;
+    //}
+
+    return activity;
+  } catch (error) {
+    console.error('Error getting chat activity:', error);
+    throw error;
+  }
+}
+
+export {
+  saveMessage,
+  getTodaysMessages,
+  getLongTermMemory,
+  summarizeToday,
+  getChatActivity
+};

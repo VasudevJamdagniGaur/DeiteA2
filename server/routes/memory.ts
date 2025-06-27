@@ -15,7 +15,7 @@ router.get("/messages/today/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
     const messages = await getTodaysMessages(userId);
-    
+
     res.json({
       messages: messages,
       count: messages.length
@@ -31,7 +31,7 @@ router.get("/messages/:userId/:date", async (req, res) => {
   try {
     const { userId, date } = req.params;
     const messages = await getMessagesForDate(userId, date);
-    
+
     res.json({
       messages: messages,
       date: date,
@@ -48,9 +48,9 @@ router.get("/summaries/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
     const limit = parseInt(req.query.limit as string) || 5;
-    
+
     const summaries = await getLongTermMemory(userId, limit);
-    
+
     res.json({
       summaries: summaries,
       count: summaries.length
@@ -66,11 +66,11 @@ router.get("/summary/:userId/:date", async (req, res) => {
   try {
     const { userId, date } = req.params;
     const summary = await getDailySummary(userId, date);
-    
+
     if (!summary) {
       return res.status(404).json({ error: "No summary found for this date" });
     }
-    
+
     res.json({
       summary: summary,
       date: date
@@ -86,7 +86,7 @@ router.get("/history/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
     const hasHistory = await hasUserHistory(userId);
-    
+
     res.json({
       hasHistory: hasHistory
     });
@@ -101,11 +101,11 @@ router.post("/summarize/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
     const summary = await summarizeToday(userId);
-    
+
     if (!summary) {
       return res.status(404).json({ error: "No messages found to summarize" });
     }
-    
+
     res.json({
       summary: summary,
       date: new Date().toISOString().slice(0, 10)
@@ -113,6 +113,63 @@ router.post("/summarize/:userId", async (req, res) => {
   } catch (error: any) {
     console.error("Error generating summary:", error);
     res.status(500).json({ error: "Failed to generate summary" });
+  }
+});
+
+// Get conversation summary for a specific date
+router.post('/summary', async (req, res) => {
+  try {
+    const { userId, date } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
+    }
+
+    const summary = await summarizeToday(userId);
+
+    if (!summary) {
+      return res.status(404).json({ error: 'No messages found for today' });
+    }
+
+    return res.json({ 
+      summary,
+      date: date || new Date().toISOString().slice(0, 10)
+    });
+  } catch (error) {
+    console.error('Summary error details:', {
+      message: error.message,
+      stack: error.stack
+    });
+    return res.status(500).json({ 
+      error: 'Failed to generate summary',
+      details: error.message 
+    });
+  }
+});
+
+// Get chat activity for calendar highlighting
+router.get('/chat-activity', async (req, res) => {
+  try {
+    const { userId, startDate, endDate } = req.query;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
+    }
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({ error: 'startDate and endDate are required' });
+    }
+
+    const { getChatActivity } = await import('../memory');
+    const activity = await getChatActivity(userId as string, startDate as string, endDate as string);
+
+    return res.json({ activity });
+  } catch (error) {
+    console.error('Chat activity error:', error);
+    return res.status(500).json({ 
+      error: 'Failed to fetch chat activity',
+      details: error.message 
+    });
   }
 });
 
