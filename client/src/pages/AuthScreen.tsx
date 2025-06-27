@@ -13,9 +13,11 @@ interface AuthScreenProps {
 export default function AuthScreen({ onSuccess }: AuthScreenProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -24,6 +26,17 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
 
     try {
       if (isSignUp) {
+        // Validate password confirmation for sign up
+        if (password !== confirmPassword) {
+          toast({
+            title: "Password mismatch",
+            description: "Please make sure both passwords match.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+        
         await signUp(email, password);
         toast({
           title: "Account created! 🎉",
@@ -112,6 +125,36 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
               </button>
             </div>
           </div>
+
+          {isSignUp && (
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="text-purple-600 font-medium">
+                Confirm Password
+              </Label>
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="bg-white border-gray-200 focus:border-purple-400 focus:ring-purple-400 text-gray-900 placeholder:text-gray-500 pr-10"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="space-y-3 pt-2">
             <Button
