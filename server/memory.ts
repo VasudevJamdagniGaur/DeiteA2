@@ -305,3 +305,34 @@ export async function summarizeToday(userId: string): Promise<string | null> {
     return null;
   }
 }
+
+/**
+ * Get chat activity data for calendar visualization
+ */
+export async function getChatActivity(userId: string, startDate: string, endDate: string): Promise<Record<string, number>> {
+  try {
+    // Query all messages for the user within date range
+    const userQuery = query(
+      collection(serverDb, "chat_messages"),
+      where("userId", "==", userId)
+    );
+
+    const snapshot = await getDocs(userQuery);
+    const activity: Record<string, number> = {};
+
+    snapshot.docs.forEach(doc => {
+      const data = doc.data();
+      const sessionDate = data.sessionDate;
+      
+      // Filter by date range
+      if (sessionDate && sessionDate >= startDate && sessionDate <= endDate) {
+        activity[sessionDate] = (activity[sessionDate] || 0) + 1;
+      }
+    });
+
+    return activity;
+  } catch (error) {
+    console.error("Error fetching chat activity:", error);
+    return {};
+  }
+}

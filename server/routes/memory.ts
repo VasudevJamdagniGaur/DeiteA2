@@ -116,4 +116,26 @@ router.post("/summarize/:userId", async (req, res) => {
   }
 });
 
+// Get chat activity for calendar visualization
+router.get("/activity/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { startDate, endDate } = req.query;
+    
+    if (!startDate || !endDate) {
+      return res.status(400).json({ error: "startDate and endDate are required" });
+    }
+    
+    const { getChatActivity } = await import("../memory");
+    const activity = await getChatActivity(userId, startDate as string, endDate as string);
+    
+    res.json({
+      activity: activity
+    });
+  } catch (error: any) {
+    console.error("Error fetching chat activity:", error);
+    res.status(500).json({ error: "Failed to fetch chat activity" });
+  }
+});
+
 export default router;
