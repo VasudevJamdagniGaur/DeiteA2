@@ -1,155 +1,93 @@
+"use client"
 
-import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
-import { Brain, Heart, Sparkles, Star, ArrowRight } from "lucide-react";
+import { Brain, Heart, Sparkles, Star } from "lucide-react"
+import { useEffect, useState } from "react"
 
 interface SplashScreenProps {
   onGetStarted: () => void;
 }
 
 export default function SplashScreen({ onGetStarted }: SplashScreenProps) {
+  const [isVisible, setIsVisible] = useState(true)
+
+  useEffect(() => {
+    // Auto-hide splash screen after 3 seconds
+    const timer = setTimeout(() => {
+      setIsVisible(false)
+      onGetStarted()
+    }, 3000)
+
+    return () => clearTimeout(timer)
+  }, [onGetStarted])
+
+  if (!isVisible) return null
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-200 via-purple-200 to-blue-200 flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Animated background elements */}
-      <motion.div 
-        className="absolute top-20 left-16"
-        animate={{ y: [0, -30, 0], rotate: [0, 360] }}
-        transition={{ duration: 8, repeat: Infinity }}
-      >
-        <Heart className="w-12 h-12 text-pink-400/60" />
-      </motion.div>
-      <motion.div 
-        className="absolute top-32 right-20"
-        animate={{ y: [0, -25, 0], rotate: [0, -360] }}
-        transition={{ duration: 6, repeat: Infinity, delay: 1 }}
-      >
-        <Sparkles className="w-10 h-10 text-yellow-400/60" />
-      </motion.div>
-      <motion.div 
-        className="absolute bottom-32 left-12"
-        animate={{ y: [0, -20, 0], rotate: [0, 360] }}
-        transition={{ duration: 7, repeat: Infinity, delay: 2 }}
-      >
-        <Star className="w-8 h-8 text-blue-400/60" />
-      </motion.div>
-      <motion.div 
-        className="absolute bottom-40 right-16"
-        animate={{ y: [0, -35, 0], rotate: [0, -360] }}
-        transition={{ duration: 9, repeat: Infinity, delay: 3 }}
-      >
-        <Brain className="w-14 h-14 text-purple-400/60" />
-      </motion.div>
-
-      {/* Animated rays pattern background */}
-      <motion.div 
-        className="absolute inset-0 opacity-30"
-        animate={{ rotate: 360 }}
-        transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-        style={{
-          background: `conic-gradient(from 0deg at 50% 50%, 
-            hsl(300, 70%, 80%), 
-            hsl(280, 70%, 85%), 
-            hsl(240, 70%, 85%), 
-            hsl(200, 70%, 80%), 
-            hsl(180, 70%, 85%), 
-            hsl(160, 70%, 80%), 
-            hsl(120, 70%, 85%), 
-            hsl(60, 70%, 80%), 
-            hsl(20, 70%, 85%), 
-            hsl(340, 70%, 80%), 
-            hsl(300, 70%, 80%))`
-        }}
-      />
-
-      <div className="text-center z-10">
-        {/* Main logo/brain */}
-        <motion.div
-          initial={{ scale: 0, rotate: -180 }}
-          animate={{ scale: 1, rotate: 0 }}
-          transition={{ duration: 1, ease: "easeOut" }}
-          className="mb-8"
-        >
-          <motion.div 
-            className="w-32 h-32 bg-gradient-to-br from-purple-400 via-pink-400 to-blue-400 rounded-full flex items-center justify-center mx-auto shadow-2xl"
-            animate={{ 
-              scale: [1, 1.1, 1],
-              boxShadow: [
-                "0 20px 25px -5px rgba(0, 0, 0, 0.1)", 
-                "0 25px 50px -12px rgba(147, 51, 234, 0.25)",
-                "0 20px 25px -5px rgba(0, 0, 0, 0.1)"
-              ]
-            }}
-            transition={{ duration: 3, repeat: Infinity }}
-          >
-            <Brain className="w-16 h-16 text-white" />
-          </motion.div>
-        </motion.div>
-
-        {/* App name */}
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.8 }}
-          className="mb-6"
-        >
-          <h1 className="text-6xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-blue-500 bg-clip-text text-transparent mb-4">
-            Deite
-          </h1>
-          <p className="text-xl text-gray-700 flex items-center justify-center gap-2">
-            <Sparkles className="w-5 h-5 text-yellow-500" />
-            Your mindful AI companion
-            <Sparkles className="w-5 h-5 text-yellow-500" />
-          </p>
-        </motion.div>
-
-        {/* Subtitle */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1, duration: 0.8 }}
-          className="mb-12"
-        >
-          <p className="text-lg text-gray-600 max-w-md mx-auto leading-relaxed">
-            Embark on a colorful journey of self-discovery and mental wellness 🌈
-          </p>
-        </motion.div>
-
-        {/* Get started button */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 1.5, duration: 0.6 }}
-        >
-          <Button
-            onClick={onGetStarted}
-            className="bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 text-white px-12 py-6 rounded-full text-xl font-bold shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-105"
-          >
-            <span className="flex items-center gap-3">
-              Get Started
-              <motion.div
-                animate={{ x: [0, 5, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-              >
-                <ArrowRight className="w-6 h-6" />
-              </motion.div>
-            </span>
-          </Button>
-        </motion.div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-800 overflow-hidden">
+      {/* Floating cute elements */}
+      <div className="absolute top-16 left-8 animate-bounce">
+        <Heart className="w-8 h-8 text-pink-400 drop-shadow-lg" />
+      </div>
+      <div className="absolute top-24 right-12 animate-bounce delay-300">
+        <Sparkles className="w-6 h-6 text-purple-400 drop-shadow-lg" />
+      </div>
+      <div className="absolute bottom-32 left-16 animate-bounce delay-500">
+        <Star className="w-7 h-7 text-blue-400 drop-shadow-lg" />
+      </div>
+      <div className="absolute bottom-40 right-8 animate-bounce delay-700">
+        <Heart className="w-5 h-5 text-pink-300 drop-shadow-lg" />
+      </div>
+      <div className="absolute top-1/3 left-4 animate-bounce delay-1000">
+        <Sparkles className="w-4 h-4 text-yellow-400 drop-shadow-lg" />
+      </div>
+      <div className="absolute top-1/2 right-6 animate-bounce delay-1200">
+        <Star className="w-6 h-6 text-purple-300 drop-shadow-lg" />
       </div>
 
-      {/* Bottom decorative text */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2, duration: 1 }}
-        className="absolute bottom-8 text-center"
-      >
-        <p className="text-gray-500 flex items-center justify-center gap-2">
-          <Brain className="w-4 h-4 text-purple-500" />
-          Made with love for your mental health
-          <Heart className="w-4 h-4 text-pink-500" />
-        </p>
-      </motion.div>
+      {/* Main content */}
+      <div className="text-center relative z-10">
+        {/* Brain icon at the top */}
+        <div className="mb-8 flex justify-center">
+          <div className="relative">
+            <div className="w-24 h-24 bg-gradient-to-br from-purple-400 via-pink-400 to-blue-400 rounded-full flex items-center justify-center shadow-2xl shadow-purple-500/50 animate-pulse">
+              <Brain className="w-12 h-12 text-white drop-shadow-lg" />
+            </div>
+            {/* Glowing ring effect */}
+            <div className="absolute inset-0 w-24 h-24 bg-gradient-to-br from-purple-400 via-pink-400 to-blue-400 rounded-full animate-ping opacity-20"></div>
+            {/* Secondary glow */}
+            <div className="absolute -inset-2 w-28 h-28 bg-gradient-to-br from-purple-400/30 via-pink-400/30 to-blue-400/30 rounded-full animate-pulse blur-md"></div>
+          </div>
+        </div>
+
+        {/* App name */}
+        <div className="mb-6">
+          <h1 className="text-6xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent mb-2 drop-shadow-2xl animate-pulse">
+            Deite
+          </h1>
+          <div className="flex items-center justify-center gap-2 mt-4">
+            <Sparkles className="w-5 h-5 text-yellow-400 animate-spin-slow" />
+            <p className="text-gray-300 text-lg font-medium">Your brain buddy</p>
+            <Sparkles className="w-5 h-5 text-yellow-400 animate-spin-slow" />
+          </div>
+        </div>
+
+        {/* Loading indicator */}
+        <div className="flex justify-center items-center space-x-2 mt-8">
+          <div className="w-3 h-3 bg-purple-400 rounded-full animate-bounce shadow-lg shadow-purple-400/50"></div>
+          <div className="w-3 h-3 bg-pink-400 rounded-full animate-bounce delay-100 shadow-lg shadow-pink-400/50"></div>
+          <div className="w-3 h-3 bg-blue-400 rounded-full animate-bounce delay-200 shadow-lg shadow-blue-400/50"></div>
+        </div>
+
+        {/* Subtitle */}
+        <p className="text-gray-400 text-sm mt-6 font-medium">Loading your wellness journey...</p>
+      </div>
+
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-pink-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl animate-pulse delay-500"></div>
+      </div>
     </div>
-  );
+  )
 }
