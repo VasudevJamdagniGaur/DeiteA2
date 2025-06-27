@@ -113,7 +113,7 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
               type="button"
               onClick={() => setIsSignUp(!isSignUp)}
               variant="outline"
-              className="w-full border-gray-200 text-gray-600 hover:bg-gray-50 font-medium py-3 rounded-xl bg-transparent"
+              className="w-full border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-600 font-medium py-3 rounded-xl bg-transparent"
             >
               {isSignUp ? "Already have an account? Sign In" : "Need an account? Sign Up"}
             </Button>
