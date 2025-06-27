@@ -21,6 +21,9 @@ import {
   Heart,
   Sparkles,
   Star,
+  HeadphonesIcon,
+  Phone,
+  MessageCircle,
 } from "lucide-react";
 
 interface UserProfileScreenProps {
@@ -360,7 +363,94 @@ export default function UserProfileScreen({ onBack }: UserProfileScreenProps) {
           </Card>
         </motion.div>
 
-        
+        {/* Customer Service Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <Card className={`backdrop-blur-sm border-2 shadow-xl ${
+            isDarkMode 
+              ? "bg-slate-800/80 border-green-500/30 shadow-green-500/20" 
+              : "bg-white/80 border-green-100"
+          }`}>
+            <CardHeader className="text-center pb-4">
+              <div className="flex justify-center mb-3">
+                <motion.div 
+                  className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                    isDarkMode 
+                      ? "bg-gradient-to-br from-green-500 to-emerald-500 shadow-lg shadow-green-500/30" 
+                      : "bg-gradient-to-br from-green-200 to-emerald-200"
+                  }`}
+                  animate={{ scale: [1, 1.05, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <HeadphonesIcon className={`w-8 h-8 ${isDarkMode ? "text-white" : "text-green-700"}`} />
+                </motion.div>
+              </div>
+              <CardTitle className={`text-xl ${isDarkMode ? "text-white" : "text-gray-800"}`}>
+                Customer Service
+              </CardTitle>
+              <p className={`${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>
+                Need help? We're here for you!
+              </p>
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              <div className={`p-4 rounded-xl ${
+                isDarkMode ? "bg-slate-700/50" : "bg-gray-50"
+              }`}>
+                <div className="flex items-center gap-3 mb-3">
+                  <Phone className={`w-5 h-5 ${isDarkMode ? "text-green-400" : "text-green-600"}`} />
+                  <span className={`font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>
+                    Support Number
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <p className={`text-lg font-semibold ${isDarkMode ? "text-white" : "text-gray-800"}`}>
+                    +91 9536138120
+                  </p>
+                  <Button
+                    onClick={() => window.open('tel:+919536138120')}
+                    size="sm"
+                    className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold"
+                  >
+                    <Phone className="w-4 h-4 mr-1" />
+                    Call
+                  </Button>
+                </div>
+              </div>
+
+              <div className={`p-4 rounded-xl ${
+                isDarkMode ? "bg-slate-700/50" : "bg-gray-50"
+              }`}>
+                <div className="flex items-center gap-3 mb-3">
+                  <MessageCircle className={`w-5 h-5 ${isDarkMode ? "text-blue-400" : "text-blue-600"}`} />
+                  <span className={`font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>
+                    WhatsApp Support
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <p className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
+                    Send us a message for quick support
+                  </p>
+                  <Button
+                    onClick={() => window.open('https://wa.me/919536138120', '_blank')}
+                    size="sm"
+                    className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold"
+                  >
+                    <MessageCircle className="w-4 h-4 mr-1" />
+                    Message
+                  </Button>
+                </div>
+              </div>
+
+              <div className={`text-center text-sm ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                <p>Available 24/7 for your support needs</p>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     </div>
   );
