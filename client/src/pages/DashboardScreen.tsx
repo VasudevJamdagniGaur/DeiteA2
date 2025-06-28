@@ -196,7 +196,7 @@ export default function DashboardScreen({
               isDarkMode ? "text-gray-300" : "text-gray-600"
             }`}>
               <Sparkles className="w-4 h-4 text-yellow-400" />
-              Continue your brain-healing journey
+              Continue your healing journey
               <Sparkles className="w-4 h-4 text-yellow-400" />
             </p>
           </div>
