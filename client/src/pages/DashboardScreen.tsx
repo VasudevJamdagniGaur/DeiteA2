@@ -109,7 +109,7 @@ export default function DashboardScreen({
       const messages = parseMessagesFromContent(content);
       if (messages.length === 0) return;
 
-      const response = await fetch("/api/reflection", {
+      const response = await fetch("http://localhost:5000/api/reflection", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
