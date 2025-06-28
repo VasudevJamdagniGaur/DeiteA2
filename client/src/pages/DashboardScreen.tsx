@@ -381,7 +381,7 @@ export default function DashboardScreen({
               <h2 className={`text-xl font-bold ${
                 isDarkMode ? "text-white" : "text-gray-800"
               }`}>
-                {isDarkMode ? "Daily Brain Boost" : "Day Reflect"}
+                {isDarkMode ? "Day's Reflect" : "Day Reflect"}
               </h2>
             </div>
 
