@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuthContext } from "../components/AuthProvider";
 import { useTheme } from "../components/ThemeProvider";
 import { saveReflection, getReflection } from "../lib/auth";
-import { ArrowLeft, Send } from "lucide-react";
+import { ArrowLeft, Send, Brain } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChatMessage } from "../types";
 
@@ -209,9 +209,17 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
         </Button>
 
         <div className="flex flex-col items-center justify-center flex-1">
-          <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mb-2">
-            <span className="text-white text-sm font-semibold">🧠</span>
-          </div>
+          <motion.div
+            className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${
+              isDarkMode 
+                ? "bg-gradient-to-br from-purple-400 to-pink-400 shadow-lg shadow-purple-500/50" 
+                : "bg-gradient-to-br from-pink-200 to-purple-200"
+            }`}
+            animate={{ scale: [1, 1.1, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <Brain className={`w-4 h-4 ${isDarkMode ? "text-white" : "text-purple-600"}`} />
+          </motion.div>
           <div className="text-center">
             <h1 className={`text-lg font-semibold transition-colors duration-300 ${
               isDarkMode ? "text-white" : "text-gray-900"
@@ -241,10 +249,12 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
               <Avatar className={`w-10 h-10 flex-shrink-0 ${
                 msg.sender === "user" 
                   ? "bg-gradient-to-br from-blue-500 to-blue-600" 
-                  : "bg-gradient-to-br from-purple-500 to-pink-500"
+                  : isDarkMode
+                    ? "bg-gradient-to-br from-purple-400 to-pink-400 shadow-lg shadow-purple-500/30"
+                    : "bg-gradient-to-br from-purple-500 to-pink-500"
               }`}>
                 <AvatarFallback className="bg-transparent text-white font-semibold">
-                  {msg.sender === "user" ? getUserInitial() : "🧠"}
+                  {msg.sender === "user" ? getUserInitial() : <Brain className="w-5 h-5" />}
                 </AvatarFallback>
               </Avatar>
               
@@ -271,8 +281,14 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
             animate={{ opacity: 1, y: 0 }}
             className="flex items-start space-x-3"
           >
-            <Avatar className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 flex-shrink-0">
-              <AvatarFallback className="bg-transparent text-white font-semibold">🧠</AvatarFallback>
+            <Avatar className={`w-10 h-10 flex-shrink-0 ${
+              isDarkMode
+                ? "bg-gradient-to-br from-purple-400 to-pink-400 shadow-lg shadow-purple-500/30"
+                : "bg-gradient-to-br from-purple-500 to-pink-500"
+            }`}>
+              <AvatarFallback className="bg-transparent text-white font-semibold">
+                <Brain className="w-5 h-5" />
+              </AvatarFallback>
             </Avatar>
             <div className={`rounded-2xl rounded-tl-md p-4 max-w-[80%] transition-colors duration-300 ${
               isDarkMode
