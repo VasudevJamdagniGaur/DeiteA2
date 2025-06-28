@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-const API_URL = "https://84fpv7rxmxkqcc-11434.proxy.runpod.net/api/generate";
+const API_URL = "/api/chat";
 
 interface ChatMessage {
   sender: 'user' | 'bot';
@@ -23,15 +23,11 @@ export const Chat = () => {
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          model: "llama3",
-          prompt: input,
-          stream: false 
-        }),
+        body: JSON.stringify({ message: input }),
       });
       if (!response.ok) throw new Error('Network response was not ok');
       const data = await response.json();
-      const botMsg: ChatMessage = { sender: 'bot', content: data.response || 'No response' };
+      const botMsg: ChatMessage = { sender: 'bot', content: data.reply || 'No response' };
       setMessages((prev) => [...prev, botMsg]);
     } catch (err: any) {
       setError('Failed to get response from server.');

@@ -117,15 +117,14 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
     try {
       const updatedMessages = [...messages, userMessage];
 
-      const response = await fetch('https://84fpv7rxmxkqcc-11434.proxy.runpod.net/api/generate', {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ 
-          model: "llama3",
-          prompt: userMessage.content,
-          stream: false
+          userId: user.uid,
+          message: userMessage.content
         }),
       });
 
@@ -135,14 +134,14 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
 
       const data = await response.json();
 
-      if (!data.response) {
+      if (!data.reply) {
         throw new Error('Invalid response format');
       }
 
       const deiteResponse: ChatMessage = {
         id: `deite-${Date.now()}`,
         sender: "deite",
-        content: data.response,
+        content: data.reply,
         timestamp: new Date(),
       };
 
