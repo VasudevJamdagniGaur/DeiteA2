@@ -109,17 +109,26 @@ export default function DashboardScreen({
       const messages = parseMessagesFromContent(content);
       if (messages.length === 0) return;
 
-      const response = await fetch("http://localhost:5000/api/reflection", {
+      const response = await fetch("https://84fpv7rxmxkqcc-11434.proxy.runpod.net/api/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ messages }),
+        body: JSON.stringify({
+          model: "llama3",
+          prompt: `Based on the user's chat messages, generate a concise and realistic daily journal entry. Do not invent or exaggerate events. Summarize the main emotions, concerns, and insights discussed during the conversation. Write in a grounded, honest tone — like a real person journaling about their day. Only use the content actually discussed in the messages. Do not make up metaphors or fictional events. The tone should be factual. Keep it brief and to the point.
+
+Conversation:
+${messages.map(msg => `${msg.sender === "deite" ? "Therapist" : "Me"}: ${msg.content}`).join("\n")}
+
+Write a short, factual journal entry (2-3 sentences maximum):`,
+          stream: false,
+        }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        setJournalReflection(data.reflection);
+        setJournalReflection(data.response);
       }
     } catch (error) {
       console.error("Error generating reflection:", error);
