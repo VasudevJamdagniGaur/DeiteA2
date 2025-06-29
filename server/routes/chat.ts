@@ -50,7 +50,16 @@ router.post("/reflection", async (req, res) => {
       )
       .join("\n");
 
-    const reflectionPrompt = `Based on the user's chat messages, generate a concise and realistic daily journal entry. Do not invent or exaggerate events. Summarize the main emotions, concerns, and insights discussed during the conversation. Write in a grounded, honest tone — like a real person journaling about their day. Only use the content actually discussed in the messages. Do not make up metaphors or fictional events. The tone should be factual. Keep it brief and to the point.
+    const reflectionPrompt = `Based on the user's chat messages, generate a concise and realistic daily journal entry. Follow these guidelines:
+
+1. IGNORE simple greetings like "hey", "hi", "hello" or similar brief responses
+2. For information lookups or research (like asking about events, people, places), just mention the user showed interest in learning about the topic - don't include the full details provided
+3. Focus on meaningful emotional content, concerns, insights, or personal discussions
+4. Write in a grounded, honest tone — like a real person journaling about their day
+5. Only use content actually discussed in messages, don't invent events
+6. Keep it brief and factual (2-3 sentences maximum)
+
+If the conversation only contains greetings or simple responses with no meaningful content, respond with: "Had a brief check-in today but didn't dive into anything significant."
 
 Conversation:
 ${conversationText}
