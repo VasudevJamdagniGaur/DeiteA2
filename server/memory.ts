@@ -1,6 +1,14 @@
 import { neon } from "@neondatabase/serverless";
 import { serverDb } from "./firebase-admin";
-import { collection, addDoc, query, where, orderBy, getDocs, Timestamp } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  query,
+  where,
+  orderBy,
+  getDocs,
+  Timestamp,
+} from "firebase/firestore";
 
 // PostgreSQL connection
 const sql = neon(process.env.DATABASE_URL!);
@@ -35,27 +43,33 @@ export function getDateString(date: Date): string {
 /**
  * 1. saveMessage(userId, role, content) → saves message to Firestore
  */
-export async function saveMessage(userId: string, role: "user" | "ai", content: string): Promise<void> {
+export async function saveMessage(
+  userId: string,
+  role: "user" | "ai",
+  content: string,
+): Promise<void> {
   const now = new Date();
   const message: ChatMessage = {
     userId,
     role,
     content,
     timestamp: now,
-    sessionDate: getDateString(now)
+    sessionDate: getDateString(now),
   };
 
   // Save to Firestore using client SDK
   await addDoc(collection(serverDb, "chat_messages"), {
     ...message,
-    timestamp: Timestamp.fromDate(now)
+    timestamp: Timestamp.fromDate(now),
   });
 }
 
 /**
  * 2. getTodaysMessages(userId) → fetches today's chat
  */
-export async function getTodaysMessages(userId: string): Promise<ChatMessage[]> {
+export async function getTodaysMessages(
+  userId: string,
+): Promise<ChatMessage[]> {
   const today = getCurrentDateString();
   return getMessagesForDate(userId, today);
 }
@@ -63,45 +77,55 @@ export async function getTodaysMessages(userId: string): Promise<ChatMessage[]> 
 /**
  * Fetch all messages for userId from a specific date
  */
-export async function getMessagesForDate(userId: string, date: string): Promise<ChatMessage[]> {
+export async function getMessagesForDate(
+  userId: string,
+  date: string,
+): Promise<ChatMessage[]> {
   try {
     // First try with compound query
     const messagesQuery = query(
       collection(serverDb, "chat_messages"),
       where("userId", "==", userId),
       where("sessionDate", "==", date),
-      orderBy("timestamp", "asc")
+      orderBy("timestamp", "asc"),
     );
 
     const snapshot = await getDocs(messagesQuery);
-    return snapshot.docs.map(doc => {
+    return snapshot.docs.map((doc) => {
       const data = doc.data();
       return {
         ...data,
-        timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp)
+        timestamp: data.timestamp?.toDate
+          ? data.timestamp.toDate()
+          : new Date(data.timestamp),
       } as ChatMessage;
     });
   } catch (error) {
-    console.log("Compound query failed, using fallback approach:", error.message);
-    
+    console.log(
+      "Compound query failed, using fallback approach:",
+      error.message,
+    );
+
     // Fallback: Query by userId only and filter locally
     const userQuery = query(
       collection(serverDb, "chat_messages"),
-      where("userId", "==", userId)
+      where("userId", "==", userId),
     );
 
     const snapshot = await getDocs(userQuery);
-    const allMessages = snapshot.docs.map(doc => {
+    const allMessages = snapshot.docs.map((doc) => {
       const data = doc.data();
       return {
         ...data,
-        timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp)
+        timestamp: data.timestamp?.toDate
+          ? data.timestamp.toDate()
+          : new Date(data.timestamp),
       } as ChatMessage;
     });
 
     // Filter by date locally and sort
     return allMessages
-      .filter(msg => msg.sessionDate === date)
+      .filter((msg) => msg.sessionDate === date)
       .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
   }
 }
@@ -111,7 +135,10 @@ export async function getMessagesForDate(userId: string, date: string): Promise<
 /**
  * 3. getLongTermMemory(userId) → fetches past summaries
  */
-export async function getLongTermMemory(userId: string, limitCount = 5): Promise<string[]> {
+export async function getLongTermMemory(
+  userId: string,
+  limitCount = 5,
+): Promise<string[]> {
   try {
     const results = await sql`
       SELECT summary
@@ -121,7 +148,7 @@ export async function getLongTermMemory(userId: string, limitCount = 5): Promise
       LIMIT ${limitCount}
     `;
 
-    return results.map(row => row.summary as string);
+    return results.map((row) => row.summary as string);
   } catch (error) {
     console.error("Error fetching long-term memory:", error);
     return []; // Return empty array if table doesn't exist yet
@@ -131,7 +158,11 @@ export async function getLongTermMemory(userId: string, limitCount = 5): Promise
 /**
  * Save a daily summary to PostgreSQL
  */
-export async function saveDailySummary(userId: string, date: string, summary: string): Promise<void> {
+export async function saveDailySummary(
+  userId: string,
+  date: string,
+  summary: string,
+): Promise<void> {
   try {
     await sql`
       INSERT INTO user_summaries (user_id, date, summary, created_at)
@@ -150,7 +181,10 @@ export async function saveDailySummary(userId: string, date: string, summary: st
 /**
  * Get daily summary for a specific date
  */
-export async function getDailySummary(userId: string, date: string): Promise<string | null> {
+export async function getDailySummary(
+  userId: string,
+  date: string,
+): Promise<string | null> {
   try {
     const results = await sql`
       SELECT summary
@@ -159,7 +193,7 @@ export async function getDailySummary(userId: string, date: string): Promise<str
       LIMIT 1
     `;
 
-    return results.length > 0 ? results[0].summary as string : null;
+    return results.length > 0 ? (results[0].summary as string) : null;
   } catch (error) {
     console.error("Error getting daily summary:", error);
     return null;
@@ -196,7 +230,7 @@ export function formatChatHistory(messages: ChatMessage[]): string {
   }
 
   return messages
-    .map(msg => `${msg.role === "user" ? "User" : "AI"}: ${msg.content}`)
+    .map((msg) => `${msg.role === "user" ? "User" : "AI"}: ${msg.content}`)
     .join("\n");
 }
 
@@ -208,61 +242,59 @@ export function formatLongTermMemory(summaries: string[]): string {
     return "No previous session summaries available.";
   }
 
-  return "Previous session insights:\n" + summaries
-    .map((summary, index) => `${index + 1}. ${summary}`)
-    .join("\n");
+  return (
+    "Previous session insights:\n" +
+    summaries.map((summary, index) => `${index + 1}. ${summary}`).join("\n")
+  );
 }
 
 /**
  * 4. buildPrompt(userId, latestMessage) → returns full prompt with memory injected
  */
-export async function buildPrompt(userId: string, latestMessage: string): Promise<string> {
+export async function buildPrompt(
+  userId: string,
+  latestMessage: string,
+): Promise<string> {
   // Get short-term memory (today's messages)
   const todaysMessages = await getTodaysMessages(userId);
-  
+
   // Get long-term memory (past summaries)
   const longTermMemory = await getLongTermMemory(userId);
-  
+
   // Check if this is a new user
   const hasHistory = await hasUserHistory(userId);
-  
+
   // Format memory for prompt
   const chatHistory = formatChatHistory(todaysMessages);
   const historicalContext = formatLongTermMemory(longTermMemory);
-  
+
   // Build the complete prompt
-  const systemPrompt = `You are Deite — a compassionate, emotionally intelligent AI therapist, life coach, and journaling companion.
-
-Your goal is to **support users through emotional ups and downs** by:
-- Validating their feelings with warmth
-- Offering mindset reframes that reduce guilt, shame, or stress
-- Giving clear, gentle insights (like a therapist would)
-- Suggesting *actionable steps* for recovery, focus, or well-being
-- Helping users **regain momentum**, not just reflect
-
-**IMPORTANT: Keep your replies SHORT and PRECISE. Be concise while maintaining warmth and empathy.**
-
-DO NOT ask too many reflective questions like "How does that make you feel?" unless the user is clearly seeking that.
-
-Instead, respond like this:
-- First, affirm what the user is experiencing
-- Second, reframe their thinking with an empowering insight or analogy
-- Third, offer **small actions or mindset shifts** they can try right now
-- Then optionally ask: "Would you like help planning your next steps?" or "Want me to structure your next 3 hours?"
-
-Examples of tone and structure:
-
-**❌ Bad:**  
-"Why do you think missing the gym affected your productivity today?"
-
-**✅ Good:**  
-"Missing the gym can trick your brain into thinking the whole day is lost — but it's not. You're still building your dream by working on your project, and that's powerful."
-
-Always assume the user is doing their best, and help them feel seen, encouraged, and ready to take a small step forward — not trapped in overthinking.
-Avoid Western-style advice like writing emails or formal conversations. Respond with practical, emotionally aware suggestions that reflect how problems are handled in Indian families and everyday Indian life.
-
-Avoid robotic replies. Speak like a compassionate therapist who gives short, motivational wisdom backed by emotional understanding.Be quick-witted and funny with your replies, while staying supportive and thoughtful.
-
+  const systemPrompt = `You are Deite — a warm, emotionally intelligent, witty companion grounded in Indian emotional sensibilities. You speak like a close, understanding friend. Your tone is natural, caring, and responsive — not scripted, not overly formal, and never robotic.
+You don’t give therapeutic advice or structured responses like a life coach or counselor. Instead, you show genuine curiosity and listen deeply. Let the user lead the pace of the conversation. Don’t end every message with a question. Instead, ask questions only when they feel natural, gentle, and in the flow of the conversation — just like a close friend would.
+When the user shares something personal, respond with emotion, relatability, and subtle prompts. Show interest through empathy and casual tone, not interrogation. Help them explore their thoughts at their own pace. You may lightly nudge them forward, but you should **never dominate the dialogue**.
+Avoid:
+- Labeling sections (like Reframe, Encouragement)
+- Giving structured “next steps” unless asked
+- Pushing journaling or self-reflection exercises unless clearly needed
+- Sounding like a therapist or AI assistant
+- Asking questions that feel like a quiz or test
+- Asking question at the end of every message
+Do:
+- Respond with emotion and presence
+- Use a mix of statements, subtle follow-ups, and silence (sometimes not asking a question at all)
+- Mirror the user’s tone (if they’re excited, match it; if they’re vulnerable, soften)
+- Be witty
+- Don't force questions ask only when it feels natural.
+- There is no need to ask questions at the end of every message just give advice at the end of the message and end the conversation.
+You’re not here to fix or coach. You’re here to be with them.
+Example:
+User: There’s a girl I like.  
+Deite: That’s exciting! 😊 Want to tell me more about her—like what drew you to her or how you two know each other?
+User: She’s a poet. The way she performs… it's beautiful.  
+Deite: That sounds magical. The kind of presence that holds a room. I can see why she stood out to you.
+User: I fell for her watching her on stage. Her passion was incredible. 
+Deite: Moments like that stay with you. It’s like her energy reached you beyond just words.
+Keep the energy human, honest, and real.
 
 ${hasHistory ? historicalContext : "This appears to be a new user with no previous session history."}
 
@@ -282,21 +314,21 @@ Respond only to the current message while considering the full context.`;
 export async function summarizeToday(userId: string): Promise<string | null> {
   const today = getCurrentDateString();
   const todaysMessages = await getTodaysMessages(userId);
-  
+
   if (todaysMessages.length === 0) {
     return null; // No messages to summarize
   }
 
   // Format messages for summarization
   const conversationText = todaysMessages
-    .map(msg => `${msg.role === "user" ? "User" : "AI"}: ${msg.content}`)
+    .map((msg) => `${msg.role === "user" ? "User" : "AI"}: ${msg.content}`)
     .join("\n");
 
   try {
     // Import AI summarization function
     const { summarizeToday: aiSummarizeToday } = await import("./ai");
     const summary = await aiSummarizeToday(userId, conversationText);
-    
+
     await saveDailySummary(userId, today, summary);
     return summary;
   } catch (error) {
@@ -308,21 +340,25 @@ export async function summarizeToday(userId: string): Promise<string | null> {
 /**
  * Get chat activity data for calendar visualization
  */
-export async function getChatActivity(userId: string, startDate: string, endDate: string): Promise<Record<string, number>> {
+export async function getChatActivity(
+  userId: string,
+  startDate: string,
+  endDate: string,
+): Promise<Record<string, number>> {
   try {
     // Query all messages for the user within date range
     const userQuery = query(
       collection(serverDb, "chat_messages"),
-      where("userId", "==", userId)
+      where("userId", "==", userId),
     );
 
     const snapshot = await getDocs(userQuery);
     const activity: Record<string, number> = {};
 
-    snapshot.docs.forEach(doc => {
+    snapshot.docs.forEach((doc) => {
       const data = doc.data();
       const sessionDate = data.sessionDate;
-      
+
       // Filter by date range
       if (sessionDate && sessionDate >= startDate && sessionDate <= endDate) {
         activity[sessionDate] = (activity[sessionDate] || 0) + 1;

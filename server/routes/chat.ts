@@ -28,7 +28,7 @@ router.post("/chat", async (req, res) => {
 
     return res.status(500).json({
       error: "Failed to get response from AI",
-      details: error.message
+      details: error.message,
     });
   }
 });
@@ -58,15 +58,19 @@ router.post("/reflection", async (req, res) => {
 4. Write in a grounded, honest tone — like a real person journaling about their day
 5. Only use content actually discussed in messages, don't invent events
 6. Keep it brief and factual (2-3 sentences maximum)
-
-If the conversation only contains greetings or simple responses with no meaningful content, respond with: "Had a brief check-in today but didn't dive into anything significant."
+7. If the user didn't share much, respond with: "Had a brief check-in today but didn't dive into anything significant."
+8. Try to keep the day reflection as precise and factual as possible
+9. Don't sound robotic or overly formal, write like a real person journaling about their day and do not start it with like 'Here is a concise summary of our conversation today:' and such way just keep it informal.
 
 Conversation:
 ${conversationText}
 
 Write a short, factual journal entry (2-3 sentences maximum):`;
 
-    console.log("Making request to RunPod with prompt:", reflectionPrompt.substring(0, 200) + "...");
+    console.log(
+      "Making request to RunPod with prompt:",
+      reflectionPrompt.substring(0, 200) + "...",
+    );
 
     const response = await axios.post(
       "https://84fpv7rxmxkqcc-11434.proxy.runpod.net/api/generate",
@@ -78,9 +82,9 @@ Write a short, factual journal entry (2-3 sentences maximum):`;
       {
         timeout: 30000,
         headers: {
-          'Content-Type': 'application/json',
-        }
-      }
+          "Content-Type": "application/json",
+        },
+      },
     );
 
     console.log("RunPod response status:", response.status);
@@ -99,7 +103,10 @@ Write a short, factual journal entry (2-3 sentences maximum):`;
     });
     return res.status(500).json({
       error: "Failed to generate reflection",
-      details: error.response?.status === 404 ? "RunPod endpoint not found - check if instance is running" : error.message,
+      details:
+        error.response?.status === 404
+          ? "RunPod endpoint not found - check if instance is running"
+          : error.message,
     });
   }
 });
@@ -111,26 +118,40 @@ router.get("/chat/test", async (req, res) => {
       "https://84fpv7rxmxkqcc-11434.proxy.runpod.net/api/generate",
       {
         model: "llama3",
-        prompt: "Hello, this is a test message. Please respond with 'Test successful!'",
+        prompt:
+          "Hello, this is a test message. Please respond with 'Test successful!'",
         stream: false,
       },
       {
         timeout: 30000,
         headers: {
-          'Content-Type': 'application/json',
-        }
-      }
+          "Content-Type": "application/json",
+        },
+      },
     );
 
     if (response.data.response.includes("Test successful!")) {
-      return res.json({ status: "Chat router is working", test: "Test successful!" });
+      return res.json({
+        status: "Chat router is working",
+        test: "Test successful!",
+      });
     } else {
-      console.error("Test endpoint failed, unexpected response:", response.data);
-      return res.status(500).json({ status: "Chat router test failed", error: "Unexpected response from RunPod" });
+      console.error(
+        "Test endpoint failed, unexpected response:",
+        response.data,
+      );
+      return res.status(500).json({
+        status: "Chat router test failed",
+        error: "Unexpected response from RunPod",
+      });
     }
   } catch (error: any) {
     console.error("Test endpoint error:", error);
-    return res.status(500).json({ status: "Chat router test failed", error: "Failed to connect to RunPod", details: error.message });
+    return res.status(500).json({
+      status: "Chat router test failed",
+      error: "Failed to connect to RunPod",
+      details: error.message,
+    });
   }
 });
 
@@ -152,7 +173,7 @@ router.post("/summary", async (req, res) => {
 
     return res.json({
       summary: summary,
-      date: date || new Date().toISOString().slice(0, 10)
+      date: date || new Date().toISOString().slice(0, 10),
     });
   } catch (error: any) {
     console.error("Summary error details:", {
@@ -162,7 +183,7 @@ router.post("/summary", async (req, res) => {
 
     return res.status(500).json({
       error: "Failed to generate summary",
-      details: error.message
+      details: error.message,
     });
   }
 });

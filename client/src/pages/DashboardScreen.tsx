@@ -518,7 +518,7 @@ export default function DashboardScreen({
             isDarkMode ? "text-gray-300" : "text-gray-600"
           }`}>
             <Brain className={`w-4 h-4 ${isDarkMode ? "text-purple-400" : "text-purple-500"}`} />
-            Your brain deserves all the love and care!
+            You deserves all the love and care!
             <Heart className={`w-4 h-4 ${isDarkMode ? "text-pink-400" : "text-pink-500"}`} />
           </p>
         </div>
