@@ -1,7 +1,3 @@
-The code changes focus on adding customer support functionality by introducing a new screen state and updating the navigation logic.
-```
-
-```replit_final_file
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -22,9 +18,7 @@ import { Brain, Heart, Sparkles, Star } from "lucide-react";
 
 function AppContent() {
   const { user, profile, loading } = useAuthContext();
-  const [currentScreen, setCurrentScreen] = useState<
-    "splash" | "onboarding" | "auth" | "profile-setup" | "dashboard" | "chat" | "user-profile" | "customer-support"
-  >("splash");
+  const [currentScreen, setCurrentScreen] = useState("splash");
   const [chatDate, setChatDate] = useState("");
 
   useEffect(() => {
@@ -154,8 +148,7 @@ function AppContent() {
           setChatDate(date);
           setCurrentScreen("chat");
         }}
-        onUserProfile={() => setCurrentScreen("user-profile")}
-        onCustomerSupport={() => setCurrentScreen("customer-support")}
+        onUserProfile={() => setCurrentScreen("userProfile")}
       />
     ),
     chat: (
@@ -169,11 +162,6 @@ function AppContent() {
         onBack={() => setCurrentScreen("dashboard")} 
       />
     ),
-    customerSupport: (
-        <CustomerSupportScreen
-          onBack={() => setCurrentScreen("dashboard")}
-        />
-      ),
   };
 
   return screens[currentScreen as keyof typeof screens] || <NotFound />;
@@ -197,28 +185,3 @@ function App() {
 }
 
 export default App;
-
-// CustomerSupportScreen.tsx
-import React from 'react';
-
-const CustomerSupportScreen = ({ onBack }) => {
-  return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Customer Support</h1>
-      <p className="mb-2">
-        Need help? Contact us through the following channels:
-      </p>
-      <p className="mb-2">
-        WhatsApp: <a href="https://wa.me/9536138120" className="text-blue-500">9536138120</a>
-      </p>
-      <p className="mb-2">
-        Email: <a href="mailto:vasudevjamdagnigaur@gmail.com" className="text-blue-500">vasudevjamdagnigaur@gmail.com</a>
-      </p>
-      <button onClick={onBack} className="mt-4 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded">
-        Back to Dashboard
-      </button>
-    </div>
-  );
-};
-
-export default CustomerSupportScreen;
