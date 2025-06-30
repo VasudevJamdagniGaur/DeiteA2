@@ -11,6 +11,17 @@ import { saveUserProfile } from "../lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   ArrowLeft,
   User,
   Calendar,
@@ -25,6 +36,8 @@ import {
   Phone,
   MessageCircle,
   Mail,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 
 interface UserProfileScreenProps {
@@ -42,6 +55,7 @@ export default function UserProfileScreen({ onBack }: UserProfileScreenProps) {
     gender: profile?.gender || "",
   });
   const [loading, setLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const handleSave = async () => {
     if (!user || !profile) return;
@@ -79,6 +93,32 @@ export default function UserProfileScreen({ onBack }: UserProfileScreenProps) {
       gender: profile?.gender || "",
     });
     setIsEditing(false);
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+
+    setDeleteLoading(true);
+    try {
+      // Delete user account from Firebase Auth
+      await user.delete();
+      
+      toast({
+        title: "Account deleted",
+        description: "Your account has been permanently deleted.",
+      });
+      
+      // The auth state change will automatically redirect to login
+    } catch (error: any) {
+      console.error("Error deleting account:", error);
+      toast({
+        title: "Error deleting account",
+        description: error.message || "Please try again or contact support.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   const getGenderEmoji = (gender: string) => {
@@ -360,6 +400,95 @@ export default function UserProfileScreen({ onBack }: UserProfileScreenProps) {
                   </div>
                 </>
               )}
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Delete Account Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+        >
+          <Card className={`backdrop-blur-sm border-2 shadow-xl ${
+            isDarkMode 
+              ? "bg-slate-800/80 border-red-500/30 shadow-red-500/20" 
+              : "bg-white/80 border-red-100"
+          }`}>
+            <CardHeader className="text-center pb-4">
+              <div className="flex justify-center mb-3">
+                <motion.div 
+                  className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                    isDarkMode 
+                      ? "bg-gradient-to-br from-red-500 to-red-600 shadow-lg shadow-red-500/30" 
+                      : "bg-gradient-to-br from-red-200 to-red-300"
+                  }`}
+                  animate={{ scale: [1, 1.05, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <AlertTriangle className={`w-8 h-8 ${isDarkMode ? "text-white" : "text-red-700"}`} />
+                </motion.div>
+              </div>
+              <CardTitle className={`text-xl ${isDarkMode ? "text-white" : "text-gray-800"}`}>
+                Danger Zone
+              </CardTitle>
+              <p className={`${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>
+                Permanently delete your account and all data
+              </p>
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              <div className={`p-4 rounded-xl border-2 border-dashed ${
+                isDarkMode ? "bg-red-900/20 border-red-500/50" : "bg-red-50 border-red-200"
+              }`}>
+                <div className="text-center space-y-3">
+                  <p className={`text-sm ${isDarkMode ? "text-red-300" : "text-red-700"}`}>
+                    <strong>Warning:</strong> This action cannot be undone. This will permanently delete your account, profile, chat history, and all associated data.
+                  </p>
+                  
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="destructive"
+                        className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold"
+                        disabled={deleteLoading}
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        {deleteLoading ? "Deleting..." : "Delete Account"}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className={isDarkMode ? "bg-slate-800 border-red-500/30" : "bg-white border-red-200"}>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className={`flex items-center gap-2 ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                          <AlertTriangle className="w-5 h-5 text-red-500" />
+                          Delete Account
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className={isDarkMode ? "text-gray-300" : "text-gray-600"}>
+                          Are you absolutely sure you want to delete your account? This action cannot be undone and will permanently delete:
+                          <ul className="list-disc list-inside mt-2 space-y-1">
+                            <li>Your profile and personal information</li>
+                            <li>All chat history and conversations</li>
+                            <li>Daily reflections and summaries</li>
+                            <li>Account preferences and settings</li>
+                          </ul>
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel className={isDarkMode ? "bg-slate-700 text-white hover:bg-slate-600" : ""}>
+                          Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleDeleteAccount}
+                          className="bg-red-500 hover:bg-red-600 text-white"
+                          disabled={deleteLoading}
+                        >
+                          {deleteLoading ? "Deleting..." : "Yes, Delete Account"}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </motion.div>
