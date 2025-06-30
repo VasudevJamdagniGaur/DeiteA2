@@ -36,11 +36,13 @@ import { format, addDays, subDays } from "date-fns";
 interface DashboardScreenProps {
   onStartReflection: (date: string) => void;
   onUserProfile: () => void;
+  onCustomerSupport: () => void;
 }
 
 export default function DashboardScreen({
   onStartReflection,
   onUserProfile,
+  onCustomerSupport,
 }: DashboardScreenProps) {
   const { user, profile } = useAuthContext();
   const { isDarkMode, toggleTheme } = useTheme();
@@ -270,10 +272,7 @@ export default function DashboardScreen({
                         ? "hover:bg-blue-500/20 focus:bg-blue-500/20" 
                         : "hover:bg-blue-50 focus:bg-blue-50"
                     }`}
-                    onClick={() => {
-                      // Add customer support functionality here
-                      console.log("Customer Support clicked");
-                    }}
+                    onClick={onCustomerSupport}
                   >
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Customer Support</span>
