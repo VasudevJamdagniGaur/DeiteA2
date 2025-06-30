@@ -12,6 +12,7 @@ import ProfileSetupScreen from "./pages/ProfileSetupScreen";
 import DashboardScreen from "./pages/DashboardScreen";
 import ChatScreen from "./pages/ChatScreen";
 import UserProfileScreen from "./pages/UserProfileScreen";
+import CustomerSupportScreen from "./pages/CustomerSupportScreen";
 import NotFound from "@/pages/not-found";
 import { useState, useEffect } from "react";
 import { Brain, Heart, Sparkles, Star } from "lucide-react";
@@ -149,6 +150,7 @@ function AppContent() {
           setCurrentScreen("chat");
         }}
         onUserProfile={() => setCurrentScreen("userProfile")}
+        onCustomerSupport={() => setCurrentScreen("customerSupport")}
       />
     ),
     chat: (
@@ -159,6 +161,11 @@ function AppContent() {
     ),
     userProfile: (
       <UserProfileScreen 
+        onBack={() => setCurrentScreen("dashboard")} 
+      />
+    ),
+    customerSupport: (
+      <CustomerSupportScreen 
         onBack={() => setCurrentScreen("dashboard")} 
       />
     ),

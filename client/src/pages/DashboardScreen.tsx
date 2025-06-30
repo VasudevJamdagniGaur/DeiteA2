@@ -272,7 +272,10 @@ export default function DashboardScreen({
                         ? "hover:bg-blue-500/20 focus:bg-blue-500/20" 
                         : "hover:bg-blue-50 focus:bg-blue-50"
                     }`}
-                    onClick={onCustomerSupport}
+                    onClick={() => {
+                      console.log("Customer Support clicked");
+                      onCustomerSupport();
+                    }}
                   >
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Customer Support</span>
