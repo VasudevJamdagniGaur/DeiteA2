@@ -264,6 +264,20 @@ export default function DashboardScreen({
                     <User className="mr-2 h-4 w-4" />
                     <span>User Profile</span>
                   </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    className={`cursor-pointer ${
+                      isDarkMode 
+                        ? "hover:bg-blue-500/20 focus:bg-blue-500/20" 
+                        : "hover:bg-blue-50 focus:bg-blue-50"
+                    }`}
+                    onClick={() => {
+                      // Add customer support functionality here
+                      console.log("Customer Support clicked");
+                    }}
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Customer Support</span>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator className={isDarkMode ? "bg-purple-500/30" : "bg-purple-100"} />
                   <DropdownMenuItem 
                     className={`cursor-pointer ${
