@@ -55,7 +55,7 @@ Provide a summary in 2-3 sentences that captures the essential emotional and the
   // Fallback to RunPod/Ollama
   try {
     const response = await axios.post(
-      "https://84fpv7rxmxkqcc-11434.proxy.runpod.net/api/generate",
+      "https://5izso1r2m2isue-11434.proxy.runpod.net/api/generate",
       {
         model: "llama3",
         prompt: summaryPrompt,
@@ -99,7 +99,7 @@ async function generateAIResponse(prompt: string): Promise<string> {
   // Fallback to RunPod/Ollama
   try {
     const response = await axios.post(
-      "https://84fpv7rxmxkqcc-11434.proxy.runpod.net/api/generate",
+      "https://5izso1r2m2isue-11434.proxy.runpod.net/api/generate",
       {
         model: "llama3",
         prompt: prompt,
