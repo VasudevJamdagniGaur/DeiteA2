@@ -117,7 +117,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
     try {
       const updatedMessages = [...messages, userMessage];
 
-      const response = await fetch('/api/chat', {
+      const response = await fetch('/api/chat/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -129,13 +129,14 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to get response');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
 
       if (!data.reply) {
-        throw new Error('Invalid response format');
+        throw new Error('Invalid response format: missing reply');
       }
 
       const deiteResponse: ChatMessage = {

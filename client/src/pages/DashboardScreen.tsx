@@ -111,12 +111,12 @@ export default function DashboardScreen({
       const messages = parseMessagesFromContent(content);
       if (messages.length === 0) return;
 
-      const response = await fetch("/api/reflection", {
+      const response = await fetch("/api/chat/reflection", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ messages }),
+        body: JSON.stringify({ messages: messages }),
       });
 
       if (response.ok) {
@@ -154,7 +154,7 @@ export default function DashboardScreen({
     );
   };
 
-  
+
 
   const goToToday = () => {
     setCurrentDate(new Date());

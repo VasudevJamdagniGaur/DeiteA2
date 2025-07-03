@@ -73,9 +73,9 @@ Write a short, factual journal entry (2-3 sentences maximum):`;
     );
 
     const response = await axios.post(
-      "https://5izso1r2m2isue-11434.proxy.runpod.net/api/generate",
+      "https://3rmrq1jedsycggoi31zb:vptvj3af97gmus2h9i54@5izso1r2m2isue-19123-3rmrq1jedsycggoi31zb.proxy.runpod.net/api/generate",
       {
-        model: "llama3:70b",
+        model: "llama3:70",
         prompt: reflectionPrompt,
         stream: false,
       },
@@ -115,9 +115,9 @@ Write a short, factual journal entry (2-3 sentences maximum):`;
 router.get("/chat/test", async (req, res) => {
   try {
     const response = await axios.post(
-      "https://5izso1r2m2isue-11434.proxy.runpod.net/api/generate",
+      "https://3rmrq1jedsycggoi31zb:vptvj3af97gmus2h9i54@5izso1r2m2isue-19123-3rmrq1jedsycggoi31zb.proxy.runpod.net/api/generate",
       {
-        model: "llama3:70b",
+        model: "llama3:70",
         prompt:
           "Hello, this is a test message. Please respond with 'Test successful!'",
         stream: false,
@@ -130,10 +130,11 @@ router.get("/chat/test", async (req, res) => {
       },
     );
 
-    if (response.data.response.includes("Test successful!")) {
+    if (response.data.response && response.data.response.includes("Test successful!")) {
       return res.json({
         status: "Chat router is working",
         test: "Test successful!",
+        runpod_response: response.data.response,
       });
     } else {
       console.error(
@@ -143,7 +144,7 @@ router.get("/chat/test", async (req, res) => {
       return res.status(500).json({
         status: "Chat router test failed",
         error: "Unexpected response from RunPod",
-        details: error.message,
+        details: `Expected 'Test successful!' but got: ${response.data.response || 'empty response'}`,
       });
     }
   } catch (error: any) {
