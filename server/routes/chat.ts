@@ -6,22 +6,16 @@ const router = express.Router();
 
 router.post("/chat", async (req, res) => {
   try {
-    console.log("Chat endpoint hit:", req.method, req.url);
-    console.log("Request body:", req.body);
-    
     const { userId, message } = req.body;
 
     if (!userId || !message) {
-      console.log("Missing required fields:", { userId: !!userId, message: !!message });
       return res.status(400).json({ error: "userId and message are required" });
     }
 
-    console.log("Processing chat request for user:", userId, "with message:", message.substring(0, 100));
+    console.log("Processing chat request for user:", userId);
 
     // Use the new memory-enhanced AI system
     const reply = await generateReply(userId, message);
-    
-    console.log("Generated reply:", reply.substring(0, 100));
 
     return res.json({
       reply: reply,
@@ -30,8 +24,6 @@ router.post("/chat", async (req, res) => {
     console.error("Chat error details:", {
       message: error.message,
       stack: error.stack,
-      url: req.url,
-      body: req.body
     });
 
     return res.status(500).json({
