@@ -117,7 +117,7 @@ router.get("/chat/test", async (req, res) => {
     const response = await axios.post(
       "https://5izso1r2m2isue-11434.proxy.runpod.net/api/generate",
       {
-        model: "llama3.1",
+        model: "llama3:70b",
         prompt:
           "Hello, this is a test message. Please respond with 'Test successful!'",
         stream: false,

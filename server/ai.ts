@@ -105,7 +105,7 @@ async function generateAIResponse(prompt: string): Promise<string> {
     const response = await axios.post(
       "https://5izso1r2m2isue-11434.proxy.runpod.net/api/generate",
       {
-        model: "llama3.1",
+        model: "llama3:70b",
         prompt: prompt,
         stream: false,
       },
