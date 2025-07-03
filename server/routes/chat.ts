@@ -73,7 +73,7 @@ Write a short, factual journal entry (2-3 sentences maximum):`;
     );
 
     const response = await axios.post(
-      "https://3rmrq1jedsycggoi31zb:vptvj3af97gmus2h9i54@5izso1r2m2isue-19123-3rmrq1jedsycggoi31zb.proxy.runpod.net/api/generate",
+      "https://vd9c6swyw3scdf-11434.proxy.runpod.net/api/generate",
       {
         model: "llama3:70",
         prompt: reflectionPrompt,
@@ -115,7 +115,7 @@ Write a short, factual journal entry (2-3 sentences maximum):`;
 router.get("/chat/test", async (req, res) => {
   try {
     const response = await axios.post(
-      "https://3rmrq1jedsycggoi31zb:vptvj3af97gmus2h9i54@5izso1r2m2isue-19123-3rmrq1jedsycggoi31zb.proxy.runpod.net/api/generate",
+      "https://vd9c6swyw3scdf-11434.proxy.runpod.net/api/generate",
       {
         model: "llama3:70",
         prompt:
