@@ -57,7 +57,7 @@ Provide a summary in 2-3 sentences that captures the essential emotional and the
     const response = await axios.post(
       "https://5izso1r2m2isue-11434.proxy.runpod.net/api/generate",
       {
-        model: "llama3",
+        model: "llama3.1",
         prompt: summaryPrompt,
         stream: false,
       },
@@ -101,7 +101,7 @@ async function generateAIResponse(prompt: string): Promise<string> {
     const response = await axios.post(
       "https://5izso1r2m2isue-11434.proxy.runpod.net/api/generate",
       {
-        model: "llama3",
+        model: "llama3.1",
         prompt: prompt,
         stream: false,
       },
