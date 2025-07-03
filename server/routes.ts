@@ -6,6 +6,7 @@ import memoryRouter from './routes/memory';
 import testRouter from './routes/test';
 import demoRouter from './routes/demo';
 import simpleDemoRouter from './routes/simple-demo';
+import reflectionRouter from './routes/reflection';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register routes
@@ -14,6 +15,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/test', testRouter);
   app.use('/api/demo', demoRouter);
   app.use('/api/simple', simpleDemoRouter);
+  app.use('/api/reflection', reflectionRouter);
 
   // use storage to perform CRUD operations on the storage interface
   // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
