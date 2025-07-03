@@ -111,7 +111,7 @@ export default function DashboardScreen({
       const messages = parseMessagesFromContent(content);
       if (messages.length === 0) return;
 
-      const response = await fetch("/api/chat/reflection", {
+      const response = await fetch("/api/reflection", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

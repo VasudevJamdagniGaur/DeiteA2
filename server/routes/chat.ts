@@ -4,7 +4,7 @@ import { generateReply } from "../ai";
 
 const router = express.Router();
 
-router.post("/chat", async (req, res) => {
+router.post("/", async (req, res) => {
   try {
     const { userId, message } = req.body;
 
@@ -112,7 +112,7 @@ Write a short, factual journal entry (2-3 sentences maximum):`;
 });
 
 // Add a test endpoint to verify the router is working
-router.get("/chat/test", async (req, res) => {
+router.get("/test", async (req, res) => {
   try {
     const response = await axios.post(
       "https://vd9c6swyw3scdf-11434.proxy.runpod.net/api/generate",

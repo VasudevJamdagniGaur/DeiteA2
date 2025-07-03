@@ -9,7 +9,7 @@ import simpleDemoRouter from './routes/simple-demo';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register routes
-  app.use('/api', chatRouter);
+  app.use('/api/chat', chatRouter);
   app.use('/api/memory', memoryRouter);
   app.use('/api/test', testRouter);
   app.use('/api/demo', demoRouter);

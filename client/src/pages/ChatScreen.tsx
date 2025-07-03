@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useRef } from "react";
@@ -117,7 +116,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
     try {
       const updatedMessages = [...messages, userMessage];
 
-      const response = await fetch('/api/chat/chat', {
+      const response = await fetch("/api/chat", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -258,7 +257,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
                   {msg.sender === "user" ? getUserInitial() : <Brain className="w-5 h-5" />}
                 </AvatarFallback>
               </Avatar>
-              
+
               <div className={`rounded-2xl p-4 max-w-[80%] transition-colors duration-300 ${
                 msg.sender === "user"
                   ? isDarkMode
