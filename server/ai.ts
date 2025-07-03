@@ -64,11 +64,11 @@ Provide a summary in 2-3 sentences that captures the essential emotional and the
         stream: false,
       },
       {
-        timeout: 60000,
+        timeout: 30000,
         headers: {
-          "Content-Type": "application/json",
-        },
-      },
+          'Content-Type': 'application/json',
+        }
+      }
     );
 
     return response.data.response || "";
@@ -110,11 +110,11 @@ async function generateAIResponse(prompt: string): Promise<string> {
         stream: false,
       },
       {
-        timeout: 60000,
+        timeout: 30000,
         headers: {
-          "Content-Type": "application/json",
-        },
-      },
+          'Content-Type': 'application/json',
+        }
+      }
     );
 
     return (
