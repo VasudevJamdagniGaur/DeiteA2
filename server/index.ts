@@ -1,23 +1,28 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import cors from "cors";
+import chatRoutes from "./routes/chat";
+import memoryRoutes from "./routes/memory";
+import testRoutes from "./routes/test";
 
 const app = express();
 
 // Middleware for parsing JSON and URL-encoded bodies
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(cors());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Add CORS headers for development
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-  
+
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
-  
+
   next();
 });
 
@@ -55,6 +60,11 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
 
+  // API Routes
+  app.use("/api/chat", chatRoutes);
+  app.use("/api/memory", memoryRoutes);
+  app.use("/api/test", testRoutes);
+
   // Error handling middleware
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     console.error('Server error:', err);
@@ -68,9 +78,46 @@ app.use((req, res, next) => {
     });
   });
 
+  // Basic health check
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "OK", timestamp: new Date().toISOString() });
+  });
+
+  // Test RunPod connection
+  app.get("/api/test-connection", async (req, res) => {
+    try {
+      const axios = require('axios');
+      const response = await axios.post(
+        "https://3rmrq1jedsycggoi31zb:vptvj3af97gmus2h9i54@5izso1r2m2isue-19123-3rmrq1jedsycggoi31zb.proxy.runpod.net/api/generate",
+        {
+          model: "llama3:70",
+          prompt: "Say hello",
+          stream: false,
+        },
+        {
+          timeout: 10000,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      res.json({
+        status: "RunPod connection successful",
+        response: response.data.response
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        status: "RunPod connection failed",
+        error: error.message
+      });
+    }
+  });
+
   // 404 handler for API routes
   app.use('/api/*', (req: Request, res: Response) => {
-    res.status(404).json({ error: 'API endpoint not found' });
+    console.log(`404 - API endpoint not found: ${req.method} ${req.url}`);
+    res.status(404).json({ error: 'API endpoint not found', path: req.url });
   });
 
   // importantly only setup vite in development and after
@@ -92,5 +139,11 @@ app.use((req, res, next) => {
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+    console.log(`Available routes:`);
+    console.log(`- POST /api/chat/chat`);
+    console.log(`- POST /api/chat/reflection`);
+    console.log(`- GET /api/chat/test`);
+    console.log(`- GET /api/health`);
+    console.log(`- GET /api/test-connection`);
   });
 })();
