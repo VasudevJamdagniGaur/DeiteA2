@@ -37,24 +37,7 @@ ${conversationText}
 
 Provide a summary in 2-3 sentences that captures the essential emotional and therapeutic elements:`;
 
-  // Try Anthropic first if available
-  if (anthropic) {
-    try {
-      const response = await anthropic.messages.create({
-        model: DEFAULT_MODEL_STR,
-        max_tokens: 300,
-        messages: [{ role: "user", content: summaryPrompt }],
-      });
-
-      return response.content[0].type === "text"
-        ? response.content[0].text
-        : "";
-    } catch (error) {
-      console.error("Anthropic summarization failed:", error);
-    }
-  }
-
-  // Fallback to RunPod/Ollama
+  // Try RunPod/Llama3 first
   try {
     const response = await axios.post(
       "https://vd9c6swyw3scdf-11434.proxy.runpod.net/api/generate",
@@ -74,33 +57,34 @@ Provide a summary in 2-3 sentences that captures the essential emotional and the
     return response.data.response || "";
   } catch (error) {
     console.error("RunPod summarization failed:", error);
-    // Return a basic fallback summary
-    return "User engaged in therapeutic conversation with focus on emotional well-being and personal reflection.";
   }
-}
 
-/**
- * Generate AI response using available AI service
- */
-async function generateAIResponse(prompt: string): Promise<string> {
-  // Try Anthropic first if available
+  // Fallback to Anthropic if available
   if (anthropic) {
     try {
       const response = await anthropic.messages.create({
         model: DEFAULT_MODEL_STR,
-        max_tokens: 500,
-        messages: [{ role: "user", content: prompt }],
+        max_tokens: 300,
+        messages: [{ role: "user", content: summaryPrompt }],
       });
 
       return response.content[0].type === "text"
         ? response.content[0].text
         : "";
     } catch (error) {
-      console.error("Anthropic response generation failed:", error);
+      console.error("Anthropic summarization failed:", error);
     }
   }
 
-  // Fallback to RunPod/Ollama
+  // Return a basic fallback summary
+  return "User engaged in therapeutic conversation with focus on emotional well-being and personal reflection.";
+}
+
+/**
+ * Generate AI response using available AI service
+ */
+async function generateAIResponse(prompt: string): Promise<string> {
+  // Try RunPod/Llama3 first
   try {
     const response = await axios.post(
       "https://vd9c6swyw3scdf-11434.proxy.runpod.net/api/generate",
@@ -122,9 +106,27 @@ async function generateAIResponse(prompt: string): Promise<string> {
       "I'm here to listen and support you. Could you tell me more about what's on your mind?"
     );
   } catch (error) {
-    console.error("AI response generation failed:", error);
-    return "I'm experiencing some technical difficulties, but I'm here to listen. Could you share what's on your mind?";
+    console.error("RunPod response generation failed:", error);
   }
+
+  // Fallback to Anthropic if available
+  if (anthropic) {
+    try {
+      const response = await anthropic.messages.create({
+        model: DEFAULT_MODEL_STR,
+        max_tokens: 500,
+        messages: [{ role: "user", content: prompt }],
+      });
+
+      return response.content[0].type === "text"
+        ? response.content[0].text
+        : "";
+    } catch (error) {
+      console.error("Anthropic response generation failed:", error);
+    }
+  }
+
+  return "I'm experiencing some technical difficulties, but I'm here to listen. Could you share what's on your mind?";
 }
 
 /**
