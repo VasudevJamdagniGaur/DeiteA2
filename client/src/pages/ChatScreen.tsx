@@ -22,7 +22,9 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     loadExistingReflection();
@@ -100,67 +102,163 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
   };
 
   const handleSendMessage = async () => {
-    if (!message.trim() || !user || isLoading) return;
+    if (!message.trim() || isLoading || isStreaming) return;
 
-    const userMessage: ChatMessage = {
-      id: `user-${Date.now()}`,
+    const newMessage: ChatMessage = {
+      id: Date.now().toString(),
       sender: "user",
       content: message.trim(),
       timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, newMessage]);
+    const currentMessage = message.trim();
     setMessage("");
     setIsLoading(true);
+    setIsStreaming(true);
+
+    // Create bot message placeholder for streaming
+    const botMessage: ChatMessage = {
+      id: (Date.now() + 1).toString(),
+      sender: "deite",
+      content: "",
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, botMessage]);
 
     try {
-      const updatedMessages = [...messages, userMessage];
+      // Create abort controller for this request
+      abortControllerRef.current = new AbortController();
 
-      const response = await fetch("/api/chat", {
-        method: 'POST',
+      const response = await fetch("/api/chat/stream", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
+          "Accept": "text/plain",
         },
-        body: JSON.stringify({ 
-          messages: updatedMessages.map(msg => ({
-            sender: msg.sender,
-            content: msg.content
-          }))
+        body: JSON.stringify({
+          messages: [...messages, newMessage].map((msg) => ({
+            sender: msg.sender === "user" ? "user" : "deite",
+            content: msg.content,
+          })),
         }),
+        signal: abortControllerRef.current.signal,
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let accumulatedContent = "";
+      let wordBuffer = "";
 
-      if (!data.reply) {
-        throw new Error('Invalid response format: missing reply');
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+
+          if (done) {
+            // Process any remaining content in the buffer
+            if (wordBuffer.trim()) {
+              accumulatedContent += wordBuffer;
+              setMessages((prev) => {
+                const newMessages = [...prev];
+                const lastMessage = newMessages[newMessages.length - 1];
+                if (lastMessage && lastMessage.sender === "deite") {
+                  lastMessage.content = accumulatedContent;
+                }
+                return newMessages;
+              });
+            }
+            break;
+          }
+
+          const chunk = decoder.decode(value, { stream: true });
+          wordBuffer += chunk;
+
+          // Split by spaces to get words
+          const words = wordBuffer.split(" ");
+
+          // Keep the last word in buffer (might be incomplete)
+          wordBuffer = words.pop() || "";
+
+          // Process complete words
+          for (const word of words) {
+            if (word.trim()) {
+              accumulatedContent += (accumulatedContent ? " " : "") + word;
+
+              // Update the bot message with new word
+              setMessages((prev) => {
+                const newMessages = [...prev];
+                const lastMessage = newMessages[newMessages.length - 1];
+                if (lastMessage && lastMessage.sender === "deite") {
+                  lastMessage.content = accumulatedContent;
+                }
+                return newMessages;
+              });
+
+              // Add delay between words for streaming effect
+              await new Promise((resolve) => setTimeout(resolve, 80));
+            }
+          }
+        }
+      }
+    } catch (err: any) {
+      if (err.name === "AbortError") {
+        console.log("Stream aborted");
+        return;
       }
 
-      const deiteResponse: ChatMessage = {
-        id: `deite-${Date.now()}`,
-        sender: "deite",
-        content: data.reply,
-        timestamp: new Date(),
-      };
+      console.error("Streaming error:", err);
 
-      const finalMessages = [...messages, userMessage, deiteResponse];
-      setMessages(finalMessages);
-      saveConversation(finalMessages);
-    } catch (error) {
-      console.error("Chat error:", error);
-      const errorMessage: ChatMessage = {
-        id: `deite-${Date.now()}`,
-        sender: "deite",
-        content: "I apologize, but I'm having trouble responding right now. Please try again. 💙",
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, errorMessage]);
+      // Fallback to regular API
+      try {
+        const fallbackResponse = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: [...messages, newMessage].map((msg) => ({
+              sender: msg.sender === "user" ? "user" : "deite",
+              content: msg.content,
+            })),
+          }),
+        });
+
+        if (!fallbackResponse.ok) throw new Error("Fallback request failed");
+
+        const data = await fallbackResponse.json();
+
+        // Animate the fallback response word by word
+        const words = data.reply.split(" ");
+        let accumulatedContent = "";
+
+        for (let i = 0; i < words.length; i++) {
+          accumulatedContent += (i > 0 ? " " : "") + words[i];
+
+          setMessages((prev) => {
+            const newMessages = [...prev];
+            const lastMessage = newMessages[newMessages.length - 1];
+            if (lastMessage && lastMessage.sender === "deite") {
+              lastMessage.content = accumulatedContent;
+            }
+            return newMessages;
+          });
+
+          // Add delay between words
+          await new Promise((resolve) => setTimeout(resolve, 80));
+        }
+      } catch (fallbackErr) {
+        console.error("Fallback also failed:", fallbackErr);
+
+        // Remove the empty bot message and show error
+        setMessages((prev) => prev.slice(0, -1));
+      }
     } finally {
       setIsLoading(false);
+      setIsStreaming(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -179,9 +277,17 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    }
+  };
+
+  const stopStreaming = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      setIsStreaming(false);
+      setIsLoading(false);
     }
   };
 
@@ -277,7 +383,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
           ))}
         </AnimatePresence>
 
-        {isLoading && (
+        {isLoading && !isStreaming && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -297,22 +403,32 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
                 ? "bg-gray-800 border border-gray-700"
                 : "bg-gray-100 border border-gray-200"
             }`}>
-              <div className="flex space-x-1">
-                {[0, 1, 2].map((i) => (
-                  <motion.div
-                    key={i}
-                    className="w-2 h-2 bg-purple-500 rounded-full"
-                    animate={{ y: [0, -6, 0] }}
-                    transition={{
-                      duration: 0.6,
-                      repeat: Infinity,
-                      delay: i * 0.1,
-                    }}
-                  />
-                ))}
+              <div className="flex items-center space-x-2">
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                </div>
+                <span className={`text-sm ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>
+                  Deite is thinking...
+                </span>
               </div>
             </div>
           </motion.div>
+        )}
+
+        {isStreaming && (
+          <div className="flex items-center justify-center space-x-2 py-2">
+            <span className={`text-sm ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>
+              Deite is typing...
+            </span>
+            <button
+              onClick={stopStreaming}
+              className="px-3 py-1 text-xs bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+            >
+              Stop
+            </button>
+          </div>
         )}
 
         <div ref={messagesEndRef} />
@@ -329,7 +445,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
               onChange={(e) => setMessage(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Share your thoughts..."
-              disabled={isLoading}
+              disabled={isLoading || isStreaming}
               className={`rounded-full pr-12 transition-colors duration-300 ${
                 isDarkMode
                   ? "bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-purple-500 focus:ring-purple-500"
@@ -339,7 +455,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
           </div>
           <Button
             onClick={handleSendMessage}
-            disabled={!message.trim() || isLoading}
+            disabled={!message.trim() || isLoading || isStreaming}
             size="icon"
             className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-full h-10 w-10 flex-shrink-0 disabled:opacity-50"
           >
