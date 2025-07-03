@@ -1,4 +1,3 @@
-
 import express from "express";
 import axios from "axios";
 import { generateReply } from "../ai";
@@ -60,7 +59,10 @@ Always respond only to the user's latest message, but use the full conversation 
 
 Deite:`;
 
-    console.log("Making request to RunPod with prompt:", fullPrompt.substring(0, 200) + "...");
+    console.log(
+      "Making request to RunPod with prompt:",
+      fullPrompt.substring(0, 200) + "...",
+    );
 
     const response = await axios.post(
       "https://vd9c6swyw3scdf-11434.proxy.runpod.net/api/generate",
@@ -72,9 +74,9 @@ Deite:`;
       {
         timeout: 30000,
         headers: {
-          'Content-Type': 'application/json',
-        }
-      }
+          "Content-Type": "application/json",
+        },
+      },
     );
 
     console.log("RunPod response status:", response.status);
@@ -94,7 +96,10 @@ Deite:`;
 
     return res.status(500).json({
       error: "Failed to get response from AI",
-      details: error.response?.status === 404 ? "RunPod endpoint not found - check if instance is running" : error.message
+      details:
+        error.response?.status === 404
+          ? "RunPod endpoint not found - check if instance is running"
+          : error.message,
     });
   }
 });
@@ -133,7 +138,10 @@ ${conversationText}
 
 Write a short, factual journal entry (2-3 sentences maximum):`;
 
-    console.log("Making request to RunPod with prompt:", reflectionPrompt.substring(0, 200) + "...");
+    console.log(
+      "Making request to RunPod with prompt:",
+      reflectionPrompt.substring(0, 200) + "...",
+    );
 
     const response = await axios.post(
       "https://vd9c6swyw3scdf-11434.proxy.runpod.net/api/generate",
@@ -145,9 +153,9 @@ Write a short, factual journal entry (2-3 sentences maximum):`;
       {
         timeout: 30000,
         headers: {
-          'Content-Type': 'application/json',
-        }
-      }
+          "Content-Type": "application/json",
+        },
+      },
     );
 
     console.log("RunPod response status:", response.status);
@@ -166,7 +174,10 @@ Write a short, factual journal entry (2-3 sentences maximum):`;
     });
     return res.status(500).json({
       error: "Failed to generate reflection",
-      details: error.response?.status === 404 ? "RunPod endpoint not found - check if instance is running" : error.message,
+      details:
+        error.response?.status === 404
+          ? "RunPod endpoint not found - check if instance is running"
+          : error.message,
     });
   }
 });
@@ -178,29 +189,36 @@ router.get("/test", async (req, res) => {
       "https://vd9c6swyw3scdf-11434.proxy.runpod.net/api/generate",
       {
         model: "llama3:70b",
-        prompt: "Hello, this is a test message. Please respond with 'Test successful!'",
+        prompt:
+          "Hello, this is a test message. Please respond with 'Test successful!'",
         stream: false,
       },
       {
         timeout: 30000,
         headers: {
-          'Content-Type': 'application/json',
-        }
-      }
+          "Content-Type": "application/json",
+        },
+      },
     );
 
-    if (response.data.response && response.data.response.includes("Test successful!")) {
+    if (
+      response.data.response &&
+      response.data.response.includes("Test successful!")
+    ) {
       return res.json({
         status: "Chat router is working",
         test: "Test successful!",
         runpod_response: response.data.response,
       });
     } else {
-      console.error("Test endpoint failed, unexpected response:", response.data);
+      console.error(
+        "Test endpoint failed, unexpected response:",
+        response.data,
+      );
       return res.status(500).json({
         status: "Chat router test failed",
         error: "Unexpected response from RunPod",
-        details: `Expected 'Test successful!' but got: ${response.data.response || 'empty response'}`,
+        details: `Expected 'Test successful!' but got: ${response.data.response || "empty response"}`,
       });
     }
   } catch (error: any) {
