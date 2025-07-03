@@ -473,29 +473,7 @@ export default function DashboardScreen({
                   </p>
                 )}
 
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <Badge className={`bg-gradient-to-r text-white ${
-                    isDarkMode 
-                      ? "from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg shadow-blue-500/30" 
-                      : "from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600"
-                  }`}>
-                    ✨ Grateful
-                  </Badge>
-                  <Badge className={`bg-gradient-to-r text-white ${
-                    isDarkMode 
-                      ? "from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 shadow-lg shadow-purple-500/30" 
-                      : "from-purple-400 to-purple-500 hover:from-purple-500 hover:to-purple-600"
-                  }`}>
-                    🎯 Focused
-                  </Badge>
-                  <Badge className={`bg-gradient-to-r text-white ${
-                    isDarkMode 
-                      ? "from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 shadow-lg shadow-pink-500/30" 
-                      : "from-pink-400 to-pink-500 hover:from-pink-500 hover:to-pink-600"
-                  }`}>
-                    🧘 Calm
-                  </Badge>
-                </div>
+                
               </div>
             )}
           </CardContent>
