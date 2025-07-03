@@ -1,6 +1,6 @@
-import Anthropic from '@anthropic-ai/sdk';
-import axios from 'axios';
-import { buildPrompt, saveMessage } from './memory';
+import Anthropic from "@anthropic-ai/sdk";
+import axios from "axios";
+import { buildPrompt, saveMessage } from "./memory";
 
 /*
 <important_code_snippet_instructions>
@@ -43,10 +43,12 @@ Provide a summary in 2-3 sentences that captures the essential emotional and the
       const response = await anthropic.messages.create({
         model: DEFAULT_MODEL_STR,
         max_tokens: 300,
-        messages: [{ role: 'user', content: summaryPrompt }],
+        messages: [{ role: "user", content: summaryPrompt }],
       });
 
-      return response.content[0].type === 'text' ? response.content[0].text : '';
+      return response.content[0].type === "text"
+        ? response.content[0].text
+        : "";
     } catch (error) {
       console.error("Anthropic summarization failed:", error);
     }
@@ -57,19 +59,19 @@ Provide a summary in 2-3 sentences that captures the essential emotional and the
     const response = await axios.post(
       "https://5izso1r2m2isue-11434.proxy.runpod.net/api/generate",
       {
-        model: "llama3.1",
+        model: "llama3:70b",
         prompt: summaryPrompt,
         stream: false,
       },
       {
         timeout: 30000,
         headers: {
-          'Content-Type': 'application/json',
-        }
-      }
+          "Content-Type": "application/json",
+        },
+      },
     );
 
-    return response.data.response || '';
+    return response.data.response || "";
   } catch (error) {
     console.error("RunPod summarization failed:", error);
     // Return a basic fallback summary
@@ -87,10 +89,12 @@ async function generateAIResponse(prompt: string): Promise<string> {
       const response = await anthropic.messages.create({
         model: DEFAULT_MODEL_STR,
         max_tokens: 500,
-        messages: [{ role: 'user', content: prompt }],
+        messages: [{ role: "user", content: prompt }],
       });
 
-      return response.content[0].type === 'text' ? response.content[0].text : '';
+      return response.content[0].type === "text"
+        ? response.content[0].text
+        : "";
     } catch (error) {
       console.error("Anthropic response generation failed:", error);
     }
@@ -108,12 +112,15 @@ async function generateAIResponse(prompt: string): Promise<string> {
       {
         timeout: 30000,
         headers: {
-          'Content-Type': 'application/json',
-        }
-      }
+          "Content-Type": "application/json",
+        },
+      },
     );
 
-    return response.data.response || "I'm here to listen and support you. Could you tell me more about what's on your mind?";
+    return (
+      response.data.response ||
+      "I'm here to listen and support you. Could you tell me more about what's on your mind?"
+    );
   } catch (error) {
     console.error("AI response generation failed:", error);
     return "I'm experiencing some technical difficulties, but I'm here to listen. Could you share what's on your mind?";
@@ -123,7 +130,10 @@ async function generateAIResponse(prompt: string): Promise<string> {
 /**
  * 5. generateReply(userId, userMessage) → core handler that uses memory to get AI reply
  */
-export async function generateReply(userId: string, userMessage: string): Promise<string> {
+export async function generateReply(
+  userId: string,
+  userMessage: string,
+): Promise<string> {
   try {
     // Save user message to short-term memory
     await saveMessage(userId, "user", userMessage);
@@ -147,7 +157,10 @@ export async function generateReply(userId: string, userMessage: string): Promis
 /**
  * Enhanced summarizeToday function with AI integration
  */
-export async function summarizeToday(userId: string, conversationText: string): Promise<string> {
+export async function summarizeToday(
+  userId: string,
+  conversationText: string,
+): Promise<string> {
   try {
     return await generateSummary(conversationText);
   } catch (error) {
