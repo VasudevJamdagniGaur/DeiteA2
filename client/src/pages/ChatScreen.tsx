@@ -422,6 +422,12 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
             <span className={`text-sm ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>
               Deite is typing...
             </span>
+            <button
+              onClick={stopStreaming}
+              className="px-3 py-1 text-xs bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+            >
+              Stop
+            </button>
           </div>
         )}
 
@@ -447,24 +453,14 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
               }`}
             />
           </div>
-          {isStreaming ? (
-            <Button
-              onClick={stopStreaming}
-              size="icon"
-              className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 rounded-full h-10 w-10 flex-shrink-0"
-            >
-              <div className="w-3 h-3 bg-white rounded-sm" />
-            </Button>
-          ) : (
-            <Button
-              onClick={handleSendMessage}
-              disabled={!message.trim() || isLoading}
-              size="icon"
-              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-full h-10 w-10 flex-shrink-0 disabled:opacity-50"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          )}
+          <Button
+            onClick={handleSendMessage}
+            disabled={!message.trim() || isLoading || isStreaming}
+            size="icon"
+            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-full h-10 w-10 flex-shrink-0 disabled:opacity-50"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
         </div>
       </div>
     </div>
