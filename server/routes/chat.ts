@@ -75,7 +75,7 @@ Write a short, factual journal entry (2-3 sentences maximum):`;
     const response = await axios.post(
       "https://vd9c6swyw3scdf-11434.proxy.runpod.net/api/generate",
       {
-        model: "llama3:70",
+        model: "llama3",
         prompt: reflectionPrompt,
         stream: false,
       },
@@ -117,7 +117,7 @@ router.get("/test", async (req, res) => {
     const response = await axios.post(
       "https://vd9c6swyw3scdf-11434.proxy.runpod.net/api/generate",
       {
-        model: "llama3:70",
+        model: "llama3",
         prompt:
           "Hello, this is a test message. Please respond with 'Test successful!'",
         stream: false,
