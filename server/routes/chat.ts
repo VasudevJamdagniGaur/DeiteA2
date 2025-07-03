@@ -80,7 +80,7 @@ Write a short, factual journal entry (2-3 sentences maximum):`;
         stream: false,
       },
       {
-        timeout: 30000,
+        timeout: 60000,
         headers: {
           "Content-Type": "application/json",
         },
@@ -123,7 +123,7 @@ router.get("/chat/test", async (req, res) => {
         stream: false,
       },
       {
-        timeout: 30000,
+        timeout: 60000,
         headers: {
           "Content-Type": "application/json",
         },
@@ -143,6 +143,7 @@ router.get("/chat/test", async (req, res) => {
       return res.status(500).json({
         status: "Chat router test failed",
         error: "Unexpected response from RunPod",
+        details: error.message,
       });
     }
   } catch (error: any) {
