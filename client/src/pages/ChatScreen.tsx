@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuthContext } from "../components/AuthProvider";
 import { useTheme } from "../components/ThemeProvider";
@@ -281,6 +281,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
       e.preventDefault();
       handleSendMessage();
     }
+    // Allow Shift+Enter for new lines
   };
 
   const stopStreaming = () => {
@@ -432,19 +433,40 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
       <div className={`p-4 border-t transition-colors duration-300 ${
         isDarkMode ? "border-gray-800" : "border-gray-200"
       }`}>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-end space-x-2">
           <div className="flex-1 relative">
-            <Input
+            <Textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Share your thoughts..."
               disabled={isLoading || isStreaming}
-              className={`rounded-full pr-12 transition-colors duration-300 ${
+              rows={1}
+              className={`min-h-[2.5rem] max-h-[15rem] resize-none rounded-2xl transition-colors duration-300 ${
                 isDarkMode
                   ? "bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-purple-500 focus:ring-purple-500"
                   : "bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500 focus:border-purple-500 focus:ring-purple-500"
               }`}
+              style={{
+                height: 'auto',
+                overflowY: message.split('\n').length > 10 ? 'scroll' : 'hidden'
+              }}
+              onInput={(e) => {
+                const target = e.target as HTMLTextAreaElement;
+                target.style.height = 'auto';
+                const lineHeight = 1.5; // rem
+                const padding = 0.75; // rem (py-3)
+                const maxLines = 10;
+                const scrollHeight = target.scrollHeight;
+                const lineHeightPx = parseFloat(getComputedStyle(target).lineHeight);
+                const lines = Math.floor((scrollHeight - (padding * 16 * 2)) / lineHeightPx);
+                
+                if (lines <= maxLines) {
+                  target.style.height = scrollHeight + 'px';
+                } else {
+                  target.style.height = (lineHeightPx * maxLines + (padding * 16 * 2)) + 'px';
+                }
+              }}
             />
           </div>
           {isStreaming ? (
