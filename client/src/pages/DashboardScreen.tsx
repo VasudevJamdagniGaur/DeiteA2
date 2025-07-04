@@ -415,7 +415,7 @@ export default function DashboardScreen({
             ) : (
               <div className="mb-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className={`text-sm font-medium ${
+                  <span className={`text-sm font-bold ${
                     isDarkMode ? "text-gray-300" : "text-gray-600"
                   }`}>
                     Mood Summary
