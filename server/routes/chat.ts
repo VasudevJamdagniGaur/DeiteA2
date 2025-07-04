@@ -50,7 +50,7 @@ Deite:`;
     );
 
     const response = await axios.post(
-      "https://3dvb4nbhk7gg2y-11434.proxy.runpod.net/api/generate",
+      "https://ggw362avi3d9h3-11434.proxy.runpod.net/api/generate",
       {
         model: "llama3:70b",
         prompt: fullPrompt,
@@ -147,7 +147,7 @@ Deite:`;
     try {
       // Try RunPod streaming first
       const response = await axios.post(
-        "https://3dvb4nbhk7gg2y-11434.proxy.runpod.net/api/generate",
+        "https://ggw362avi3d9h3-11434.proxy.runpod.net/api/generate",
         {
           model: "llama3:70b",
           prompt: fullPrompt,
@@ -268,7 +268,7 @@ Write a short, factual journal entry (2-3 sentences maximum):`;
     );
 
     const response = await axios.post(
-      "https://3dvb4nbhk7gg2y-11434.proxy.runpod.net/api/generate",
+      "https://ggw362avi3d9h3-11434.proxy.runpod.net/api/generate",
       {
         model: "llama3:70b",
         prompt: reflectionPrompt,
@@ -310,7 +310,7 @@ Write a short, factual journal entry (2-3 sentences maximum):`;
 router.get("/test", async (req, res) => {
   try {
     const response = await axios.post(
-      "https://3dvb4nbhk7gg2y-11434.proxy.runpod.net/api/generate",
+      "https://ggw362avi3d9h3-11434.proxy.runpod.net/api/generate",
       {
         model: "llama3:70b",
         prompt:
