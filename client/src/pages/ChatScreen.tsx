@@ -42,34 +42,11 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
     if (!user) return;
 
     try {
-      // Load reflection from the new Firebase structure
-      const response = await fetch(`/api/reflection/date/${user.uid}/${date}`);
-      
-      if (response.ok) {
-        const dayReflection = await response.json();
-        
-        if (dayReflection.chat && dayReflection.chat.length > 0) {
-          // Convert Firebase chat format to ChatMessage format
-          const chatMessages = dayReflection.chat.map((msg: any, index: number) => ({
-            id: `${msg.role}-${index}`,
-            sender: msg.role === 'user' ? 'user' : 'deite',
-            content: msg.content,
-            timestamp: new Date(msg.timestamp),
-          }));
-          setMessages(chatMessages);
-        } else {
-          // No existing chat, start with welcome message
-          setMessages([
-            {
-              id: "1",
-              sender: "deite",
-              content: "Hi there! How are you feeling today? I'm here to listen and help you reflect. 💜",
-              timestamp: new Date(),
-            },
-          ]);
-        }
+      const reflection = await getReflection(user.uid, date);
+      if (reflection && reflection.content) {
+        const initialMessages = parseMessagesFromContent(reflection.content);
+        setMessages(initialMessages);
       } else {
-        // No reflection found for this date, start fresh
         setMessages([
           {
             id: "1",
@@ -125,7 +102,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
   };
 
   const handleSendMessage = async () => {
-    if (!message.trim() || isLoading || isStreaming || !user) return;
+    if (!message.trim() || isLoading || isStreaming) return;
 
     const newMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -154,14 +131,19 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
       // Create abort controller for this request
       abortControllerRef.current = new AbortController();
 
-      const response = await fetch(`/api/reflection/chat/${user.uid}`, {
+      const response = await fetch("/api/chat/stream", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Accept": "text/plain",
         },
         body: JSON.stringify({
-          message: currentMessage,
+          messages: [...messages, newMessage].map((msg) => ({
+            sender: msg.sender === "user" ? "user" : "deite",
+            content: msg.content,
+          })),
         }),
+        signal: abortControllerRef.current.signal,
       });
 
       if (!response.ok) {

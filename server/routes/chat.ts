@@ -42,8 +42,6 @@ ${conversationText}
 
 Always respond only to the user's latest message, but use the full conversation history to maintain context, tone, and emotional continuity. Do not summarize or revisit earlier messages unless the user brings them up again. Stay present in the current flow, as if you're naturally continuing a human conversation. 
 
-Only ask a question if there is no emotionally meaningful response, insight, or advice you can offer. Do not turn every message into a prompt.
-
 Deite:`;
 
     console.log(
@@ -82,7 +80,7 @@ Deite:`;
 
       return res.json({
         reply: reply,
-        source: "fallback",
+        source: "fallback"
       });
     } catch (fallbackError: any) {
       console.error("Fallback AI also failed:", fallbackError);
@@ -90,7 +88,7 @@ Deite:`;
       return res.status(500).json({
         error: "Both RunPod and fallback AI failed",
         details: `RunPod: ${runpodError.message}. Fallback: ${fallbackError.message}`,
-        runpodWorking: false,
+        runpodWorking: false
       });
     }
   }
@@ -106,11 +104,11 @@ router.post("/stream", async (req, res) => {
     }
 
     // Set headers for Server-Sent Events
-    res.setHeader("Content-Type", "text/plain; charset=utf-8");
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Headers", "Cache-Control");
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Cache-Control');
 
     // Format messages into conversation text
     const conversationText = messages
@@ -157,19 +155,19 @@ Deite:`;
         },
         {
           timeout: 60000,
-          responseType: "stream",
+          responseType: 'stream',
           headers: {
             "Content-Type": "application/json",
           },
         },
       );
 
-      let buffer = "";
+      let buffer = '';
 
-      response.data.on("data", (chunk: Buffer) => {
+      response.data.on('data', (chunk: Buffer) => {
         buffer += chunk.toString();
-        const lines = buffer.split("\n");
-        buffer = lines.pop() || "";
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
 
         for (const line of lines) {
           if (line.trim()) {
@@ -184,7 +182,7 @@ Deite:`;
               }
             } catch (e) {
               // Handle non-JSON lines
-              if (line.trim() !== "") {
+              if (line.trim() !== '') {
                 res.write(line);
               }
             }
@@ -192,14 +190,15 @@ Deite:`;
         }
       });
 
-      response.data.on("end", () => {
+      response.data.on('end', () => {
         res.end();
       });
 
-      response.data.on("error", (error: any) => {
-        console.error("Stream error:", error);
+      response.data.on('error', (error: any) => {
+        console.error('Stream error:', error);
         res.end();
       });
+
     } catch (runpodError: any) {
       console.error("RunPod streaming failed:", runpodError.message);
 
@@ -209,20 +208,20 @@ Deite:`;
         const reply = await generateReply("fallback-user", fullPrompt);
 
         // Simulate streaming for fallback
-        const words = reply.split(" ");
+        const words = reply.split(' ');
         for (let i = 0; i < words.length; i++) {
-          res.write(words[i] + (i < words.length - 1 ? " " : ""));
-          await new Promise((resolve) => setTimeout(resolve, 50)); // 50ms delay between words
+          res.write(words[i] + (i < words.length - 1 ? ' ' : ''));
+          await new Promise(resolve => setTimeout(resolve, 50)); // 50ms delay between words
         }
         res.end();
+
       } catch (fallbackError: any) {
         console.error("Fallback AI also failed:", fallbackError);
-        res.write(
-          "I'm experiencing some technical difficulties, but I'm here to support you. Please try again.",
-        );
+        res.write("I'm experiencing some technical difficulties, but I'm here to support you. Please try again.");
         res.end();
       }
     }
+
   } catch (error: any) {
     console.error("Streaming error:", error);
     res.status(500).end();
