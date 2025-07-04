@@ -1,65 +1,177 @@
-
 import express from "express";
-import axios from "axios";
+import { 
+  getDayReflection, 
+  saveChatMessage, 
+  updateDayReflection, 
+  getTodaysChat,
+  hasReflectionForToday,
+  getReflectionHistory,
+  getCurrentDateString 
+} from "../reflection-storage";
+import { generateReply } from "../ai";
 
 const router = express.Router();
 
-// Generate reflection from conversation messages
-router.post("/", async (req, res) => {
+// Get today's reflection (load existing or create new)
+router.get("/today/:userId", async (req, res) => {
+  const { userId } = req.params;
+  
   try {
-    const { messages } = req.body;
+    const today = getCurrentDateString();
+    const dayReflection = await getDayReflection(userId, today);
     
-    if (!messages || !Array.isArray(messages)) {
-      return res.status(400).json({ error: "Messages array is required" });
+    if (dayReflection) {
+      res.json({
+        date: today,
+        chat: dayReflection.chat,
+        reflection: dayReflection.reflection,
+        createdAt: dayReflection.createdAt
+      });
+    } else {
+      // No reflection exists for today yet
+      res.json({
+        date: today,
+        chat: [],
+        reflection: null,
+        createdAt: null
+      });
     }
+  } catch (error) {
+    console.error("Error getting today's reflection:", error);
+    res.status(500).json({ error: "Failed to get today's reflection" });
+  }
+});
 
-    // Build conversation context
-    const conversationText = messages
-      .map(msg => `${msg.sender === 'deite' ? 'Deite' : 'User'}: ${msg.content}`)
-      .join('\n');
+// Get reflection for a specific date
+router.get("/date/:userId/:date", async (req, res) => {
+  const { userId, date } = req.params;
+  
+  try {
+    const dayReflection = await getDayReflection(userId, date);
+    
+    if (dayReflection) {
+      res.json({
+        date,
+        chat: dayReflection.chat,
+        reflection: dayReflection.reflection,
+        createdAt: dayReflection.createdAt
+      });
+    } else {
+      res.status(404).json({ error: "No reflection found for this date" });
+    }
+  } catch (error) {
+    console.error("Error getting reflection for date:", error);
+    res.status(500).json({ error: "Failed to get reflection" });
+  }
+});
 
-    const reflectionPrompt = `Based on this conversation between a user and Deite (an AI mental health companion), write a short, encouraging journal reflection from the user's perspective about their day and emotional state.
-
-Conversation:
-${conversationText}
-
-Write a short, factual journal entry (2-3 sentences maximum):`;
-
-    console.log("Making request to RunPod with prompt:", reflectionPrompt.substring(0, 200) + "...");
-
-    const response = await axios.post(
-      "https://ggw362avi3d9h3-11434.proxy.runpod.net/api/generate",
-      {
-        model: "llama3:70b",
-        prompt: reflectionPrompt,
-        stream: false,
-      },
-      {
-        timeout: 30000,
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      }
-    );
-
-    console.log("RunPod response status:", response.status);
-    console.log("RunPod response data:", response.data);
-
-    return res.json({
-      reflection: response.data.response,
+// Send a new message and get AI response
+router.post("/chat/:userId", async (req, res) => {
+  const { userId } = req.params;
+  const { message } = req.body;
+  
+  if (!message || typeof message !== 'string') {
+    return res.status(400).json({ error: "Message is required" });
+  }
+  
+  try {
+    // Save user message
+    await saveChatMessage(userId, "user", message);
+    
+    // Get AI response using the existing generateReply function
+    const aiResponse = await generateReply(userId, message);
+    
+    // Save AI response
+    await saveChatMessage(userId, "ai", aiResponse);
+    
+    // Return the AI response
+    res.json({
+      userMessage: message,
+      aiResponse: aiResponse,
+      timestamp: new Date()
     });
-  } catch (error: any) {
-    console.error("Reflection error details:", {
-      message: error.message,
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      url: error.config?.url,
+    
+  } catch (error) {
+    console.error("Error processing chat:", error);
+    res.status(500).json({ error: "Failed to process chat message" });
+  }
+});
+
+// Generate reflection summary for today (only if not already exists)
+router.post("/summarize/:userId", async (req, res) => {
+  const { userId } = req.params;
+  
+  try {
+    // Check if reflection already exists
+    const hasExistingReflection = await hasReflectionForToday(userId);
+    
+    if (hasExistingReflection) {
+      const today = getCurrentDateString();
+      const dayReflection = await getDayReflection(userId, today);
+      return res.json({
+        message: "Reflection already exists for today",
+        reflection: dayReflection?.reflection,
+        generated: false
+      });
+    }
+    
+    // Get today's chat
+    const todaysChat = await getTodaysChat(userId);
+    
+    if (todaysChat.length === 0) {
+      return res.json({
+        message: "No chat messages to summarize",
+        reflection: null,
+        generated: false
+      });
+    }
+    
+    // Generate reflection summary using AI
+    const chatHistory = todaysChat.map(msg => 
+      `${msg.role === 'user' ? 'User' : 'AI'}: ${msg.content}`
+    ).join('\n');
+    
+    const prompt = `Based on the following conversation, create a concise daily reflection summary that captures the main emotions, concerns, and insights discussed. Keep it personal and meaningful, as if writing in a journal:
+
+${chatHistory}
+
+Write a brief reflection (2-3 sentences) that summarizes the key emotional themes and any progress or insights from this conversation.`;
+    
+    const reflection = await generateReply(userId, prompt);
+    
+    // Save the reflection
+    const today = getCurrentDateString();
+    await updateDayReflection(userId, today, reflection);
+    
+    res.json({
+      message: "Reflection generated successfully",
+      reflection: reflection,
+      generated: true
     });
-    return res.status(500).json({
-      error: "Failed to generate reflection",
-      details: error.response?.status === 404 ? "RunPod endpoint not found - check if instance is running" : error.message,
+    
+  } catch (error) {
+    console.error("Error generating reflection:", error);
+    res.status(500).json({ error: "Failed to generate reflection" });
+  }
+});
+
+// Get reflection history
+router.get("/history/:userId/:days?", async (req, res) => {
+  const { userId, days } = req.params;
+  const numberOfDays = days ? parseInt(days) : 7;
+  
+  try {
+    const history = await getReflectionHistory(userId, numberOfDays);
+    
+    res.json({
+      userId,
+      days: numberOfDays,
+      history: history
     });
+    
+  } catch (error) {
+    console.error("Error getting reflection history:", error);
+    res.status(500).json({ error: "Failed to get reflection history" });
   }
 });
 

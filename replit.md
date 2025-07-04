@@ -22,13 +22,26 @@ Deite is a mental health companion application that combines therapy and reflect
 - **Middleware**: CORS, JSON parsing, request logging
 
 ### Data Storage Solutions
-- **Primary Database**: PostgreSQL with Drizzle ORM
+- **Primary Database**: PostgreSQL with Drizzle ORM  
 - **Database Provider**: Neon Database (serverless PostgreSQL)
 - **Authentication**: Firebase Authentication
-- **User Data**: Firestore for user profiles and reflections
-- **Short-term Memory**: Firestore for daily chat messages
-- **Long-term Memory**: PostgreSQL for conversation summaries and insights
+- **User Data**: Firestore for user profiles
+- **Reflection Storage**: Firebase subcollections with per-user daily reflections
+- **Chat Storage**: Firebase arrays within daily reflection documents
+- **Long-term Memory**: PostgreSQL for additional analytics and insights
 - **Schema Management**: Drizzle Kit for migrations and schema management
+
+### Firebase Reflection Structure
+```
+users (collection)
+  └── {userId} (document)
+        ├── name, email, etc.
+        └── reflections (subcollection)
+              └── {YYYY-MM-DD} (document)
+                    ├── chat: [Array of messages]
+                    └── reflection: "text summary of the day"
+                    └── createdAt: timestamp
+```
 
 ## Key Components
 
@@ -40,9 +53,10 @@ Deite is a mental health companion application that combines therapy and reflect
 
 ### Chat Interface
 - Real-time AI conversation through RunPod/Ollama integration
-- Message persistence with conversation history
-- Daily reflection sessions with date-based organization
-- Contextual AI responses using conversation history
+- Firebase-based message persistence with per-user daily organization
+- Automatic reflection generation and storage
+- Load existing conversations when reopening past dates
+- No duplicate reflections - existing reflections are preserved
 
 ### User Interface
 - Multi-screen application flow (Splash → Onboarding → Auth → Profile → Dashboard → Chat)
@@ -62,9 +76,10 @@ Deite is a mental health companion application that combines therapy and reflect
 ## Data Flow
 
 1. **User Registration**: Firebase Auth → Profile Creation → Firestore Storage
-2. **Daily Reflection**: Date Selection → Chat Interface → AI Processing → Message Storage
-3. **Conversation Management**: Message History → Context Building → AI Response → Persistence
-4. **Data Persistence**: Real-time sync between Firebase and local state
+2. **Daily Reflection**: Date Selection → Load Existing or Start New → Chat Interface → AI Processing
+3. **Message Storage**: Each chat message saved to Firebase subcollection array immediately
+4. **Reflection Generation**: AI-generated summary saved only once per day
+5. **Data Persistence**: Direct Firebase integration with subcollection structure
 
 ## External Dependencies
 
@@ -107,6 +122,9 @@ Deite is a mental health companion application that combines therapy and reflect
 Changelog:
 - June 24, 2025. Initial setup
 - June 24, 2025. Implemented AI Memory System with short-term (Firestore) and long-term (PostgreSQL) memory
+- July 4, 2025. Migrated to Firebase subcollection structure for reflections and chat storage
+- July 4, 2025. Implemented per-user daily reflection system with automatic AI summarization
+- July 4, 2025. Added load existing reflection functionality to prevent duplicate generation
 ```
 
 ## User Preferences

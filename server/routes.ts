@@ -16,6 +16,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/demo', demoRouter);
   app.use('/api/simple', simpleDemoRouter);
   app.use('/api/reflection', reflectionRouter);
+  app.use('/api/firebase-demo', (await import('./routes/demo-reflection')).default);
 
   // use storage to perform CRUD operations on the storage interface
   // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
