@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuthContext } from "../components/AuthProvider";
 import { useTheme } from "../components/ThemeProvider";
 import { saveReflection, getReflection } from "../lib/auth";
-import { ArrowLeft, Send, Brain } from "lucide-react";
+import { ArrowLeft, Send, Brain, EyeOff, Eye } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChatMessage } from "../types";
 
@@ -23,6 +23,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isIncognito, setIsIncognito] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -259,11 +260,16 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
       setIsLoading(false);
       setIsStreaming(false);
       abortControllerRef.current = null;
+      
+      // Auto-save conversation if not in incognito mode
+      if (!isIncognito) {
+        saveConversation(messages);
+      }
     }
   };
 
   const saveConversation = async (messagesToSave: ChatMessage[]) => {
-    if (!user) return;
+    if (!user || isIncognito) return; // Don't save in incognito mode
 
     try {
       const content = messagesToSave
@@ -333,15 +339,29 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
             <h1 className={`text-lg font-semibold transition-colors duration-300 ${
               isDarkMode ? "text-white" : "text-gray-900"
             }`}>
-              Deite
+              Deite {isIncognito && <span className="text-sm">🕶️</span>}
             </h1>
             <p className={`text-xs transition-colors duration-300 ${
               isDarkMode ? "text-gray-400" : "text-gray-500"
             }`}>
-              Your cute AI companion
+              {isIncognito ? "Incognito mode - messages won't be saved" : "Your cute AI companion"}
             </p>
           </div>
         </div>
+
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => setIsIncognito(!isIncognito)}
+          className={`transition-colors duration-300 ${
+            isDarkMode 
+              ? "text-gray-400 hover:text-white hover:bg-gray-800" 
+              : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+          } ${isIncognito ? (isDarkMode ? "text-purple-400" : "text-purple-600") : ""}`}
+          title={isIncognito ? "Turn off incognito mode" : "Turn on incognito mode"}
+        >
+          {isIncognito ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+        </Button>
       </div>
 
       {/* Chat Messages */}
