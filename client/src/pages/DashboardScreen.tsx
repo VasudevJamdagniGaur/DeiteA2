@@ -502,9 +502,6 @@ export default function DashboardScreen({
                 <MessageCircle className="w-5 h-5 text-white" />
               </div>
               <span>{hasReflection ? "Continue Chat with Deite" : "Chat with Deite"}</span>
-              <div className="absolute bottom-2 right-4 text-xs text-white/70">
-                Press 👁️ for incognito mode
-              </div>
             </div>
           </Button>
         </motion.div>
