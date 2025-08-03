@@ -56,9 +56,13 @@ Write a short, factual journal entry (2-3 sentences maximum):`;
       data: error.response?.data,
       url: error.config?.url,
     });
-    return res.status(500).json({
-      error: "Failed to generate reflection",
-      details: error.response?.status === 404 ? "RunPod endpoint not found - check if instance is running" : error.message,
+    
+    // Return a fallback reflection instead of error
+    const fallbackReflection = "Had a brief check-in today but didn't dive into anything significant.";
+    
+    return res.json({
+      reflection: fallbackReflection,
+      source: "fallback"
     });
   }
 });
