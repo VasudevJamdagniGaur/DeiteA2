@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuthContext } from "../components/AuthProvider";
 import { useTheme } from "../components/ThemeProvider";
-import { getReflection, signOut } from "../lib/auth";
+import { getReflection, getDayReflect, saveDayReflect, signOut } from "../lib/auth";
 import { CalendarPopup } from "../components/CalendarPopup";
 import {
   Settings,
@@ -67,13 +67,20 @@ export default function DashboardScreen({
     if (!user) return;
 
     try {
+      // Check for existing day reflect first
+      const dayReflect = await getDayReflect(user.uid, dateString);
+      if (dayReflect && dayReflect.dayReflect) {
+        setHasReflection(true);
+        setReflectionPreview(dayReflect.dayReflect.substring(0, 100) + "...");
+        setJournalReflection(dayReflect.dayReflect);
+        return;
+      }
+
+      // Fallback to regular reflection for generating day reflect
       const reflection = await getReflection(user.uid, dateString);
       if (reflection && reflection.content) {
         setHasReflection(true);
-        setReflectionPreview(
-          reflection.content?.substring(0, 100) + "..." || "",
-        );
-
+        setReflectionPreview("Generating day reflection...");
         // Generate journal reflection from messages
         await generateJournalReflection(reflection.content);
       } else {
@@ -122,6 +129,10 @@ export default function DashboardScreen({
       if (response.ok) {
         const data = await response.json();
         setJournalReflection(data.reflection);
+        // Save the day reflect to Firebase
+        if (user && data.reflection) {
+          await saveDayReflect(user.uid, dateString, data.reflection);
+        }
       }
     } catch (error) {
       console.error("Error generating reflection:", error);

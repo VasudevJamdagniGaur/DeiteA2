@@ -47,6 +47,27 @@ export const saveReflection = async (uid: string, date: string, content: string)
   }, { merge: true });
 };
 
+export const saveDayReflect = async (uid: string, date: string, dayReflect: string) => {
+  const dayReflectRef = doc(db, "day_reflects", `${uid}_${date}`);
+  await setDoc(dayReflectRef, {
+    uid,
+    date,
+    dayReflect,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  }, { merge: true });
+};
+
+export const getDayReflect = async (uid: string, date: string) => {
+  const dayReflectRef = doc(db, "day_reflects", `${uid}_${date}`);
+  const dayReflectSnap = await getDoc(dayReflectRef);
+  
+  if (dayReflectSnap.exists()) {
+    return dayReflectSnap.data();
+  }
+  return null;
+};
+
 export const getReflection = async (uid: string, date: string) => {
   const reflectionRef = doc(db, "reflections", `${uid}_${date}`);
   const reflectionSnap = await getDoc(reflectionRef);

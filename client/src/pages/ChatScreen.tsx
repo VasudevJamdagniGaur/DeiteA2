@@ -277,8 +277,47 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
         .join('\n');
 
       await saveReflection(user.uid, date, content);
+
+      // Auto-generate day reflect if it doesn't exist yet
+      await generateDayReflectIfNeeded(messagesToSave);
     } catch (error) {
       console.error("Error saving reflection:", error);
+    }
+  };
+
+  const generateDayReflectIfNeeded = async (messagesToSave: ChatMessage[]) => {
+    if (!user || isIncognito) return;
+
+    try {
+      // Check if day reflect already exists
+      const { getDayReflect, saveDayReflect } = await import("../lib/auth");
+      const existingDayReflect = await getDayReflect(user.uid, date);
+      
+      if (!existingDayReflect && messagesToSave.length >= 4) { // Only if meaningful conversation
+        // Generate day reflect
+        const response = await fetch("/api/reflection", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ 
+            messages: messagesToSave.map(msg => ({
+              sender: msg.sender === "user" ? "user" : "deite",
+              content: msg.content
+            }))
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.reflection) {
+            await saveDayReflect(user.uid, date, data.reflection);
+            console.log("Day reflect auto-generated and saved");
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error auto-generating day reflect:", error);
     }
   };
 
