@@ -57,7 +57,7 @@ Deite:`;
         stream: false,
       },
       {
-        timeout: 60000,
+        timeout: 30000,
         headers: {
           "Content-Type": "application/json",
         },
@@ -154,7 +154,7 @@ Deite:`;
           stream: true,
         },
         {
-          timeout: 60000,
+          timeout: 30000,
           responseType: 'stream',
           headers: {
             "Content-Type": "application/json",
@@ -275,7 +275,7 @@ Write a short, factual journal entry (2-3 sentences maximum):`;
         stream: false,
       },
       {
-        timeout: 60000,
+        timeout: 30000,
         headers: {
           "Content-Type": "application/json",
         },
@@ -318,7 +318,7 @@ router.get("/test", async (req, res) => {
         stream: false,
       },
       {
-        timeout: 60000,
+        timeout: 30000,
         headers: {
           "Content-Type": "application/json",
         },
