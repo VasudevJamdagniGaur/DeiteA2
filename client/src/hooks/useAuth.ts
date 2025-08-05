@@ -34,9 +34,26 @@ export const useAuth = () => {
           const userProfile = await getUserProfile(firebaseUser.uid);
           console.log("Profile fetched:", userProfile);
           setProfile(userProfile);
-        } catch (error) {
+        } catch (error: any) {
           console.error("Error fetching user profile:", error);
-          setProfile(null);
+          
+          // If it's a Firestore unavailable error, don't set profile to null immediately
+          // This prevents the app from thinking the user has no profile when it's just a connection issue
+          if (error?.code === 'unavailable') {
+            console.log("Firestore unavailable - retrying profile fetch in 2 seconds");
+            setTimeout(async () => {
+              try {
+                const retryProfile = await getUserProfile(firebaseUser.uid);
+                console.log("Profile retry fetch successful:", retryProfile);
+                setProfile(retryProfile);
+              } catch (retryError) {
+                console.error("Profile retry fetch failed:", retryError);
+                setProfile(null);
+              }
+            }, 2000);
+          } else {
+            setProfile(null);
+          }
         }
       } else {
         setProfile(null);

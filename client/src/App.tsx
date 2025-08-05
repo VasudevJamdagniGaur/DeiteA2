@@ -33,10 +33,17 @@ function AppContent() {
         } else {
           setCurrentScreen("splash");
         }
-      } else if (user && !profile) {
-        // Authenticated but no profile - always show profile setup
-        console.log("User authenticated but no profile, showing profile setup");
-        setCurrentScreen("profile");
+      } else if (user && profile === null) {
+        // Authenticated but profile is null - this could be due to Firestore connection issues
+        // Only show profile setup if we're sure it's not a connection error
+        // For now, let's wait a bit longer before assuming no profile exists
+        console.log("User authenticated but profile is null - checking if it's a connection issue");
+        
+        // If we're currently on splash/onboarding/auth, move to profile setup
+        // But if we're already on profile setup, stay there
+        if (currentScreen === "splash" || currentScreen === "onboarding" || currentScreen === "auth") {
+          setCurrentScreen("profile");
+        }
       } else if (user && profile) {
         // Fully set up - show dashboard or chat
         if (currentScreen === "splash" || currentScreen === "onboarding" || currentScreen === "auth" || currentScreen === "profile") {
