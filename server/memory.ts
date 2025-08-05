@@ -8,6 +8,9 @@ import {
   orderBy,
   getDocs,
   Timestamp,
+  doc,
+  setDoc,
+  getDoc,
 } from "firebase/firestore";
 
 // PostgreSQL connection
@@ -57,8 +60,8 @@ export async function saveMessage(
     sessionDate: getDateString(now),
   };
 
-  // Save to Firestore using client SDK
-  await addDoc(collection(serverDb, "chat_messages"), {
+  // Save to Firestore using client SDK under users/{userId}/messages/{messageId}
+  await addDoc(collection(serverDb, "users", userId, "messages"), {
     ...message,
     timestamp: Timestamp.fromDate(now),
   });
@@ -82,10 +85,9 @@ export async function getMessagesForDate(
   date: string,
 ): Promise<ChatMessage[]> {
   try {
-    // First try with compound query
+    // Query messages under users/{userId}/messages/
     const messagesQuery = query(
-      collection(serverDb, "chat_messages"),
-      where("userId", "==", userId),
+      collection(serverDb, "users", userId, "messages"),
       where("sessionDate", "==", date),
       orderBy("timestamp", "asc"),
     );
@@ -102,14 +104,12 @@ export async function getMessagesForDate(
     });
   } catch (error) {
     console.log(
-      "Compound query failed, using fallback approach:",
-      error.message,
+      "Compound query failed, using fallback approach for getMessagesForDate",
     );
 
-    // Fallback: Query by userId only and filter locally
+    // Fallback: Query all messages for the user and filter locally
     const userQuery = query(
-      collection(serverDb, "chat_messages"),
-      where("userId", "==", userId),
+      collection(serverDb, "users", userId, "messages"),
     );
 
     const snapshot = await getDocs(userQuery);
@@ -130,7 +130,7 @@ export async function getMessagesForDate(
   }
 }
 
-// ---- Long-Term Memory Functions (PostgreSQL) ----
+// ---- Long-Term Memory Functions (PostgreSQL and Firebase) ----
 
 /**
  * 3. getLongTermMemory(userId) → fetches past summaries
@@ -140,6 +140,16 @@ export async function getLongTermMemory(
   limitCount = 5,
 ): Promise<string[]> {
   try {
+    // Prefer Firebase summaries if available
+    const summariesRef = collection(serverDb, "users", userId, "summaries");
+    const summariesQuery = query(summariesRef, orderBy("date", "desc"), limit(limitCount));
+    const firebaseSnapshot = await getDocs(summariesQuery);
+
+    if (!firebaseSnapshot.empty) {
+      return firebaseSnapshot.docs.map(doc => doc.data().summary as string);
+    }
+
+    // Fallback to PostgreSQL
     const results = await sql`
       SELECT summary
       FROM user_summaries
@@ -151,12 +161,12 @@ export async function getLongTermMemory(
     return results.map((row) => row.summary as string);
   } catch (error) {
     console.error("Error fetching long-term memory:", error);
-    return []; // Return empty array if table doesn't exist yet
+    return []; // Return empty array if data not found
   }
 }
 
 /**
- * Save a daily summary to PostgreSQL
+ * Save a daily summary to Firebase and PostgreSQL
  */
 export async function saveDailySummary(
   userId: string,
@@ -164,6 +174,17 @@ export async function saveDailySummary(
   summary: string,
 ): Promise<void> {
   try {
+    // Save to Firebase: users/{userId}/summaries/{date}
+    const summaryRef = doc(serverDb, "users", userId, "summaries", date);
+    await setDoc(summaryRef, {
+      userId,
+      date,
+      summary,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }, { merge: true });
+
+    // Also save to PostgreSQL as backup
     await sql`
       INSERT INTO user_summaries (user_id, date, summary, created_at)
       VALUES (${userId}, ${date}, ${summary}, NOW())
@@ -186,14 +207,22 @@ export async function getDailySummary(
   date: string,
 ): Promise<string | null> {
   try {
+    // Try Firebase first
+    const summaryRef = doc(serverDb, "users", userId, "summaries", date);
+    const summarySnap = await getDoc(summaryRef);
+
+    if (summarySnap.exists()) {
+      return summarySnap.data().summary;
+    }
+
+    // Fallback to PostgreSQL
     const results = await sql`
       SELECT summary
       FROM user_summaries
       WHERE user_id = ${userId} AND date = ${date}
       LIMIT 1
     `;
-
-    return results.length > 0 ? (results[0].summary as string) : null;
+    return results.length > 0 ? results[0].summary : null;
   } catch (error) {
     console.error("Error getting daily summary:", error);
     return null;
@@ -205,6 +234,16 @@ export async function getDailySummary(
  */
 export async function hasUserHistory(userId: string): Promise<boolean> {
   try {
+    // Check Firebase first
+    const summariesRef = collection(serverDb, "users", userId, "summaries");
+    const summariesQuery = query(summariesRef, limit(1));
+    const firebaseSnapshot = await getDocs(summariesQuery);
+
+    if (!firebaseSnapshot.empty) {
+      return true;
+    }
+
+    // Fallback to PostgreSQL
     const results = await sql`
       SELECT COUNT(*) as count
       FROM user_summaries
@@ -215,7 +254,7 @@ export async function hasUserHistory(userId: string): Promise<boolean> {
     return parseInt(results[0].count as string) > 0;
   } catch (error) {
     console.error("Error checking user history:", error);
-    return false; // Return false if table doesn't exist yet
+    return false; // Return false if data not found
   }
 }
 
@@ -309,7 +348,7 @@ Respond only to the current message while considering the full context.`;
 }
 
 /**
- * 6. summarizeToday(userId) → generates and stores summary in PostgreSQL
+ * 6. summarizeToday(userId) → generates and stores summary in Firebase and PostgreSQL
  */
 export async function summarizeToday(userId: string): Promise<string | null> {
   const today = getCurrentDateString();
@@ -346,13 +385,16 @@ export async function getChatActivity(
   endDate: string,
 ): Promise<Record<string, number>> {
   try {
-    // Query all messages for the user within date range
-    const userQuery = query(
-      collection(serverDb, "chat_messages"),
-      where("userId", "==", userId),
+    // Query messages for the user within date range from Firebase
+    const messagesQuery = query(
+      collection(serverDb, "users", userId, "messages"),
+      // Filtering by date range directly in Firestore is more efficient if possible,
+      // but sessionDate is a string, so we might need to do some date comparisons.
+      // For simplicity here, we'll fetch all and filter, but for large datasets,
+      // consider a more optimized approach or dedicated date fields.
     );
 
-    const snapshot = await getDocs(userQuery);
+    const snapshot = await getDocs(messagesQuery);
     const activity: Record<string, number> = {};
 
     snapshot.docs.forEach((doc) => {

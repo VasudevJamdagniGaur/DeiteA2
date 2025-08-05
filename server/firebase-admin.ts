@@ -5,12 +5,12 @@ import { initializeApp } from "firebase/app";
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: process.env.VITE_FIREBASE_API_KEY || "AIzaSyBxtRJ8NPp0TiqjxFNM7ci5UZnowyQhwVU",
-  authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN || "deitea2-659f5.firebaseapp.com",
-  projectId: process.env.VITE_FIREBASE_PROJECT_ID || "deitea2-659f5",
-  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET || "deitea2-659f5.firebasestorage.app",
-  messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "974533520189",
-  appId: process.env.VITE_FIREBASE_APP_ID || "1:974533520189:web:your_app_id_here",
+  apiKey: "AIzaSyDVCGl-fK7sWk0ohjHTPljMtSATx8J3MeA",
+  authDomain: "deitetrial.firebaseapp.com",
+  projectId: "deitetrial",
+  storageBucket: "deitetrial.firebasestorage.app",
+  messagingSenderId: "524425449967",
+  appId: "1:524425449967:web:10b6ed1de226e2042de61a",
 };
 
 const app = initializeApp(firebaseConfig, 'server-app');

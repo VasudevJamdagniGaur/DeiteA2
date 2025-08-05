@@ -48,18 +48,19 @@ export const saveReflection = async (uid: string, date: string, content: string)
 };
 
 export const saveDayReflect = async (uid: string, date: string, dayReflect: string) => {
-  const dayReflectRef = doc(db, "day_reflects", `${uid}_${date}`);
+  const dayReflectRef = doc(db, "users", uid, "summaries", date);
   await setDoc(dayReflectRef, {
     uid,
     date,
     dayReflect,
+    summary: dayReflect,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   }, { merge: true });
 };
 
 export const getDayReflect = async (uid: string, date: string) => {
-  const dayReflectRef = doc(db, "day_reflects", `${uid}_${date}`);
+  const dayReflectRef = doc(db, "users", uid, "summaries", date);
   const dayReflectSnap = await getDoc(dayReflectRef);
   
   if (dayReflectSnap.exists()) {
@@ -69,7 +70,7 @@ export const getDayReflect = async (uid: string, date: string) => {
 };
 
 export const getReflection = async (uid: string, date: string) => {
-  const reflectionRef = doc(db, "reflections", `${uid}_${date}`);
+  const reflectionRef = doc(db, "users", uid, "summaries", date);
   const reflectionSnap = await getDoc(reflectionRef);
   
   if (reflectionSnap.exists()) {

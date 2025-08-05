@@ -28,7 +28,7 @@ export interface DailySummary {
  * Save a single chat message to Firestore
  */
 export async function saveMessage(msg: ChatMessage) {
-  await addDoc(collection(serverDb, "chat_messages"), {
+  await addDoc(collection(serverDb, "users", msg.userId, "messages"), {
     ...msg,
     timestamp: Timestamp.fromDate(msg.timestamp)
   });
@@ -40,8 +40,7 @@ export async function saveMessage(msg: ChatMessage) {
 export async function fetchMessagesForDate(userId: string, date: string): Promise<ChatMessage[]> {
   try {
     const messagesQuery = query(
-      collection(serverDb, "chat_messages"),
-      where("userId", "==", userId),
+      collection(serverDb, "users", userId, "messages"),
       where("sessionDate", "==", date),
       orderBy("timestamp", "asc")
     );
@@ -58,8 +57,7 @@ export async function fetchMessagesForDate(userId: string, date: string): Promis
     console.log("Using fallback query approach for fetchMessagesForDate");
     
     const userQuery = query(
-      collection(serverDb, "chat_messages"),
-      where("userId", "==", userId)
+      collection(serverDb, "users", userId, "messages")
     );
 
     const snapshot = await getDocs(userQuery);
