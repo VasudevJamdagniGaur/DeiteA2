@@ -29,17 +29,14 @@ export const useAuth = () => {
       setUser(firebaseUser);
       
       if (firebaseUser) {
-        // Only fetch profile if we don't have one or if the user changed
-        if (!profile || (user && user.uid !== firebaseUser.uid)) {
-          try {
-            console.log("Fetching profile for user:", firebaseUser.uid);
-            const userProfile = await getUserProfile(firebaseUser.uid);
-            console.log("Profile fetched:", userProfile);
-            setProfile(userProfile);
-          } catch (error) {
-            console.error("Error fetching user profile:", error);
-            setProfile(null);
-          }
+        try {
+          console.log("Fetching profile for user:", firebaseUser.uid);
+          const userProfile = await getUserProfile(firebaseUser.uid);
+          console.log("Profile fetched:", userProfile);
+          setProfile(userProfile);
+        } catch (error) {
+          console.error("Error fetching user profile:", error);
+          setProfile(null);
         }
       } else {
         setProfile(null);
@@ -49,7 +46,7 @@ export const useAuth = () => {
     });
 
     return () => unsubscribe();
-  }, [profile, user]);
+  }, []);
 
   return {
     user,
