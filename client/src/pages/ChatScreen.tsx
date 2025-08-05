@@ -154,48 +154,61 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
       let accumulatedContent = "";
+      let wordBuffer = "";
 
       if (reader) {
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
+        while (true) {
+          const { done, value } = await reader.read();
 
-            if (done) {
-              break;
+          if (done) {
+            // Process any remaining content in the buffer
+            if (wordBuffer.trim()) {
+              accumulatedContent += wordBuffer;
+              setMessages((prev) => {
+                const newMessages = [...prev];
+                const lastMessage = newMessages[newMessages.length - 1];
+                if (lastMessage && lastMessage.sender === "deite") {
+                  lastMessage.content = accumulatedContent;
+                }
+                return newMessages;
+              });
             }
+            break;
+          }
 
-            // Check if we've been aborted
-            if (abortControllerRef.current?.signal.aborted) {
-              break;
+          const chunk = decoder.decode(value, { stream: true });
+          wordBuffer += chunk;
+
+          // Split by spaces to get words
+          const words = wordBuffer.split(" ");
+
+          // Keep the last word in buffer (might be incomplete)
+          wordBuffer = words.pop() || "";
+
+          // Process complete words
+          for (const word of words) {
+            if (word.trim()) {
+              accumulatedContent += (accumulatedContent ? " " : "") + word;
+
+              // Update the bot message with new word
+              setMessages((prev) => {
+                const newMessages = [...prev];
+                const lastMessage = newMessages[newMessages.length - 1];
+                if (lastMessage && lastMessage.sender === "deite") {
+                  lastMessage.content = accumulatedContent;
+                }
+                return newMessages;
+              });
+
+              // Add delay between words for streaming effect
+              await new Promise((resolve) => setTimeout(resolve, 80));
             }
-
-            const chunk = decoder.decode(value, { stream: true });
-            accumulatedContent += chunk;
-
-            // Update the bot message with accumulated content
-            setMessages((prev) => {
-              const newMessages = [...prev];
-              const lastMessage = newMessages[newMessages.length - 1];
-              if (lastMessage && lastMessage.sender === "deite") {
-                lastMessage.content = accumulatedContent;
-              }
-              return newMessages;
-            });
-
-            // Small delay for smoother streaming
-            await new Promise((resolve) => setTimeout(resolve, 20));
           }
-        } catch (readerError: any) {
-          if (readerError.name === "AbortError" || abortControllerRef.current?.signal.aborted) {
-            console.log("Stream reading aborted");
-            return;
-          }
-          throw readerError;
         }
       }
     } catch (err: any) {
-      if (err.name === "AbortError" || abortControllerRef.current?.signal.aborted) {
-        console.log("Stream aborted by user");
+      if (err.name === "AbortError") {
+        console.log("Stream aborted");
         return;
       }
 
@@ -218,27 +231,30 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
 
         const data = await fallbackResponse.json();
 
-        // Update the bot message with fallback response
-        setMessages((prev) => {
-          const newMessages = [...prev];
-          const lastMessage = newMessages[newMessages.length - 1];
-          if (lastMessage && lastMessage.sender === "deite") {
-            lastMessage.content = data.reply || "I'm sorry, I couldn't generate a response.";
-          }
-          return newMessages;
-        });
+        // Animate the fallback response word by word
+        const words = data.reply.split(" ");
+        let accumulatedContent = "";
+
+        for (let i = 0; i < words.length; i++) {
+          accumulatedContent += (i > 0 ? " " : "") + words[i];
+
+          setMessages((prev) => {
+            const newMessages = [...prev];
+            const lastMessage = newMessages[newMessages.length - 1];
+            if (lastMessage && lastMessage.sender === "deite") {
+              lastMessage.content = accumulatedContent;
+            }
+            return newMessages;
+          });
+
+          // Add delay between words
+          await new Promise((resolve) => setTimeout(resolve, 80));
+        }
       } catch (fallbackErr) {
         console.error("Fallback also failed:", fallbackErr);
 
-        // Update with error message instead of removing
-        setMessages((prev) => {
-          const newMessages = [...prev];
-          const lastMessage = newMessages[newMessages.length - 1];
-          if (lastMessage && lastMessage.sender === "deite") {
-            lastMessage.content = "I apologize, but I'm having trouble responding right now. Please try again.";
-          }
-          return newMessages;
-        });
+        // Remove the empty bot message and show error
+        setMessages((prev) => prev.slice(0, -1));
       }
     } finally {
       setIsLoading(false);
@@ -247,7 +263,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
       
       // Auto-save conversation if not in incognito mode
       if (!isIncognito) {
-        setTimeout(() => saveConversation(messages), 100);
+        saveConversation(messages);
       }
     }
   };
@@ -314,15 +330,11 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
   };
 
   const stopStreaming = () => {
-    if (abortControllerRef.current && !abortControllerRef.current.signal.aborted) {
-      try {
-        abortControllerRef.current.abort();
-      } catch (error) {
-        console.log("Abort controller already aborted");
-      }
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      setIsStreaming(false);
+      setIsLoading(false);
     }
-    setIsStreaming(false);
-    setIsLoading(false);
   };
 
   const getUserInitial = () => {
