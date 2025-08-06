@@ -3,6 +3,7 @@
 
 import { initializeApp } from "firebase/app";
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
+import * as admin from 'firebase-admin'; // Import the admin SDK
 
 const firebaseConfig = {
   apiKey: "AIzaSyDVCGl-fK7sWk0ohjHTPljMtSATx8J3MeA",
@@ -13,58 +14,60 @@ const firebaseConfig = {
   appId: "1:524425449967:web:10b6ed1de226e2042de61a",
 };
 
-const app = initializeApp(firebaseConfig, 'server-app');
-export const serverDb = getFirestore(app);
-export { app as serverApp };
+// Initialize Firebase Admin SDK if not already initialized
+if (!admin.apps.length) {
+  admin.initializeApp(firebaseConfig);
+}
+
+// Get a Firestore instance using the Admin SDK
+const db = admin.firestore();
 
 // Save chat message to Firebase
-export const saveMessageToFirebase = async (
-  uid: string,
-  message: string,
-  sender: 'user' | 'ai',
-  conversationId?: string
-) => {
+export async function saveMessageToFirebase(uid: string, content: string, sender: 'user' | 'ai'): Promise<void> {
   try {
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-    const messageData = {
-      uid,
-      message,
+    const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    const timestamp = new Date();
+
+    // Save to users/{uid}/messages/{date}/messages collection
+    const userMessagesRef = db.collection('users').doc(uid).collection('messages').doc(date).collection('messages');
+
+    await userMessagesRef.add({
+      content,
       sender,
-      timestamp: admin.firestore.Timestamp.now(),
-      date: today,
-      conversationId: conversationId || `${uid}_${today}`,
-      createdAt: new Date().toISOString()
-    };
+      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+      localTimestamp: timestamp.toISOString()
+    });
 
-    // Save to users/{uid}/messages collection
-    const messagesRef = serverDb.collection("users").doc(uid).collection("messages");
-    await messagesRef.add(messageData);
-
-    console.log(`Message saved to Firebase for user ${uid}`);
-    return messageData;
-  } catch (error) {
-    console.error("Error saving message to Firebase:", error);
-    throw error;
-  }
-};
-
-// Save day summary to Firebase
-export const saveDaySummaryToFirebase = async (uid: string, date: string, summary: string) => {
-  try {
-    const summaryRef = serverDb.collection("users").doc(uid).collection("summaries").doc(date);
-    await summaryRef.set({
-      uid,
+    // Also update the day summary document
+    const daySummaryRef = db.collection('users').doc(uid).collection('messages').doc(date);
+    await daySummaryRef.set({
       date,
-      summary,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      lastActivity: admin.firestore.FieldValue.serverTimestamp(),
+      messageCount: admin.firestore.FieldValue.increment(1)
     }, { merge: true });
 
-    console.log(`Day summary saved to Firebase for user ${uid}, date ${date}`);
+    console.log(`Message saved to Firebase for user ${uid} on ${date}`);
   } catch (error) {
-    console.error("Error saving day summary to Firebase:", error);
+    console.error('Error saving message to Firebase:', error);
     throw error;
   }
-};
+}
 
-export { app as serverApp, serverDb };
+// Save day summary to Firebase
+export async function saveDaySummaryToFirebase(uid: string, date: string, summary: string): Promise<void> {
+  try {
+    const daySummaryRef = db.collection('users').doc(uid).collection('messages').doc(date);
+    await daySummaryRef.set({
+      date,
+      summary,
+      summaryUpdated: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    console.log(`Day summary saved to Firebase for user ${uid} on ${date}`);
+  } catch (error) {
+    console.error('Error saving day summary to Firebase:', error);
+    throw error;
+  }
+}
+
+export { db };

@@ -197,14 +197,14 @@ Deite:`;
               }
               if (data.done) {
                 // Save messages to memory
-                await saveChatMessage({ role: "user", content: messages[messages.length - 1].content, timestamp: new Date() }); // Save the last user message
-                await saveChatMessage({ role: "assistant", content: fullResponse, timestamp: new Date() }); // Save the accumulated response
+                saveChatMessage({ role: "user", content: messages[messages.length - 1].content, timestamp: new Date() }).catch(console.error); // Save the last user message
+                saveChatMessage({ role: "assistant", content: fullResponse, timestamp: new Date() }).catch(console.error); // Save the accumulated response
 
                 // Save messages to Firebase if uid is provided
                 if (uid) {
                   try {
-                    await saveMessageToFirebase(uid, messages[messages.length - 1].content, 'user'); // Save the last user message
-                    await saveMessageToFirebase(uid, fullResponse, 'ai'); // Save the accumulated response
+                    saveMessageToFirebase(uid, messages[messages.length - 1].content, 'user').catch(err => console.error("Error saving messages to Firebase:", err)); // Save the last user message
+                    saveMessageToFirebase(uid, fullResponse, 'ai').catch(err => console.error("Error saving messages to Firebase:", err)); // Save the accumulated response
                   } catch (firebaseError) {
                     console.error("Error saving messages to Firebase:", firebaseError);
                     // Don't fail the request if Firebase save fails
@@ -263,14 +263,14 @@ Deite:`;
         const reply = await generateReply("fallback-user", fullPrompt);
 
         // Save messages to memory
-        await saveChatMessage({ role: "user", content: messages[messages.length - 1].content, timestamp: new Date() }); // Save the last user message
-        await saveChatMessage({ role: "assistant", content: reply, timestamp: new Date() }); // Save the AI response
+        saveChatMessage({ role: "user", content: messages[messages.length - 1].content, timestamp: new Date() }).catch(console.error); // Save the last user message
+        saveChatMessage({ role: "assistant", content: reply, timestamp: new Date() }).catch(console.error); // Save the AI response
 
         // Save messages to Firebase if uid is provided
         if (uid) {
           try {
-            await saveMessageToFirebase(uid, messages[messages.length - 1].content, 'user'); // Save the last user message
-            await saveMessageToFirebase(uid, reply, 'ai'); // Save the AI response
+            saveMessageToFirebase(uid, messages[messages.length - 1].content, 'user').catch(err => console.error("Error saving messages to Firebase:", err)); // Save the last user message
+            saveMessageToFirebase(uid, reply, 'ai').catch(err => console.error("Error saving messages to Firebase:", err)); // Save the AI response
           } catch (firebaseError) {
             console.error("Error saving messages to Firebase:", firebaseError);
             // Don't fail the request if Firebase save fails
