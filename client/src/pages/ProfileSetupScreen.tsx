@@ -41,8 +41,29 @@ export default function ProfileSetupScreen({ onComplete }: ProfileSetupScreenPro
       };
       
       console.log("Saving profile:", profileData);
-      await saveUserProfile(profileData);
-      console.log("Profile saved successfully");
+      
+      // Try saving multiple times if it fails due to connection issues
+      let saveSuccess = false;
+      let attempts = 0;
+      const maxAttempts = 3;
+      
+      while (!saveSuccess && attempts < maxAttempts) {
+        try {
+          await saveUserProfile(profileData);
+          saveSuccess = true;
+          console.log("Profile saved successfully on attempt:", attempts + 1);
+        } catch (saveError: any) {
+          attempts++;
+          console.error(`Profile save attempt ${attempts} failed:`, saveError);
+          
+          if (attempts < maxAttempts && saveError?.code === 'unavailable') {
+            console.log(`Retrying profile save in ${attempts} seconds...`);
+            await new Promise(resolve => setTimeout(resolve, attempts * 1000));
+          } else {
+            throw saveError;
+          }
+        }
+      }
 
       // Refresh the profile state to trigger navigation
       console.log("Refreshing profile state...");
@@ -58,12 +79,12 @@ export default function ProfileSetupScreen({ onComplete }: ProfileSetupScreenPro
       // Small delay to ensure state is updated before navigation
       setTimeout(() => {
         onComplete();
-      }, 100);
+      }, 500);
     } catch (error: any) {
       console.error("Error saving profile:", error);
       toast({
         title: "Error saving profile",
-        description: error.message || "Please try again.",
+        description: error.message || "Please try again. Check your internet connection.",
         variant: "destructive",
       });
     } finally {
