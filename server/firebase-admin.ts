@@ -1,8 +1,9 @@
+
 // Simplified Firebase configuration for memory storage
 // Using client SDK with server-side operations since Admin SDK requires service account
 
 import { initializeApp } from "firebase/app";
-import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
+import { getFirestore } from "firebase/firestore";
 import * as admin from 'firebase-admin'; // Import the admin SDK
 
 const firebaseConfig = {
@@ -13,6 +14,10 @@ const firebaseConfig = {
   messagingSenderId: "524425449967",
   appId: "1:524425449967:web:10b6ed1de226e2042de61a",
 };
+
+// Initialize Firebase client SDK for server operations
+const app = initializeApp(firebaseConfig, "server-app");
+export const serverDb = getFirestore(app);
 
 // Initialize Firebase Admin SDK if not already initialized
 if (!admin.apps.length) {
