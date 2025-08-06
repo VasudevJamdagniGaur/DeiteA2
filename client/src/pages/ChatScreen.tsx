@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuthContext } from "../components/AuthProvider";
 import { useTheme } from "../components/ThemeProvider";
-import { saveReflection, getReflection } from "../lib/auth";
+import { saveReflection, getReflection, saveChatMessage } from "../lib/auth";
 import { ArrowLeft, Send, Brain, EyeOff, Eye } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChatMessage } from "../types";
@@ -244,7 +244,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
       setIsLoading(false);
       setIsStreaming(false);
       abortControllerRef.current = null;
-      
+
       // Auto-save conversation if not in incognito mode
       if (!isIncognito) {
         setTimeout(() => saveConversation(messages), 100);
@@ -276,7 +276,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
       // Check if day reflect already exists
       const { getDayReflect, saveDayReflect } = await import("../lib/auth");
       const existingDayReflect = await getDayReflect(user.uid, date);
-      
+
       if (!existingDayReflect && messagesToSave.length >= 4) { // Only if meaningful conversation
         // Generate day reflect
         const response = await fetch("/api/reflection", {
@@ -507,7 +507,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
                 const scrollHeight = target.scrollHeight;
                 const lineHeightPx = parseFloat(getComputedStyle(target).lineHeight);
                 const lines = Math.floor((scrollHeight - (padding * 16 * 2)) / lineHeightPx);
-                
+
                 if (lines <= maxLines) {
                   target.style.height = scrollHeight + 'px';
                 } else {
