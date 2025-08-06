@@ -8,7 +8,6 @@ export const useAuth = () => {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [profileChecked, setProfileChecked] = useState(false);
 
   const refreshProfile = async () => {
     if (user) {
@@ -17,13 +16,9 @@ export const useAuth = () => {
         const userProfile = await getUserProfile(user.uid);
         console.log("Profile refreshed:", userProfile);
         setProfile(userProfile);
-        setProfileChecked(true);
       } catch (error) {
         console.error("Error refreshing user profile:", error);
-        // Don't set profile to null on error, keep existing profile if any
-        if (!profile) {
-          setProfileChecked(true);
-        }
+        setProfile(null);
       }
     }
   };
@@ -34,38 +29,34 @@ export const useAuth = () => {
       setUser(firebaseUser);
       
       if (firebaseUser) {
-        let retryCount = 0;
-        const maxRetries = 3;
-        
-        const fetchProfileWithRetry = async () => {
-          try {
-            console.log(`Fetching profile for user (attempt ${retryCount + 1}):`, firebaseUser.uid);
-            const userProfile = await getUserProfile(firebaseUser.uid);
-            console.log("Profile fetched:", userProfile);
-            setProfile(userProfile);
-            setProfileChecked(true);
-          } catch (error: any) {
-            console.error("Error fetching user profile:", error);
-            retryCount++;
-            
-            if (error?.code === 'unavailable' && retryCount < maxRetries) {
-              console.log(`Firestore unavailable - retrying profile fetch in ${retryCount * 2} seconds (attempt ${retryCount}/${maxRetries})`);
-              setTimeout(fetchProfileWithRetry, retryCount * 2000);
-            } else {
-              console.log("Max retries reached or different error, marking profile as checked");
-              // Only set profile to null if we've exhausted retries or it's not a connection issue
-              if (error?.code !== 'unavailable') {
+        try {
+          console.log("Fetching profile for user:", firebaseUser.uid);
+          const userProfile = await getUserProfile(firebaseUser.uid);
+          console.log("Profile fetched:", userProfile);
+          setProfile(userProfile);
+        } catch (error: any) {
+          console.error("Error fetching user profile:", error);
+          
+          // If it's a Firestore unavailable error, don't set profile to null immediately
+          // This prevents the app from thinking the user has no profile when it's just a connection issue
+          if (error?.code === 'unavailable') {
+            console.log("Firestore unavailable - retrying profile fetch in 2 seconds");
+            setTimeout(async () => {
+              try {
+                const retryProfile = await getUserProfile(firebaseUser.uid);
+                console.log("Profile retry fetch successful:", retryProfile);
+                setProfile(retryProfile);
+              } catch (retryError) {
+                console.error("Profile retry fetch failed:", retryError);
                 setProfile(null);
               }
-              setProfileChecked(true);
-            }
+            }, 2000);
+          } else {
+            setProfile(null);
           }
-        };
-        
-        await fetchProfileWithRetry();
+        }
       } else {
         setProfile(null);
-        setProfileChecked(false);
       }
       
       setLoading(false);
@@ -78,7 +69,6 @@ export const useAuth = () => {
     user,
     profile,
     loading,
-    profileChecked,
     isAuthenticated: !!user,
     hasProfile: !!profile,
     refreshProfile,

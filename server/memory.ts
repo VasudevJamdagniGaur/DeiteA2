@@ -11,7 +11,6 @@ import {
   doc,
   setDoc,
   getDoc,
-  limit,
 } from "firebase/firestore";
 
 // PostgreSQL connection

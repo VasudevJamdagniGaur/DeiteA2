@@ -1,14 +1,12 @@
 import express from "express";
 import axios from "axios";
-import { generateAIResponse } from "../ai";
-import { saveChatMessage, saveShortTermMemory } from "../memory";
-import { saveMessageToFirebase } from "../firebase-admin";
+import { generateReply } from "../ai";
 
 const router = express.Router();
 
 router.post("/", async (req, res) => {
   try {
-    const { messages, uid } = req.body; // Added uid to the request body
+    const { messages } = req.body;
 
     if (!messages || messages.length === 0) {
       return res.status(400).json({ error: "Messages are required" });
@@ -69,21 +67,6 @@ Deite:`;
     console.log("RunPod response status:", response.status);
     console.log("RunPod response data:", response.data);
 
-    // Save messages to memory
-    await saveChatMessage({ role: "user", content: messages[messages.length - 1].content, timestamp: new Date() }); // Save the last user message
-    await saveChatMessage({ role: "assistant", content: response.data.response, timestamp: new Date() }); // Save the AI response
-
-    // Save messages to Firebase if uid is provided
-    if (uid) {
-      try {
-        await saveMessageToFirebase(uid, messages[messages.length - 1].content, 'user'); // Save the last user message
-        await saveMessageToFirebase(uid, response.data.response, 'ai'); // Save the AI response
-      } catch (firebaseError) {
-        console.error("Error saving messages to Firebase:", firebaseError);
-        // Don't fail the request if Firebase save fails
-      }
-    }
-
     return res.json({
       reply: response.data.response,
     });
@@ -114,7 +97,7 @@ Deite:`;
 // Add streaming endpoint
 router.post("/stream", async (req, res) => {
   try {
-    const { messages, uid } = req.body; // Added uid to the request body
+    const { messages } = req.body;
 
     if (!messages || messages.length === 0) {
       return res.status(400).json({ error: "Messages are required" });
@@ -180,7 +163,6 @@ Deite:`;
       );
 
       let buffer = '';
-      let fullResponse = '';
 
       response.data.on('data', (chunk: Buffer) => {
         buffer += chunk.toString();
@@ -193,23 +175,8 @@ Deite:`;
               const data = JSON.parse(line);
               if (data.response) {
                 res.write(data.response);
-                fullResponse += data.response; // Accumulate the full response
               }
               if (data.done) {
-                // Save messages to memory
-                saveChatMessage({ role: "user", content: messages[messages.length - 1].content, timestamp: new Date() }).catch(console.error); // Save the last user message
-                saveChatMessage({ role: "assistant", content: fullResponse, timestamp: new Date() }).catch(console.error); // Save the accumulated response
-
-                // Save messages to Firebase if uid is provided
-                if (uid) {
-                  try {
-                    saveMessageToFirebase(uid, messages[messages.length - 1].content, 'user').catch(err => console.error("Error saving messages to Firebase:", err)); // Save the last user message
-                    saveMessageToFirebase(uid, fullResponse, 'ai').catch(err => console.error("Error saving messages to Firebase:", err)); // Save the accumulated response
-                  } catch (firebaseError) {
-                    console.error("Error saving messages to Firebase:", firebaseError);
-                    // Don't fail the request if Firebase save fails
-                  }
-                }
                 res.end();
                 return;
               }
@@ -217,7 +184,6 @@ Deite:`;
               // Handle non-JSON lines
               if (line.trim() !== '') {
                 res.write(line);
-                fullResponse += line; // Accumulate non-JSON lines too
               }
             }
           }
@@ -225,32 +191,11 @@ Deite:`;
       });
 
       response.data.on('end', () => {
-        // If the stream ends before 'done' is received, save what we have
-        if (fullResponse && !res.writableEnded) {
-          // Save messages to memory
-          saveChatMessage({ role: "user", content: messages[messages.length - 1].content, timestamp: new Date() }).catch(console.error); // Save the last user message
-          saveChatMessage({ role: "assistant", content: fullResponse, timestamp: new Date() }).catch(console.error); // Save the accumulated response
-
-          // Save messages to Firebase if uid is provided
-          if (uid) {
-            saveMessageToFirebase(uid, messages[messages.length - 1].content, 'user').catch(err => console.error("Error saving messages to Firebase:", err)); // Save the last user message
-            saveMessageToFirebase(uid, fullResponse, 'ai').catch(err => console.error("Error saving messages to Firebase:", err)); // Save the accumulated response
-          }
-        }
         res.end();
       });
 
       response.data.on('error', (error: any) => {
         console.error('Stream error:', error);
-        // Attempt to save even on error if possible
-        if (fullResponse && !res.writableEnded) {
-          saveChatMessage({ role: "user", content: messages[messages.length - 1].content, timestamp: new Date() }).catch(console.error);
-          saveChatMessage({ role: "assistant", content: fullResponse, timestamp: new Date() }).catch(console.error);
-          if (uid) {
-            saveMessageToFirebase(uid, messages[messages.length - 1].content, 'user').catch(err => console.error("Error saving messages to Firebase:", err));
-            saveMessageToFirebase(uid, fullResponse, 'ai').catch(err => console.error("Error saving messages to Firebase:", err));
-          }
-        }
         res.end();
       });
 
@@ -261,21 +206,6 @@ Deite:`;
       try {
         const { generateReply } = await import("../ai");
         const reply = await generateReply("fallback-user", fullPrompt);
-
-        // Save messages to memory
-        saveChatMessage({ role: "user", content: messages[messages.length - 1].content, timestamp: new Date() }).catch(console.error); // Save the last user message
-        saveChatMessage({ role: "assistant", content: reply, timestamp: new Date() }).catch(console.error); // Save the AI response
-
-        // Save messages to Firebase if uid is provided
-        if (uid) {
-          try {
-            saveMessageToFirebase(uid, messages[messages.length - 1].content, 'user').catch(err => console.error("Error saving messages to Firebase:", err)); // Save the last user message
-            saveMessageToFirebase(uid, reply, 'ai').catch(err => console.error("Error saving messages to Firebase:", err)); // Save the AI response
-          } catch (firebaseError) {
-            console.error("Error saving messages to Firebase:", firebaseError);
-            // Don't fail the request if Firebase save fails
-          }
-        }
 
         // Simulate streaming for fallback
         const words = reply.split(' ');
