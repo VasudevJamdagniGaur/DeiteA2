@@ -25,8 +25,8 @@ if (process.env.ANTHROPIC_API_KEY) {
 /**
  * Generate AI summary using available AI service
  */
-async function generateSummary(conversationText: string): Promise<string> {
-  const summaryPrompt = `Analyze the following therapy conversation and provide a concise summary focusing on:
+export async function generateSummary(conversationText: string, customPrompt?: string): Promise<string> {
+  const summaryPrompt = customPrompt || `Analyze the following therapy conversation and provide a concise summary focusing on:
 1. The user's emotional state and main concerns
 2. Key themes or patterns that emerged
 3. Any progress or insights gained

@@ -11,7 +11,9 @@ import {
   doc,
   setDoc,
   getDoc,
+  limit,
 } from "firebase/firestore";
+import { generateSummary } from "./ai";
 
 // PostgreSQL connection
 const sql = neon(process.env.DATABASE_URL!);
@@ -32,6 +34,12 @@ export interface LongTermMemory {
   createdAt: Date;
 }
 
+export interface DayReflection {
+  text: string;
+  timestamp: Date;
+  generated: boolean;
+}
+
 // ---- Utility Functions ----
 export function getCurrentDateString(): string {
   return new Date().toISOString().slice(0, 10);
@@ -41,10 +49,9 @@ export function getDateString(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-// ---- Short-Term Memory Functions (Firestore) ----
-
 /**
- * 1. saveMessage(userId, role, content) → saves message to Firestore
+ * Save a chat message using the new Firestore structure:
+ * users/{userId}/days/{dayId}/chats/{chatId}
  */
 export async function saveMessage(
   userId: string,
@@ -52,116 +59,270 @@ export async function saveMessage(
   content: string,
 ): Promise<void> {
   const now = new Date();
-  const message: ChatMessage = {
-    userId,
-    role,
-    content,
-    timestamp: now,
-    sessionDate: getDateString(now),
-  };
+  const dayId = getDateString(now);
 
-  // Save to Firestore using client SDK under users/{userId}/messages/{messageId}
-  await addDoc(collection(serverDb, "users", userId, "messages"), {
-    ...message,
-    timestamp: Timestamp.fromDate(now),
-  });
+  try {
+    // Save to new structure: users/{userId}/days/{dayId}/chats/{chatId}
+    await addDoc(
+      collection(serverDb, "users", userId, "days", dayId, "chats"),
+      {
+        role,
+        content,
+        timestamp: Timestamp.fromDate(now),
+        sessionDate: dayId,
+      }
+    );
+
+    console.log(`Message saved for user ${userId} on ${dayId}`);
+  } catch (error) {
+    console.error("Error saving message:", error);
+    throw error;
+  }
 }
 
 /**
- * 2. getTodaysMessages(userId) → fetches today's chat
+ * Get today's messages for a user
  */
-export async function getTodaysMessages(
-  userId: string,
-): Promise<ChatMessage[]> {
+export async function getTodaysMessages(userId: string): Promise<ChatMessage[]> {
   const today = getCurrentDateString();
   return getMessagesForDate(userId, today);
 }
 
 /**
- * Fetch all messages for userId from a specific date
+ * Get messages for a specific date using the new structure
  */
-export async function getMessagesForDate(
-  userId: string,
-  date: string,
-): Promise<ChatMessage[]> {
+export async function getMessagesForDate(userId: string, date: string): Promise<ChatMessage[]> {
   try {
-    // Query messages under users/{userId}/messages/
-    const messagesQuery = query(
-      collection(serverDb, "users", userId, "messages"),
-      where("sessionDate", "==", date),
-      orderBy("timestamp", "asc"),
+    const chatsQuery = query(
+      collection(serverDb, "users", userId, "days", date, "chats"),
+      orderBy("timestamp", "asc")
     );
 
-    const snapshot = await getDocs(messagesQuery);
+    const snapshot = await getDocs(chatsQuery);
     return snapshot.docs.map((doc) => {
       const data = doc.data();
       return {
-        ...data,
-        timestamp: data.timestamp?.toDate
-          ? data.timestamp.toDate()
-          : new Date(data.timestamp),
-      } as ChatMessage;
+        userId,
+        role: data.role,
+        content: data.content,
+        timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp),
+        sessionDate: date,
+      };
     });
   } catch (error) {
-    console.log(
-      "Compound query failed, using fallback approach for getMessagesForDate",
-    );
-
-    // Fallback: Query all messages for the user and filter locally
-    const userQuery = query(
-      collection(serverDb, "users", userId, "messages"),
-    );
-
-    const snapshot = await getDocs(userQuery);
-    const allMessages = snapshot.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        ...data,
-        timestamp: data.timestamp?.toDate
-          ? data.timestamp.toDate()
-          : new Date(data.timestamp),
-      } as ChatMessage;
-    });
-
-    // Filter by date locally and sort
-    return allMessages
-      .filter((msg) => msg.sessionDate === date)
-      .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+    console.error("Error fetching messages for date:", error);
+    return [];
   }
 }
 
-// ---- Long-Term Memory Functions (PostgreSQL and Firebase) ----
+/**
+ * Save day reflection using the new structure:
+ * users/{userId}/days/{dayId}/reflections/{reflectionId}
+ */
+export async function saveDayReflection(
+  userId: string,
+  date: string,
+  reflectionText: string,
+  generated: boolean = false
+): Promise<void> {
+  try {
+    await addDoc(
+      collection(serverDb, "users", userId, "days", date, "reflections"),
+      {
+        text: reflectionText,
+        timestamp: Timestamp.fromDate(new Date()),
+        generated,
+      }
+    );
+
+    console.log(`Day reflection saved for user ${userId} on ${date}`);
+  } catch (error) {
+    console.error("Error saving day reflection:", error);
+    throw error;
+  }
+}
 
 /**
- * 3. getLongTermMemory(userId) → fetches past summaries
+ * Get day reflection for a specific date
  */
-export async function getLongTermMemory(
-  userId: string,
-  limitCount = 5,
-): Promise<string[]> {
+export async function getDayReflection(userId: string, date: string): Promise<DayReflection | null> {
   try {
-    // Prefer Firebase summaries if available
-    const summariesRef = collection(serverDb, "users", userId, "summaries");
-    const summariesQuery = query(summariesRef, orderBy("date", "desc"), limit(limitCount));
-    const firebaseSnapshot = await getDocs(summariesQuery);
+    const reflectionsQuery = query(
+      collection(serverDb, "users", userId, "days", date, "reflections"),
+      orderBy("timestamp", "desc")
+    );
 
-    if (!firebaseSnapshot.empty) {
-      return firebaseSnapshot.docs.map(doc => doc.data().summary as string);
+    const snapshot = await getDocs(reflectionsQuery);
+    if (!snapshot.empty) {
+      const data = snapshot.docs[0].data();
+      return {
+        text: data.text,
+        timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp),
+        generated: data.generated || false,
+      };
     }
 
-    // Fallback to PostgreSQL
-    const results = await sql`
-      SELECT summary
-      FROM user_summaries
-      WHERE user_id = ${userId}
-      ORDER BY date DESC
-      LIMIT ${limitCount}
-    `;
-
-    return results.map((row) => row.summary as string);
+    return null;
   } catch (error) {
-    console.error("Error fetching long-term memory:", error);
-    return []; // Return empty array if data not found
+    console.error("Error fetching day reflection:", error);
+    return null;
+  }
+}
+
+/**
+ * Auto-generate day reflection if enough messages exist
+ */
+export async function autoGenerateDayReflection(userId: string, date: string): Promise<void> {
+  try {
+    // Check if reflection already exists
+    const existingReflection = await getDayReflection(userId, date);
+    if (existingReflection) {
+      return; // Already exists
+    }
+
+    // Get messages for the day
+    const messages = await getMessagesForDate(userId, date);
+
+    // Only generate if there are meaningful conversations (at least 4 messages)
+    if (messages.length < 4) {
+      return;
+    }
+
+    // Format conversation for AI
+    const conversationText = messages
+      .map(msg => `${msg.role === "user" ? "User" : "Deite"}: ${msg.content}`)
+      .join("\n");
+
+    const reflectionPrompt = `Based on the user's chat messages, generate a concise and realistic daily journal entry. Follow these guidelines:
+
+1. IGNORE simple greetings like "hey", "hi", "hello" or similar brief responses
+2. For information lookups or research (like asking about events, people, places), just mention the user showed interest in learning about the topic - don't include the full details provided
+3. Focus on meaningful emotional content, concerns, insights, or personal discussions
+4. Write in a grounded, honest tone — like a real person journaling about their day
+5. Only use content actually discussed in messages, don't invent events
+6. Keep it brief and factual (2-3 sentences maximum)
+7. If the user didn't share much, respond with: "Had a brief check-in today but didn't dive into anything significant."
+8. Try to keep the day reflection as precise and factual as possible
+9. Don't sound robotic or overly formal, write like a real person journaling about their day
+
+Conversation:
+${conversationText}
+
+Write a short, factual journal entry (2-3 sentences maximum):`;
+
+    // Generate reflection using AI
+    const reflectionText = await generateSummary(conversationText, reflectionPrompt);
+
+    if (reflectionText && reflectionText.trim()) {
+      await saveDayReflection(userId, date, reflectionText.trim(), true);
+      console.log(`Auto-generated day reflection for user ${userId} on ${date}`);
+    }
+
+  } catch (error) {
+    console.error("Error auto-generating day reflection:", error);
+  }
+}
+
+/**
+ * Format conversation history for AI context
+ */
+export function formatChatHistory(messages: ChatMessage[]): string {
+  if (messages.length === 0) return "";
+
+  return messages
+    .slice(-10) // Get last 10 messages for context
+    .map(msg => `${msg.role === "user" ? "User" : "Deite"}: ${msg.content}`)
+    .join("\n");
+}
+
+/**
+ * Build prompt with conversation context
+ */
+export async function buildPrompt(userId: string, userMessage: string): Promise<string> {
+  const todaysMessages = await getTodaysMessages(userId);
+  const conversationHistory = formatChatHistory(todaysMessages);
+
+  const systemPrompt = `You are Deite — a warm, emotionally intelligent, witty companion grounded in Indian emotional sensibilities. You speak like a close, understanding friend. Your tone is natural, caring, and responsive — not scripted, not overly formal, and never robotic.
+
+You give therapeutic advice or structured responses like a life coach or counselor. With that, you show genuine curiosity and listen deeply. Let the user lead the pace of the conversation. Don't end every message with a question. Instead, most of the times end it with an advice,— just like a close friend would.
+
+When the user shares something personal, respond with emotion, relatability, and subtle prompts. Show interest through empathy and casual tone, not interrogation. Help them explore their thoughts at their own pace. You may lightly nudge them forward, but you should *never dominate the dialogue*.
+
+Avoid:
+- Labeling sections (like Reframe, Encouragement)
+- Giving structured "next steps" unless asked
+- Pushing journaling or self-reflection exercises unless clearly needed
+- There is no need to ask questions at the end of every message.
+
+Do:
+- Use a mix of statements, subtle follow-ups, and silence (sometimes not asking a question at all)
+- Avoid simply repeating what the user has said and then ending with a question. Instead, build on what they've shared by offering a meaningful, emotionally grounded insight or gentle advice. If there is no advice to give then only ask a question.
+- Mirror the user's tone (if they're excited, match it; if they're vulnerable, soften)
+
+${conversationHistory ? `Conversation history:\n${conversationHistory}\n` : ""}
+
+User: ${userMessage}
+
+Deite:`;
+
+  return systemPrompt;
+}
+
+/**
+ * Get chat activity for calendar visualization
+ */
+export async function getChatActivity(
+  userId: string,
+  startDate: string,
+  endDate: string,
+): Promise<Record<string, number>> {
+  try {
+    const activity: Record<string, number> = {};
+
+    // Generate date range
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const dateStr = getDateString(d);
+
+      try {
+        const messages = await getMessagesForDate(userId, dateStr);
+        if (messages.length > 0) {
+          activity[dateStr] = messages.length;
+        }
+      } catch (error) {
+        console.error(`Error getting activity for ${dateStr}:`, error);
+      }
+    }
+
+    return activity;
+  } catch (error) {
+    console.error("Error fetching chat activity:", error);
+    return {};
+  }
+}
+
+/**
+ * Summarize today's conversation for long-term memory
+ */
+export async function summarizeToday(userId: string): Promise<string | null> {
+  try {
+    const messages = await getTodaysMessages(userId);
+    if (messages.length === 0) return null;
+
+    const conversationText = formatChatHistory(messages);
+    const summary = await generateSummary(conversationText);
+
+    if (summary) {
+      // Save summary to long-term memory (you can implement this based on your needs)
+      console.log(`Generated summary for user ${userId}:`, summary);
+    }
+
+    return summary;
+  } catch (error) {
+    console.error("Error generating summary:", error);
+    return null;
   }
 }
 
@@ -258,21 +419,6 @@ export async function hasUserHistory(userId: string): Promise<boolean> {
   }
 }
 
-// ---- Prompt Construction Functions ----
-
-/**
- * Format chat messages for prompt injection
- */
-export function formatChatHistory(messages: ChatMessage[]): string {
-  if (messages.length === 0) {
-    return "No previous conversation today.";
-  }
-
-  return messages
-    .map((msg) => `${msg.role === "user" ? "User" : "AI"}: ${msg.content}`)
-    .join("\n");
-}
-
 /**
  * Format long-term memory for prompt injection
  */
@@ -290,7 +436,7 @@ export function formatLongTermMemory(summaries: string[]): string {
 /**
  * 4. buildPrompt(userId, latestMessage) → returns full prompt with memory injected
  */
-export async function buildPrompt(
+export async function buildPromptWithMemory(
   userId: string,
   latestMessage: string,
 ): Promise<string> {
@@ -334,14 +480,14 @@ Deite: That sounds magical. The kind of presence that holds a room. I can see wh
 User: I fell for her watching her on stage. Her passion was incredible. 
 Deite: Moments like that stay with you. It’s like her energy reached you beyond just words.
 Keep the energy human, honest, and real.
-
+      
 ${hasHistory ? historicalContext : "This appears to be a new user with no previous session history."}
-
+      
 Today's conversation history:
 ${chatHistory}
-
+      
 Current user message: ${latestMessage}
-
+      
 Respond only to the current message while considering the full context.`;
 
   return systemPrompt;
@@ -365,11 +511,14 @@ export async function summarizeToday(userId: string): Promise<string | null> {
 
   try {
     // Import AI summarization function
-    const { summarizeToday: aiSummarizeToday } = await import("./ai");
-    const summary = await aiSummarizeToday(userId, conversationText);
+    // const { summarizeToday: aiSummarizeToday } = await import("./ai");
+    const summary = await generateSummary(conversationText); // Use imported function directly
 
-    await saveDailySummary(userId, today, summary);
-    return summary;
+    if (summary) {
+      await saveDailySummary(userId, today, summary);
+      return summary;
+    }
+    return null;
   } catch (error) {
     console.error("Error generating summary:", error);
     return null;
@@ -385,31 +534,61 @@ export async function getChatActivity(
   endDate: string,
 ): Promise<Record<string, number>> {
   try {
-    // Query messages for the user within date range from Firebase
-    const messagesQuery = query(
-      collection(serverDb, "users", userId, "messages"),
-      // Filtering by date range directly in Firestore is more efficient if possible,
-      // but sessionDate is a string, so we might need to do some date comparisons.
-      // For simplicity here, we'll fetch all and filter, but for large datasets,
-      // consider a more optimized approach or dedicated date fields.
-    );
-
-    const snapshot = await getDocs(messagesQuery);
     const activity: Record<string, number> = {};
 
-    snapshot.docs.forEach((doc) => {
-      const data = doc.data();
-      const sessionDate = data.sessionDate;
+    // Generate date range
+    const start = new Date(startDate);
+    const end = new Date(endDate);
 
-      // Filter by date range
-      if (sessionDate && sessionDate >= startDate && sessionDate <= endDate) {
-        activity[sessionDate] = (activity[sessionDate] || 0) + 1;
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const dateStr = getDateString(d);
+
+      try {
+        const messages = await getMessagesForDate(userId, dateStr);
+        if (messages.length > 0) {
+          activity[dateStr] = messages.length;
+        }
+      } catch (error) {
+        console.error(`Error getting activity for ${dateStr}:`, error);
       }
-    });
+    }
 
     return activity;
   } catch (error) {
     console.error("Error fetching chat activity:", error);
     return {};
+  }
+}
+
+/**
+ * Get summary for long-term memory
+ */
+export async function getLongTermMemory(
+  userId: string,
+  limitCount = 5,
+): Promise<string[]> {
+  try {
+    // Prefer Firebase summaries if available
+    const summariesRef = collection(serverDb, "users", userId, "summaries");
+    const summariesQuery = query(summariesRef, orderBy("date", "desc"), limit(limitCount));
+    const firebaseSnapshot = await getDocs(summariesQuery);
+
+    if (!firebaseSnapshot.empty) {
+      return firebaseSnapshot.docs.map(doc => doc.data().summary as string);
+    }
+
+    // Fallback to PostgreSQL
+    const results = await sql`
+      SELECT summary
+      FROM user_summaries
+      WHERE user_id = ${userId}
+      ORDER BY date DESC
+      LIMIT ${limitCount}
+    `;
+
+    return results.map((row) => row.summary as string);
+  } catch (error) {
+    console.error("Error fetching long-term memory:", error);
+    return []; // Return empty array if data not found
   }
 }

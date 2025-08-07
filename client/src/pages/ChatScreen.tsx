@@ -103,46 +103,113 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
   };
 
   const handleSendMessage = async () => {
-    if (!message.trim() || isLoading || isStreaming) return;
+    if (!message.trim() || isLoading || !user) return;
 
-    const newMessage: ChatMessage = {
-      id: Date.now().toString(),
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
       sender: "user",
       content: message.trim(),
       timestamp: new Date(),
     };
 
-    setMessages((prev) => [...prev, newMessage]);
-    const currentMessage = message.trim();
+    setMessages(prev => [...prev, userMessage]);
     setMessage("");
     setIsLoading(true);
+
+    try {
+      const messagesToSend = [...messages, userMessage];
+
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: user.uid,
+          messages: messagesToSend.map(msg => ({
+            sender: msg.sender === "user" ? "user" : "deite",
+            content: msg.content
+          }))
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to get response");
+      }
+
+      const data = await response.json();
+
+      if (!data.reply) {
+        throw new Error("Invalid response format");
+      }
+
+      const aiMessage: ChatMessage = {
+        id: `deite-${Date.now()}`,
+        sender: "deite",
+        content: data.reply,
+        timestamp: new Date(),
+      };
+
+      const finalMessages = [...messages, userMessage, aiMessage];
+      setMessages(finalMessages);
+
+      // Messages are now automatically saved by the backend
+      console.log("Messages saved automatically by backend");
+
+    } catch (error) {
+      console.error("Chat error:", error);
+      const errorMessage: ChatMessage = {
+        id: `deite-${Date.now()}`,
+        sender: "deite",
+        content: "I apologize, but I'm having trouble responding right now. Please try again. 💙",
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const sendStreamingMessage = async () => {
+    if (!message.trim() || isStreaming || !user) return;
+
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      sender: "user",
+      content: message.trim(),
+      timestamp: new Date(),
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    const messagesToSend = [...messages, userMessage];
+    setMessage("");
     setIsStreaming(true);
 
-    // Create bot message placeholder for streaming
-    const botMessage: ChatMessage = {
-      id: (Date.now() + 1).toString(),
+    // Create abort controller for this request
+    abortControllerRef.current = new AbortController();
+
+    // Add placeholder for AI response
+    const aiMessageId = `deite-${Date.now()}`;
+    const aiMessage: ChatMessage = {
+      id: aiMessageId,
       sender: "deite",
       content: "",
       timestamp: new Date(),
     };
-
-    setMessages((prev) => [...prev, botMessage]);
+    setMessages(prev => [...prev, aiMessage]);
 
     try {
-      // Create abort controller for this request
-      abortControllerRef.current = new AbortController();
-
       const response = await fetch("/api/chat/stream", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Accept": "text/plain",
         },
         body: JSON.stringify({
-          messages: [...messages, newMessage].map((msg) => ({
+          userId: user.uid,
+          messages: messagesToSend.map(msg => ({
             sender: msg.sender === "user" ? "user" : "deite",
-            content: msg.content,
-          })),
+            content: msg.content
+          }))
         }),
         signal: abortControllerRef.current.signal,
       });
@@ -220,7 +287,8 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            messages: [...messages, newMessage].map((msg) => ({
+            userId: user.uid,
+            messages: [...messages, userMessage].map((msg) => ({
               sender: msg.sender === "user" ? "user" : "deite",
               content: msg.content,
             })),
@@ -257,13 +325,13 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
         setMessages((prev) => prev.slice(0, -1));
       }
     } finally {
-      setIsLoading(false);
       setIsStreaming(false);
+      setIsLoading(false); // Ensure isLoading is also set to false
       abortControllerRef.current = null;
-      
+
       // Auto-save conversation if not in incognito mode
       if (!isIncognito) {
-        saveConversation(messages);
+        saveConversation(messages.concat(aiMessage)); // Ensure the final AI message is included
       }
     }
   };
@@ -292,7 +360,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
       // Check if day reflect already exists
       const { getDayReflect, saveDayReflect } = await import("../lib/auth");
       const existingDayReflect = await getDayReflect(user.uid, date);
-      
+
       if (!existingDayReflect && messagesToSave.length >= 4) { // Only if meaningful conversation
         // Generate day reflect
         const response = await fetch("/api/reflection", {
@@ -300,7 +368,8 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ 
+          body: JSON.stringify({
+            userId: user.uid, // Include userId
             messages: messagesToSave.map(msg => ({
               sender: msg.sender === "user" ? "user" : "deite",
               content: msg.content
@@ -333,7 +402,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
       setIsStreaming(false);
-      setIsLoading(false);
+      setIsLoading(false); // Ensure isLoading is also set to false
     }
   };
 
@@ -349,13 +418,13 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
       <div className={`flex items-center justify-between p-4 border-b transition-colors duration-300 ${
         isDarkMode ? "border-gray-800" : "border-gray-200"
       }`}>
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={onBack}
           className={`transition-colors duration-300 ${
-            isDarkMode 
-              ? "text-gray-400 hover:text-white hover:bg-gray-800" 
+            isDarkMode
+              ? "text-gray-400 hover:text-white hover:bg-gray-800"
               : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
           }`}
         >
@@ -365,8 +434,8 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
         <div className="flex flex-col items-center justify-center flex-1">
           <motion.div
             className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${
-              isDarkMode 
-                ? "bg-gradient-to-br from-purple-400 to-pink-400 shadow-lg shadow-purple-500/50" 
+              isDarkMode
+                ? "bg-gradient-to-br from-purple-400 to-pink-400 shadow-lg shadow-purple-500/50"
                 : "bg-gradient-to-br from-pink-200 to-purple-200"
             }`}
             animate={{ scale: [1, 1.1, 1] }}
@@ -388,13 +457,13 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
           </div>
         </div>
 
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={() => setIsIncognito(!isIncognito)}
           className={`transition-colors duration-300 ${
-            isDarkMode 
-              ? "text-gray-400 hover:text-white hover:bg-gray-800" 
+            isDarkMode
+              ? "text-gray-400 hover:text-white hover:bg-gray-800"
               : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
           } ${isIncognito ? (isDarkMode ? "text-purple-400" : "text-purple-600") : ""}`}
           title={isIncognito ? "Turn off incognito mode" : "Turn on incognito mode"}
@@ -415,8 +484,8 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
               className={`flex items-start space-x-3 ${msg.sender === "user" ? "flex-row-reverse space-x-reverse" : ""}`}
             >
               <Avatar className={`w-10 h-10 flex-shrink-0 ${
-                msg.sender === "user" 
-                  ? "bg-gradient-to-br from-blue-500 to-blue-600" 
+                msg.sender === "user"
+                  ? "bg-gradient-to-br from-blue-500 to-blue-600"
                   : isDarkMode
                     ? "bg-gradient-to-br from-purple-400 to-pink-400 shadow-lg shadow-purple-500/30"
                     : "bg-gradient-to-br from-purple-500 to-pink-500"
@@ -519,7 +588,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
                 const scrollHeight = target.scrollHeight;
                 const lineHeightPx = parseFloat(getComputedStyle(target).lineHeight);
                 const lines = Math.floor((scrollHeight - (padding * 16 * 2)) / lineHeightPx);
-                
+
                 if (lines <= maxLines) {
                   target.style.height = scrollHeight + 'px';
                 } else {
