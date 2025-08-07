@@ -28,7 +28,7 @@ Write a short, factual journal entry (2-3 sentences maximum):`;
     console.log("Making request to RunPod with prompt:", reflectionPrompt.substring(0, 200) + "...");
 
     const response = await axios.post(
-      "https://f19y3gdogsmh5b-11434.proxy.runpod.net/api/generate",
+      "https://8tfk9v8yjq9ex2-11434.proxy.runpod.net/api/generate",
       {
         model: "llama3:70b",
         prompt: reflectionPrompt,
