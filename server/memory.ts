@@ -303,28 +303,7 @@ export async function getChatActivity(
   }
 }
 
-/**
- * Summarize today's conversation for long-term memory
- */
-export async function summarizeToday(userId: string): Promise<string | null> {
-  try {
-    const messages = await getTodaysMessages(userId);
-    if (messages.length === 0) return null;
 
-    const conversationText = formatChatHistory(messages);
-    const summary = await generateSummary(conversationText);
-
-    if (summary) {
-      // Save summary to long-term memory (you can implement this based on your needs)
-      console.log(`Generated summary for user ${userId}:`, summary);
-    }
-
-    return summary;
-  } catch (error) {
-    console.error("Error generating summary:", error);
-    return null;
-  }
-}
 
 /**
  * Save a daily summary to Firebase and PostgreSQL
@@ -525,40 +504,7 @@ export async function summarizeToday(userId: string): Promise<string | null> {
   }
 }
 
-/**
- * Get chat activity data for calendar visualization
- */
-export async function getChatActivity(
-  userId: string,
-  startDate: string,
-  endDate: string,
-): Promise<Record<string, number>> {
-  try {
-    const activity: Record<string, number> = {};
 
-    // Generate date range
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-
-    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-      const dateStr = getDateString(d);
-
-      try {
-        const messages = await getMessagesForDate(userId, dateStr);
-        if (messages.length > 0) {
-          activity[dateStr] = messages.length;
-        }
-      } catch (error) {
-        console.error(`Error getting activity for ${dateStr}:`, error);
-      }
-    }
-
-    return activity;
-  } catch (error) {
-    console.error("Error fetching chat activity:", error);
-    return {};
-  }
-}
 
 /**
  * Get summary for long-term memory
