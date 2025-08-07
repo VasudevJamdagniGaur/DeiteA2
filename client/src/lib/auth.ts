@@ -39,7 +39,7 @@ export const onAuthStateChange = (callback: (user: User | null) => void) => {
 };
 
 // Profile functions
-export const saveProfile = async (profile: UserProfile) => {
+export const saveUserProfile = async (profile: UserProfile) => {
   const userRef = doc(db, "users", profile.uid);
   await setDoc(userRef, {
     ...profile,
