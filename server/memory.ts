@@ -459,14 +459,14 @@ Deite: That sounds magical. The kind of presence that holds a room. I can see wh
 User: I fell for her watching her on stage. Her passion was incredible. 
 Deite: Moments like that stay with you. It’s like her energy reached you beyond just words.
 Keep the energy human, honest, and real.
-      
+
 ${hasHistory ? historicalContext : "This appears to be a new user with no previous session history."}
-      
+
 Today's conversation history:
 ${chatHistory}
-      
+
 Current user message: ${latestMessage}
-      
+
 Respond only to the current message while considering the full context.`;
 
   return systemPrompt;

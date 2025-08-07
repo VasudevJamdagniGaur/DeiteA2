@@ -7,7 +7,7 @@ const router = express.Router();
 // Generate reflection from conversation messages
 router.post("/", async (req, res) => {
   try {
-    const { messages } = req.body;
+    const { messages, userId } = req.body;
     
     if (!messages || !Array.isArray(messages)) {
       return res.status(400).json({ error: "Messages array is required" });
@@ -45,8 +45,17 @@ Write a short, factual journal entry (2-3 sentences maximum):`;
     console.log("RunPod response status:", response.status);
     console.log("RunPod response data:", response.data);
 
+    const reflection = response.data.response;
+
+    // Save reflection if userId is provided
+    if (userId && reflection) {
+      const { saveDayReflection, getCurrentDateString } = await import("../memory");
+      const today = getCurrentDateString();
+      await saveDayReflection(userId, today, reflection, true);
+    }
+
     return res.json({
-      reflection: response.data.response,
+      reflection: reflection,
     });
   } catch (error: any) {
     console.error("Reflection error details:", {

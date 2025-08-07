@@ -6,7 +6,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuthContext } from "../components/AuthProvider";
 import { useTheme } from "../components/ThemeProvider";
-import { saveReflection, getReflection } from "../lib/auth";
+import { saveReflection, getReflection, getDayReflect, saveDayReflect } from "../lib/auth";
+import { db } from "../lib/firebase";
+import { collection, addDoc, Timestamp } from "firebase/firestore";
 import { ArrowLeft, Send, Brain, EyeOff, Eye } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChatMessage } from "../types";
@@ -358,7 +360,6 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
 
     try {
       // Check if day reflect already exists
-      const { getDayReflect, saveDayReflect } = await import("../lib/auth");
       const existingDayReflect = await getDayReflect(user.uid, date);
 
       if (!existingDayReflect && messagesToSave.length >= 4) { // Only if meaningful conversation

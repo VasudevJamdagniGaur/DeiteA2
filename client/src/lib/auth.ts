@@ -1,22 +1,21 @@
-
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut, 
-  onAuthStateChanged, 
-  User 
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  User
 } from "firebase/auth";
-import { 
-  doc, 
-  setDoc, 
-  getDoc, 
-  collection, 
-  getDocs, 
-  addDoc, 
-  query, 
-  orderBy, 
+import {
+  doc,
+  setDoc,
+  getDoc,
+  collection,
+  getDocs,
+  addDoc,
+  query,
+  orderBy,
   where,
-  Timestamp 
+  Timestamp
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
 import { UserProfile, DailyReflection, ChatMessage } from "../types";
@@ -54,7 +53,7 @@ export const saveUserProfile = async (profile: UserProfile) => {
 export const getProfile = async (uid: string): Promise<UserProfile | null> => {
   const userRef = doc(db, "users", uid);
   const userSnap = await getDoc(userRef);
-  
+
   if (userSnap.exists()) {
     return userSnap.data() as UserProfile;
   }
@@ -69,7 +68,7 @@ export const saveReflection = async (uid: string, date: string, content: string)
   try {
     // Convert messages content to the new structure format
     const messagesArray = parseMessagesFromContent(content);
-    
+
     // Save individual messages to new structure
     for (const message of messagesArray) {
       await addDoc(collection(db, "users", uid, "days", date, "chats"), {
@@ -94,9 +93,9 @@ export const getReflection = async (uid: string, date: string): Promise<DailyRef
       collection(db, "users", uid, "days", date, "chats"),
       orderBy("timestamp", "asc")
     );
-    
+
     const chatsSnapshot = await getDocs(chatsQuery);
-    
+
     if (chatsSnapshot.empty) {
       return null;
     }
@@ -146,20 +145,20 @@ export const saveDayReflect = async (uid: string, date: string, reflectionText: 
   }
 };
 
-export const getDayReflect = async (uid: string, date: string): Promise<string | null> => {
+export const getDayReflect = async (uid: string, date: string): Promise<{ text: string } | null> => {
   try {
     const reflectionsQuery = query(
       collection(db, "users", uid, "days", date, "reflections"),
       orderBy("timestamp", "desc")
     );
-    
+
     const snapshot = await getDocs(reflectionsQuery);
-    
     if (!snapshot.empty) {
       const data = snapshot.docs[0].data();
-      return data.text || null;
+      return {
+        text: data.text
+      };
     }
-    
     return null;
   } catch (error) {
     console.error("Error getting day reflection:", error);
