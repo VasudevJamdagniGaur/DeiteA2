@@ -83,7 +83,7 @@ Provide a summary in 2-3 sentences that captures the essential emotional and the
 /**
  * Generate AI response using available AI service
  */
-async function generateAIResponse(prompt: string): Promise<string> {
+export async function generateAIResponse(prompt: string): Promise<string> {
   // Try RunPod/Llama3 first
   try {
     const response = await axios.post(
