@@ -34,6 +34,9 @@ export const logOut = async () => {
   return signOut(auth);
 };
 
+// Alias for signOut (if imported elsewhere)
+export const signOut = logOut;
+
 export const onAuthStateChange = (callback: (user: User | null) => void) => {
   return onAuthStateChanged(auth, callback);
 };
