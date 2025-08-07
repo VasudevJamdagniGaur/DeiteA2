@@ -18,31 +18,34 @@ import { useState, useEffect } from "react";
 import { Brain, Heart, Sparkles, Star } from "lucide-react";
 
 function AppContent() {
-  const { user, profile, loading, profileChecked } = useAuthContext();
+  const { user, profile, loading } = useAuthContext();
   const [currentScreen, setCurrentScreen] = useState("splash");
   const [chatDate, setChatDate] = useState("");
 
   useEffect(() => {
     if (!loading) {
-      console.log("Navigation logic - User:", !!user, "Profile:", !!profile, "Profile checked:", profileChecked, "Current screen:", currentScreen);
+      console.log("Navigation logic - User:", !!user, "Profile:", !!profile, "Current screen:", currentScreen);
 
-      if (user) {
-        if (profile) {
+      if (!user) {
+        // Not authenticated - show splash/onboarding/auth flow
+        if (currentScreen === "splash" || currentScreen === "onboarding" || currentScreen === "auth") {
+          // Keep current screen
+        } else {
+          setCurrentScreen("splash");
+        }
+      } else if (user && !profile) {
+        // Authenticated but no profile - always show profile setup
+        console.log("User authenticated but no profile, showing profile setup");
+        setCurrentScreen("profile");
+      } else if (user && profile) {
+        // Fully set up - show dashboard or chat
+        if (currentScreen === "splash" || currentScreen === "onboarding" || currentScreen === "auth" || currentScreen === "profile") {
           console.log("User has profile, navigating to dashboard");
           setCurrentScreen("dashboard");
-        } else if (profileChecked) {
-          console.log("Profile checked but not found, showing profile setup");
-          setCurrentScreen("profile");
-        } else {
-          console.log("Still checking for profile, waiting...");
-          // Don't change screen while profile is still being checked
         }
-      } else {
-        console.log("No user, showing auth screen");
-        setCurrentScreen("auth");
       }
     }
-  }, [user, profile, loading, profileChecked]);
+  }, [user, profile, loading]);
 
   if (loading) {
     return (
@@ -117,31 +120,31 @@ function AppContent() {
 
   const screens = {
     splash: (
-      <SplashScreen
-        onGetStarted={() => setCurrentScreen("onboarding")}
+      <SplashScreen 
+        onGetStarted={() => setCurrentScreen("onboarding")} 
       />
     ),
     onboarding: (
-      <OnboardingScreen
-        onContinue={() => setCurrentScreen("auth")}
+      <OnboardingScreen 
+        onContinue={() => setCurrentScreen("auth")} 
       />
     ),
     auth: (
-      <AuthScreen
+      <AuthScreen 
         onSuccess={() => {
           // Will be handled by useEffect when user/profile state changes
-        }}
+        }} 
       />
     ),
     profile: (
-      <ProfileSetupScreen
+      <ProfileSetupScreen 
         onComplete={() => {
           // Will be handled by useEffect when profile is created
-        }}
+        }} 
       />
     ),
     dashboard: (
-      <DashboardScreen
+      <DashboardScreen 
         onStartReflection={(date) => {
           setChatDate(date);
           setCurrentScreen("chat");
@@ -151,19 +154,19 @@ function AppContent() {
       />
     ),
     chat: (
-      <ChatScreen
+      <ChatScreen 
         date={chatDate}
-        onBack={() => setCurrentScreen("dashboard")}
+        onBack={() => setCurrentScreen("dashboard")} 
       />
     ),
     userProfile: (
-      <UserProfileScreen
-        onBack={() => setCurrentScreen("dashboard")}
+      <UserProfileScreen 
+        onBack={() => setCurrentScreen("dashboard")} 
       />
     ),
     customerSupport: (
-      <CustomerSupportScreen
-        onBack={() => setCurrentScreen("dashboard")}
+      <CustomerSupportScreen 
+        onBack={() => setCurrentScreen("dashboard")} 
       />
     ),
   };
