@@ -14,6 +14,10 @@ run = ["npm", "run", "start"]
 localPort = 5000
 externalPort = 80
 
+[[ports]]
+localPort = 5050
+externalPort = 3000
+
 [workflows]
 runButton = "Start Dev Server"
 
@@ -43,3 +47,6 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run dev"
+
+[agent]
+integrations = ["firebase_barebones_javascript==1.0.0", "javascript_anthropic==1.0.0"]
