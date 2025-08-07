@@ -58,6 +58,9 @@ export const getProfile = async (uid: string): Promise<UserProfile | null> => {
   return null;
 };
 
+// Alias for getUserProfile (if imported elsewhere)
+export const getUserProfile = getProfile;
+
 // Daily reflection functions using new structure
 export const saveReflection = async (uid: string, date: string, content: string) => {
   try {
