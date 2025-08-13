@@ -265,49 +265,41 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
       }
     } finally {
       setIsStreaming(false);
-      setIsLoading(false); // Ensure isLoading is also set to false
+      setIsLoading(false);
       abortControllerRef.current = null;
 
       // Auto-save conversation if not in incognito mode
+      // Note: Messages are already saved by the backend during streaming
       if (!isIncognito) {
-        saveConversation(messages.concat(aiMessage)); // Ensure the final AI message is included
+        // Get the current messages state to ensure we have the latest
+        setTimeout(() => {
+          setMessages(currentMessages => {
+            // Generate day reflect with the complete conversation
+            generateDayReflectIfNeeded(currentMessages);
+            return currentMessages;
+          });
+        }, 1000); // Small delay to ensure all messages are processed
       }
     }
   };
 
-  const saveConversation = async (messagesToSave: ChatMessage[]) => {
-    if (!user || isIncognito) return; // Don't save in incognito mode
-
-    try {
-      const content = messagesToSave
-        .map(msg => `${msg.sender === 'deite' ? 'Deite' : 'You'}: ${msg.content}`)
-        .join('\n');
-
-      await saveReflection(user.uid, date, content);
-
-      // Auto-generate day reflect if it doesn't exist yet
-      await generateDayReflectIfNeeded(messagesToSave);
-    } catch (error) {
-      console.error("Error saving reflection:", error);
-    }
-  };
+  // Note: Messages are now automatically saved by the backend, no need for manual saving
 
   const generateDayReflectIfNeeded = async (messagesToSave: ChatMessage[]) => {
     if (!user || isIncognito) return;
 
     try {
-      // Check if day reflect already exists
-      const existingDayReflect = await getDayReflect(user.uid, date);
-
-      if (!existingDayReflect && messagesToSave.length >= 4) { // Only if meaningful conversation
-        // Generate day reflect
+      // Always regenerate day reflect if there are meaningful messages (4+ messages)
+      if (messagesToSave.length >= 4) {
+        console.log("Regenerating day reflect with latest messages...");
+        
         const response = await fetch("/api/reflection", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            userId: user.uid, // Include userId
+            userId: user.uid,
             messages: messagesToSave.map(msg => ({
               sender: msg.sender === "user" ? "user" : "deite",
               content: msg.content
@@ -319,12 +311,14 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
           const data = await response.json();
           if (data.reflection) {
             await saveDayReflect(user.uid, date, data.reflection);
-            console.log("Day reflect auto-generated and saved");
+            console.log("Day reflect regenerated and saved with latest conversation");
           }
+        } else {
+          console.error("Failed to generate day reflect:", response.status, response.statusText);
         }
       }
     } catch (error) {
-      console.error("Error auto-generating day reflect:", error);
+      console.error("Error regenerating day reflect:", error);
     }
   };
 

@@ -35,7 +35,7 @@ Write a short, factual journal entry (2-3 sentences maximum):`;
         stream: false,
       },
       {
-        timeout: 30000,
+        timeout: 120000, // Increased to 2 minutes to match chat endpoint
         headers: {
           'Content-Type': 'application/json',
         }

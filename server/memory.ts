@@ -62,6 +62,32 @@ export async function saveMessage(
   const dayId = getDateString(now);
 
   try {
+    // Check for recent duplicate messages (within last 5 seconds)
+    const recentMessages = await getDocs(
+      query(
+        collection(serverDb, "users", userId, "days", dayId, "chats"),
+        orderBy("timestamp", "desc"),
+        limit(3)
+      )
+    );
+
+    // Check if this exact message was already saved recently
+    const fiveSecondsAgo = new Date(now.getTime() - 5000);
+    const isDuplicate = recentMessages.docs.some(doc => {
+      const data = doc.data();
+      const messageTime = data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp);
+      return (
+        data.role === role &&
+        data.content === content &&
+        messageTime > fiveSecondsAgo
+      );
+    });
+
+    if (isDuplicate) {
+      console.log(`Skipping duplicate message for user ${userId} on ${dayId}`);
+      return;
+    }
+
     // Save to new structure: users/{userId}/days/{dayId}/chats/{chatId}
     await addDoc(
       collection(serverDb, "users", userId, "days", dayId, "chats"),
