@@ -9,6 +9,7 @@ import { useTheme } from "../components/ThemeProvider";
 import { saveReflection, getReflection, getDayReflect, saveDayReflect } from "../lib/auth";
 import { db } from "../lib/firebase";
 import { collection, addDoc, Timestamp } from "firebase/firestore";
+import { apiUrl } from "../lib/config";
 import { ArrowLeft, Send, Brain, EyeOff, Eye } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChatMessage } from "../types";
@@ -138,7 +139,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
     setMessages(prev => [...prev, aiMessage]);
 
     try {
-      const response = await fetch("/api/chat/stream", {
+      const response = await fetch(apiUrl("/api/chat/stream"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -222,7 +223,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
 
       // Fallback to regular API
       try {
-        const fallbackResponse = await fetch("/api/chat", {
+        const fallbackResponse = await fetch(apiUrl("/api/chat"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -293,7 +294,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
       if (messagesToSave.length >= 4) {
         console.log("Regenerating day reflect with latest messages...");
         
-        const response = await fetch("/api/reflection", {
+        const response = await fetch(apiUrl("/api/reflection"), {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
