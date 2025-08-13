@@ -47,7 +47,7 @@ Provide a summary in 2-3 sentences that captures the essential emotional and the
         stream: false,
       },
       {
-        timeout: 30000,
+        timeout: 120000, // Increased to 2 minutes
         headers: {
           'Content-Type': 'application/json',
         }
@@ -94,7 +94,7 @@ export async function generateAIResponse(prompt: string): Promise<string> {
         stream: false,
       },
       {
-        timeout: 30000,
+        timeout: 120000, // Increased to 2 minutes
         headers: {
           'Content-Type': 'application/json',
         }

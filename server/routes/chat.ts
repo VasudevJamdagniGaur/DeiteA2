@@ -43,7 +43,7 @@ router.post("/", async (req, res) => {
         stream: false,
       },
       {
-        timeout: 60000, // Increased to 60 seconds
+        timeout: 120000, // Increased to 2 minutes
         headers: {
           "Content-Type": "application/json",
         },
@@ -152,7 +152,7 @@ router.post("/stream", async (req, res) => {
           stream: true,
         },
         {
-          timeout: 60000, // Increased to 60 seconds
+          timeout: 120000, // Increased to 2 minutes
           responseType: 'stream',
           headers: {
             "Content-Type": "application/json",
@@ -292,7 +292,7 @@ Write a short, factual journal entry (2-3 sentences maximum):`;
         stream: false,
       },
       {
-        timeout: 60000, // Increased to 60 seconds
+        timeout: 120000, // Increased to 2 minutes
         headers: {
           "Content-Type": "application/json",
         },
@@ -344,7 +344,7 @@ router.get("/test", async (req, res) => {
         stream: false,
       },
       {
-        timeout: 60000, // Increased to 60 seconds
+        timeout: 120000, // Increased to 2 minutes
         headers: {
           "Content-Type": "application/json",
         },

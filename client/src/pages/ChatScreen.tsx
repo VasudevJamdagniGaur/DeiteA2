@@ -105,71 +105,8 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
   };
 
   const handleSendMessage = async () => {
-    if (!message.trim() || isLoading || !user) return;
-
-    const userMessage: ChatMessage = {
-      id: `user-${Date.now()}`,
-      sender: "user",
-      content: message.trim(),
-      timestamp: new Date(),
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setMessage("");
-    setIsLoading(true);
-
-    try {
-      const messagesToSend = [...messages, userMessage];
-
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: user.uid,
-          messages: messagesToSend.map(msg => ({
-            sender: msg.sender === "user" ? "user" : "deite",
-            content: msg.content
-          }))
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to get response");
-      }
-
-      const data = await response.json();
-
-      if (!data.reply) {
-        throw new Error("Invalid response format");
-      }
-
-      const aiMessage: ChatMessage = {
-        id: `deite-${Date.now()}`,
-        sender: "deite",
-        content: data.reply,
-        timestamp: new Date(),
-      };
-
-      const finalMessages = [...messages, userMessage, aiMessage];
-      setMessages(finalMessages);
-
-      // Messages are now automatically saved by the backend
-      console.log("Messages saved automatically by backend");
-
-    } catch (error) {
-      console.error("Chat error:", error);
-      const errorMessage: ChatMessage = {
-        id: `deite-${Date.now()}`,
-        sender: "deite",
-        content: "I apologize, but I'm having trouble responding right now. Please try again. 💙",
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
+    // Use streaming by default for better user experience
+    await sendStreamingMessage();
   };
 
   const sendStreamingMessage = async () => {
