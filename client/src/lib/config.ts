@@ -1,11 +1,10 @@
-
 // Configuration for different environments
 const config = {
   development: {
     apiBaseUrl: '', // Empty string for relative URLs in development
   },
   production: {
-    apiBaseUrl: 'https://your-actual-replit-url.repl.co', // Replace this with your actual deployed Replit URL
+    apiBaseUrl: 'https://your-app-name-username.repl.co', // Replace with your actual Replit deployment URL
   }
 };
 
