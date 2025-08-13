@@ -13,21 +13,66 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-  
+
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
-  
+
   next();
 });
 
-// Logging middleware
+/* -------------------
+   TEMP DEBUG MIDDLEWARES
+   -------------------
+   - Incoming request logger: shows exactly what the APK hits (method, url, ip, user-agent)
+   - /ping: simple JSON endpoint to confirm device reachability
+   - POST body logger: logs JSON bodies for POST requests (remove in production)
+*/
+app.use((req, res, next) => {
+  console.log(">>> INCOMING REQUEST:", {
+    method: req.method,
+    originalUrl: req.originalUrl,
+    path: req.path,
+    hostname: req.hostname,
+    ip: req.ip,
+    ua: req.headers['user-agent'],
+  });
+  next();
+});
+
+app.get('/ping', (req, res) => {
+  res.json({
+    ok: true,
+    time: new Date().toISOString(),
+    originalUrl: req.originalUrl,
+    hostname: req.hostname,
+  });
+});
+
+// TEMP: log JSON bodies for debugging (remove after diagnosing)
+app.use((req, res, next) => {
+  if (req.method === 'POST') {
+    try {
+      // limit length to avoid huge logs
+      const bodyPreview = req.body ? JSON.stringify(req.body).slice(0, 2000) : '[empty]';
+      console.log(">>> REQ BODY:", req.originalUrl, bodyPreview);
+    } catch (e) {
+      // ignore circular structure errors
+    }
+  }
+  next();
+});
+
+/* -------------------
+   Existing logging middleware (keeps your previous behavior)
+   ------------------- */
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
   let capturedJsonResponse: Record<string, any> | undefined = undefined;
 
   const originalResJson = res.json;
+  // @ts-ignore - we intentionally override for logging
   res.json = function (bodyJson, ...args) {
     capturedJsonResponse = bodyJson;
     return originalResJson.apply(res, [bodyJson, ...args]);
@@ -62,7 +107,7 @@ app.use((req, res, next) => {
     const message = err.message || "Internal Server Error";
 
     // Ensure we're sending JSON response
-    res.status(status).json({ 
+    res.status(status).json({
       error: message,
       details: err.details || undefined
     });
