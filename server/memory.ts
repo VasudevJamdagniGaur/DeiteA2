@@ -489,9 +489,8 @@ export async function summarizeToday(userId: string): Promise<string | null> {
     .join("\n");
 
   try {
-    // Import AI summarization function
-    // const { summarizeToday: aiSummarizeToday } = await import("./ai");
-    const summary = await generateSummary(conversationText); // Use imported function directly
+    // Generate summary using AI
+    const summary = await generateSummary(conversationText);
 
     if (summary) {
       await saveDailySummary(userId, today, summary);
