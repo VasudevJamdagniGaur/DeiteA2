@@ -6,13 +6,21 @@ const router = express.Router();
 
 router.post("/", async (req, res) => {
   try {
+    console.log("=== CHAT ENDPOINT HIT FROM APK ===");
+    console.log("Request headers:", req.headers);
+    console.log("Request body:", JSON.stringify(req.body, null, 2));
+    console.log("User-Agent:", req.headers['user-agent']);
+    console.log("Origin:", req.headers.origin);
+
     const { messages, userId } = req.body;
 
     if (!messages || messages.length === 0) {
+      console.log("ERROR: Messages are required");
       return res.status(400).json({ error: "Messages are required" });
     }
 
     if (!userId) {
+      console.log("ERROR: User ID is required");
       return res.status(400).json({ error: "User ID is required" });
     }
 

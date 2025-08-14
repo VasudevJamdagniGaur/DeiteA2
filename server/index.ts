@@ -98,6 +98,39 @@ app.use((req, res, next) => {
   next();
 });
 
+// Health check specifically for APK
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'healthy',
+    time: new Date().toISOString(),
+    backend: 'replit',
+    runpodUrl: 'https://kn8ufll4a3omqi-11434.proxy.runpod.net/',
+    deploymentUrl: `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`,
+    userAgent: req.headers['user-agent'],
+    fromAPK: req.headers['user-agent']?.includes('Capacitor') || false
+  });
+});
+
+// Test endpoint specifically for APK
+app.get('/api/test-connection', async (req, res) => {
+  try {
+    console.log("=== APK CONNECTION TEST ===");
+    console.log("Headers:", req.headers);
+
+    res.json({
+      success: true,
+      message: "APK successfully connected to Replit backend",
+      timestamp: new Date().toISOString(),
+      userAgent: req.headers['user-agent']
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 (async () => {
   const server = await registerRoutes(app);
 
