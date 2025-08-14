@@ -104,7 +104,7 @@ app.get('/api/health', (req, res) => {
     status: 'healthy',
     time: new Date().toISOString(),
     backend: 'replit',
-    runpodUrl: 'https://kn8ufll4a3omqi-11434.proxy.runpod.net/',
+    runpodUrl: 'https://kn8ufll4a3omqi-11434.proxy.runpod.net:11434/',
     deploymentUrl: `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`,
     userAgent: req.headers['user-agent'],
     fromAPK: req.headers['user-agent']?.includes('Capacitor') || false
@@ -127,6 +127,47 @@ app.get('/api/test-connection', async (req, res) => {
     res.status(500).json({
       success: false,
       error: error.message
+    });
+  }
+});
+
+// Test RunPod connectivity directly
+app.get('/api/test-runpod', async (req, res) => {
+  try {
+    console.log("=== TESTING RUNPOD CONNECTIVITY ===");
+    
+    const axios = require('axios');
+    const response = await axios.post(
+      "https://kn8ufll4a3omqi-11434.proxy.runpod.net:11434/api/generate",
+      {
+        model: "llama3:70b",
+        prompt: "Hello, this is a test. Please respond with 'RunPod is working!'",
+        stream: false,
+      },
+      {
+        timeout: 30000,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log("RunPod test successful:", response.data);
+    
+    res.json({
+      success: true,
+      message: "RunPod is working!",
+      runpodResponse: response.data.response,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error: any) {
+    console.error("RunPod test failed:", error);
+    res.status(500).json({
+      success: false,
+      error: "RunPod test failed",
+      details: error.message,
+      code: error.code,
+      status: error.response?.status
     });
   }
 });

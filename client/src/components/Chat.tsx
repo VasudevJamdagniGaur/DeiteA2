@@ -32,16 +32,21 @@ export const Chat = () => {
   // Test API connectivity on component mount
   useEffect(() => {
     if (user) {
+      console.log('=== CHAT COMPONENT MOUNTED ===');
       console.log('Testing API connectivity...');
       console.log('API URL:', API_URL);
       console.log('Stream URL:', STREAM_URL);
       console.log('User ID:', user.uid);
+      console.log('Config debug info:', apiUrl('/api/health'));
       
       // Test the health endpoint
       fetch(apiUrl('/api/health'))
-        .then(response => response.json())
+        .then(response => {
+          console.log('Health check response status:', response.status);
+          return response.json();
+        })
         .then(data => {
-          console.log('Health check response:', data);
+          console.log('Health check response data:', data);
         })
         .catch(error => {
           console.error('Health check failed:', error);
@@ -70,6 +75,7 @@ export const Chat = () => {
 
     try {
       // Debug logging
+      console.log('=== SENDING MESSAGE ===');
       console.log('Sending message to:', STREAM_URL);
       console.log('User ID:', user.uid);
       console.log('Message payload:', { 
@@ -154,6 +160,7 @@ export const Chat = () => {
       
       // Fallback to regular API
       try {
+        console.log('=== FALLBACK TO REGULAR API ===');
         console.log('Streaming failed, trying fallback API:', API_URL);
         
         const fallbackResponse = await fetch(API_URL, {

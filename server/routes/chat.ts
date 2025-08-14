@@ -11,6 +11,8 @@ router.post("/", async (req, res) => {
     console.log("Request body:", JSON.stringify(req.body, null, 2));
     console.log("User-Agent:", req.headers['user-agent']);
     console.log("Origin:", req.headers.origin);
+    console.log("Remote IP:", req.ip);
+    console.log("Request URL:", req.originalUrl);
 
     const { messages, userId } = req.body;
 
@@ -43,8 +45,10 @@ router.post("/", async (req, res) => {
       fullPrompt.substring(0, 2000) + "...",
     );
 
+    console.log("RunPod URL:", "https://kn8ufll4a3omqi-11434.proxy.runpod.net:11434/api/generate");
+
     const response = await axios.post(
-      "https://kn8ufll4a3omqi-11434.proxy.runpod.net/api/generate",
+      "https://kn8ufll4a3omqi-11434.proxy.runpod.net:11434/api/generate",
       {
         model: "llama3:70b",
         prompt: fullPrompt,
@@ -74,11 +78,24 @@ router.post("/", async (req, res) => {
       });
     }, 1000);
 
+    console.log("=== SUCCESSFULLY SENT RESPONSE TO APK ===");
     return res.json({
       reply: aiResponse,
     });
   } catch (runpodError: any) {
+    console.error("=== RUNPOD ERROR ===");
     console.error("RunPod failed:", runpodError.message);
+    console.error("Error details:", {
+      code: runpodError.code,
+      status: runpodError.response?.status,
+      statusText: runpodError.response?.statusText,
+      data: runpodError.response?.data,
+      config: {
+        url: runpodError.config?.url,
+        method: runpodError.config?.method,
+        timeout: runpodError.config?.timeout
+      }
+    });
 
     // Fallback to using the AI service from ai.ts
     try {
@@ -153,7 +170,7 @@ router.post("/stream", async (req, res) => {
     try {
       // Try RunPod streaming first
       const response = await axios.post(
-        "https://kn8ufll4a3omqi-11434.proxy.runpod.net/api/generate",
+        "https://kn8ufll4a3omqi-11434.proxy.runpod.net:11434/api/generate",
         {
           model: "llama3:70b",
           prompt: fullPrompt,
@@ -293,7 +310,7 @@ Write a short, factual journal entry (2-3 sentences maximum):`;
     );
 
     const response = await axios.post(
-      "https://kn8ufll4a3omqi-11434.proxy.runpod.net/api/generate",
+      "https://kn8ufll4a3omqi-11434.proxy.runpod.net:11434/api/generate",
       {
         model: "llama3:70b",
         prompt: reflectionPrompt,
@@ -344,9 +361,9 @@ Write a short, factual journal entry (2-3 sentences maximum):`;
 router.get("/test", async (req, res) => {
   try {
     const response = await axios.post(
-      "https://kn8ufll4a3omqi-11434.proxy.runpod.net/api/generate",
+      "https://kn8ufll4a3omqi-11434.proxy.runpod.net:11434/api/generate",
       {
-        model: "llama3:70b",
+        model: "llama3:65b",
         prompt:
           "Hello, this is a test message. Please respond with 'Test successful!'",
         stream: false,
