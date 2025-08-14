@@ -10,15 +10,44 @@ app.use(express.urlencoded({ extended: false }));
 
 // Add CORS headers for development and mobile app
 app.use((req, res, next) => {
+  // Allow all origins for mobile apps
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, User-Agent');
   res.header('Access-Control-Allow-Credentials', 'true');
-
+  
+  // Add mobile-specific headers
+  res.header('X-Content-Type-Options', 'nosniff');
+  res.header('X-Frame-Options', 'DENY');
+  res.header('X-XSS-Protection', '1; mode=block');
+  
+  // Handle preflight requests
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    res.status(200).end();
+    return;
   }
 
+  next();
+});
+
+// Add mobile app detection middleware
+app.use((req, res, next) => {
+  const userAgent = req.headers['user-agent'] || '';
+  const isMobileApp = userAgent.includes('Capacitor') || 
+                     userAgent.includes('ionic') || 
+                     userAgent.includes('Android') || 
+                     userAgent.includes('iPhone') ||
+                     userAgent.includes('iPad');
+  
+  // Add mobile app info to request
+  req.isMobileApp = isMobileApp;
+  
+  if (isMobileApp) {
+    console.log('=== MOBILE APP DETECTED ===');
+    console.log('User-Agent:', userAgent);
+    console.log('Request from:', req.ip);
+  }
+  
   next();
 });
 

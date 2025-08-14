@@ -18,6 +18,7 @@ export const Chat = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'failed'>('checking');
   const abortControllerRef = useRef<AbortController | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -43,6 +44,11 @@ export const Chat = () => {
       fetch(apiUrl('/api/health'))
         .then(response => {
           console.log('Health check response status:', response.status);
+          if (response.ok) {
+            setConnectionStatus('connected');
+          } else {
+            setConnectionStatus('failed');
+          }
           return response.json();
         })
         .then(data => {
@@ -50,12 +56,21 @@ export const Chat = () => {
         })
         .catch(error => {
           console.error('Health check failed:', error);
+          setConnectionStatus('failed');
         });
+    } else {
+      console.log('No user found in Chat component');
     }
   }, [user]);
 
   const handleSendMessage = async () => {
-    if (!input.trim() || loading || isStreaming || !user) return;
+    if (!input.trim() || loading || isStreaming) return;
+    
+    // Check if user is authenticated
+    if (!user || !user.uid) {
+      setError('Please log in to send messages.');
+      return;
+    }
     
     setError(null);
     setLoading(true);
@@ -195,7 +210,7 @@ export const Chat = () => {
         
       } catch (fallbackErr) {
         console.error('Fallback also failed:', fallbackErr);
-        setError('Failed to get response from server.');
+        setError('Failed to get response from server. Please check your internet connection and try again.');
         
         // Remove the empty bot message
         setMessages((prev) => prev.slice(0, -1));
@@ -222,8 +237,76 @@ export const Chat = () => {
     }
   };
 
+  // Show authentication message if no user
+  if (!user) {
+    return (
+      <div style={{ 
+        maxWidth: 400, 
+        margin: '0 auto', 
+        padding: 20, 
+        textAlign: 'center',
+        background: '#f9f9f9',
+        borderRadius: 8
+      }}>
+        <div style={{ color: '#666', marginBottom: 16 }}>
+          Please log in to start chatting with Deite
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ maxWidth: 400, margin: '0 auto', display: 'flex', flexDirection: 'column', height: '100vh' }}>
+      {/* Connection Status */}
+      <div style={{ 
+        padding: '8px 16px', 
+        background: connectionStatus === 'connected' ? '#d4edda' : 
+                   connectionStatus === 'failed' ? '#f8d7da' : '#fff3cd',
+        color: connectionStatus === 'connected' ? '#155724' : 
+               connectionStatus === 'failed' ? '#721c24' : '#856404',
+        fontSize: '12px',
+        textAlign: 'center',
+        borderRadius: '4px',
+        marginBottom: '8px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}>
+        <span>
+          {connectionStatus === 'checking' && 'Checking connection...'}
+          {connectionStatus === 'connected' && '✅ Connected to Deite'}
+          {connectionStatus === 'failed' && '❌ Connection failed'}
+        </span>
+        {connectionStatus === 'failed' && (
+          <button
+            onClick={() => {
+              setConnectionStatus('checking');
+              // Retry connection
+              fetch(apiUrl('/api/health'))
+                .then(response => {
+                  if (response.ok) {
+                    setConnectionStatus('connected');
+                  } else {
+                    setConnectionStatus('failed');
+                  }
+                })
+                .catch(() => setConnectionStatus('failed'));
+            }}
+            style={{
+              background: '#007bff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              padding: '2px 8px',
+              fontSize: '10px',
+              cursor: 'pointer'
+            }}
+          >
+            Retry
+          </button>
+        )}
+      </div>
+
       <div style={{ flex: 1, overflowY: 'auto', padding: 16, background: '#f9f9f9', borderRadius: 8, marginBottom: 8 }}>
         {messages.map((msg, idx) => (
           <div key={idx} style={{ textAlign: msg.sender === 'user' ? 'right' : 'left', margin: '8px 0' }}>
@@ -273,7 +356,18 @@ export const Chat = () => {
             </button>
           </div>
         )}
-        {error && <div style={{ color: 'red', textAlign: 'center' }}>{error}</div>}
+        {error && (
+          <div style={{ 
+            color: 'red', 
+            textAlign: 'center', 
+            background: '#ffe6e6',
+            padding: '8px',
+            borderRadius: '4px',
+            margin: '8px 0'
+          }}>
+            {error}
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
       <div style={{ display: 'flex', gap: 8 }}>
@@ -288,14 +382,14 @@ export const Chat = () => {
         />
         <button
           onClick={handleSendMessage}
-          disabled={loading || isStreaming || !input.trim()}
+          disabled={loading || isStreaming || !input.trim() || !user}
           style={{ 
             padding: '0 16px', 
             borderRadius: 16, 
-            background: loading || isStreaming ? '#ccc' : '#6366f1', 
+            background: loading || isStreaming || !user ? '#ccc' : '#6366f1', 
             color: '#fff', 
             border: 'none',
-            cursor: loading || isStreaming ? 'not-allowed' : 'pointer'
+            cursor: loading || isStreaming || !user ? 'not-allowed' : 'pointer'
           }}
         >
           &#9658;
