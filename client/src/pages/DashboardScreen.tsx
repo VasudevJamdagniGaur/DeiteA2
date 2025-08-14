@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { format, addDays, subDays } from "date-fns";
+import { apiUrl } from '../lib/config';
 
 interface DashboardScreenProps {
   onStartReflection: (date: string) => void;
@@ -118,7 +119,7 @@ export default function DashboardScreen({
       const messages = parseMessagesFromContent(content);
       if (messages.length === 0) return;
 
-      const response = await fetch("/api/reflection", {
+      const response = await fetch(apiUrl("/api/reflection"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

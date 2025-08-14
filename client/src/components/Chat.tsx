@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
+import { apiUrl } from '../lib/config';
+import { useAuthContext } from './AuthProvider';
 
-const API_URL = "/api/chat";
-const STREAM_URL = "/api/chat/stream";
+const API_URL = apiUrl("/api/chat");
+const STREAM_URL = apiUrl("/api/chat/stream");
 
 interface ChatMessage {
   sender: 'user' | 'bot';
@@ -10,6 +12,7 @@ interface ChatMessage {
 }
 
 export const Chat = () => {
+  const { user } = useAuthContext();
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
@@ -26,8 +29,28 @@ export const Chat = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Test API connectivity on component mount
+  useEffect(() => {
+    if (user) {
+      console.log('Testing API connectivity...');
+      console.log('API URL:', API_URL);
+      console.log('Stream URL:', STREAM_URL);
+      console.log('User ID:', user.uid);
+      
+      // Test the health endpoint
+      fetch(apiUrl('/api/health'))
+        .then(response => response.json())
+        .then(data => {
+          console.log('Health check response:', data);
+        })
+        .catch(error => {
+          console.error('Health check failed:', error);
+        });
+    }
+  }, [user]);
+
   const handleSendMessage = async () => {
-    if (!input.trim() || loading || isStreaming) return;
+    if (!input.trim() || loading || isStreaming || !user) return;
     
     setError(null);
     setLoading(true);
@@ -46,6 +69,17 @@ export const Chat = () => {
     setMessages((prev) => [...prev, botMsg]);
 
     try {
+      // Debug logging
+      console.log('Sending message to:', STREAM_URL);
+      console.log('User ID:', user.uid);
+      console.log('Message payload:', { 
+        messages: [...messages, userMsg].map(msg => ({
+          sender: msg.sender === 'user' ? 'user' : 'deite',
+          content: msg.content
+        })),
+        userId: user.uid
+      });
+      
       // Create abort controller for this request
       abortControllerRef.current = new AbortController();
       
@@ -59,10 +93,14 @@ export const Chat = () => {
           messages: [...messages, userMsg].map(msg => ({
             sender: msg.sender === 'user' ? 'user' : 'deite',
             content: msg.content
-          }))
+          })),
+          userId: user.uid
         }),
         signal: abortControllerRef.current.signal
       });
+
+      console.log('Stream response status:', response.status);
+      console.log('Stream response headers:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -116,6 +154,8 @@ export const Chat = () => {
       
       // Fallback to regular API
       try {
+        console.log('Streaming failed, trying fallback API:', API_URL);
+        
         const fallbackResponse = await fetch(API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -123,13 +163,17 @@ export const Chat = () => {
             messages: [...messages, userMsg].map(msg => ({
               sender: msg.sender === 'user' ? 'user' : 'deite',
               content: msg.content
-            }))
+            })),
+            userId: user.uid
           }),
         });
+        
+        console.log('Fallback response status:', fallbackResponse.status);
         
         if (!fallbackResponse.ok) throw new Error('Fallback request failed');
         
         const data = await fallbackResponse.json();
+        console.log('Fallback response data:', data);
         
         // Update the bot message with fallback response
         setMessages((prev) => {

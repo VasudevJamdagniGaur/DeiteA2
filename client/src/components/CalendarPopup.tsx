@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { ChevronLeft, ChevronRight, X } from "lucide-react"
 import { useAuthContext } from "@/components/AuthProvider"
+import { apiUrl } from '../lib/config';
 
 interface CalendarPopupProps {
   selectedDate: Date
@@ -48,7 +49,7 @@ export function CalendarPopup({ selectedDate, onDateSelect, onClose, isDarkMode 
       const endDateStr = endDate.toISOString().slice(0, 10)
 
       try {
-        const response = await fetch(`/api/memory/activity/${user.uid}?startDate=${startDateStr}&endDate=${endDateStr}`)
+        const response = await fetch(apiUrl(`/api/memory/activity/${user.uid}?startDate=${startDateStr}&endDate=${endDateStr}`))
         if (response.ok) {
           const data = await response.json()
           setChatActivity(data.activity || {})
