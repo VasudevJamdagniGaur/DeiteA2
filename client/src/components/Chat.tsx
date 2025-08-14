@@ -318,6 +318,8 @@ export const Chat = () => {
               borderRadius: 16,
               maxWidth: '80%',
               wordBreak: 'break-word',
+              fontSize: '16px', // Increased font size for better readability
+              lineHeight: '1.4', // Better line spacing for readability
             }}>
               {msg.content}
               {msg.isStreaming && (
@@ -334,17 +336,17 @@ export const Chat = () => {
           </div>
         ))}
         {loading && !isStreaming && (
-          <div style={{ color: '#888', textAlign: 'center' }}>Deite is thinking...</div>
+          <div style={{ color: '#888', textAlign: 'center', fontSize: '16px' }}>Deite is thinking...</div>
         )}
         {isStreaming && (
-          <div style={{ color: '#888', textAlign: 'center' }}>
+          <div style={{ color: '#888', textAlign: 'center', fontSize: '16px' }}>
             Deite is typing...
             <button 
               onClick={stopStreaming}
               style={{ 
                 marginLeft: '8px', 
                 padding: '2px 6px', 
-                fontSize: '12px',
+                fontSize: '14px', // Increased font size for button
                 background: '#ff4444',
                 color: 'white',
                 border: 'none',
@@ -363,7 +365,8 @@ export const Chat = () => {
             background: '#ffe6e6',
             padding: '8px',
             borderRadius: '4px',
-            margin: '8px 0'
+            margin: '8px 0',
+            fontSize: '16px' // Increased font size for error messages
           }}>
             {error}
           </div>
@@ -377,7 +380,14 @@ export const Chat = () => {
           onChange={e => setInput(e.target.value)}
           onKeyDown={handleInputKeyDown}
           placeholder="Share your thoughts..."
-          style={{ flex: 1, padding: 12, borderRadius: 16, border: '1px solid #ccc' }}
+          style={{ 
+            flex: 1, 
+            padding: 12, 
+            borderRadius: 16, 
+            border: '1px solid #ccc',
+            fontSize: '16px', // Increased font size for better readability
+            lineHeight: '1.4'
+          }}
           disabled={loading || isStreaming}
         />
         <button
