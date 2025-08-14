@@ -45,9 +45,14 @@ Provide a summary in 2-3 sentences that captures the essential emotional and the
         model: "llama3:70b",
         prompt: summaryPrompt,
         stream: false,
+        options: {
+          keep_alive: -1,
+          num_predict: 300,
+          temperature: 0.7
+        }
       },
       {
-        timeout: 120000, // Increased to 2 minutes
+        timeout: 30000,
         headers: {
           'Content-Type': 'application/json',
         }
@@ -92,9 +97,14 @@ export async function generateAIResponse(prompt: string): Promise<string> {
         model: "llama3:70b",
         prompt: prompt,
         stream: false,
+        options: {
+          keep_alive: -1,
+          num_predict: 500,
+          temperature: 0.7
+        }
       },
       {
-        timeout: 120000, // Increased to 2 minutes
+        timeout: 30000,
         headers: {
           'Content-Type': 'application/json',
         }

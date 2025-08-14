@@ -176,11 +176,15 @@ app.get('/api/test-runpod', async (req: Request, res: Response) => {
     
     const axios = require('axios');
     const response = await axios.post(
-      "https://kn8ufll4a3omqi-11434.proxy.runpod.net:11434/api/generate",
+      "https://kn8ufll4a3omqi-11434.proxy.runpod.net/api/generate",
       {
         model: "llama3:70b",
         prompt: "Hello, this is a test. Please respond with 'RunPod is working!'",
         stream: false,
+        options: {
+          keep_alive: -1,
+          num_predict: 50
+        }
       },
       {
         timeout: 30000,
