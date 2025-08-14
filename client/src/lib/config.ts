@@ -8,6 +8,12 @@ const config = {
   }
 };
 
+// Fallback URLs in case the primary URL fails
+const fallbackUrls = [
+  'https://deite-a2-vasudevjamdagnigaur.repl.co',
+  // Add any additional fallback URLs here if needed
+];
+
 // Detect if we're in a mobile app (Capacitor)
 const isMobileApp = () => {
   // Check for Capacitor environment
@@ -50,6 +56,45 @@ export const apiUrl = (endpoint: string) => {
   const fullUrl = baseUrl + endpoint;
   console.log(`API URL constructed: ${fullUrl}`);
   return fullUrl;
+};
+
+// Enhanced API call with retry logic
+export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
+  console.log(`🚀 Making API call to: ${endpoint}`);
+  
+  const urls = isMobileApp() ? fallbackUrls.map(url => url + endpoint) : [apiUrl(endpoint)];
+  
+  for (let i = 0; i < urls.length; i++) {
+    const url = urls[i];
+    console.log(`📡 Trying URL ${i + 1}/${urls.length}: ${url}`);
+    
+    try {
+      const response = await fetch(url, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...options.headers,
+        },
+      });
+      
+      if (response.ok) {
+        console.log(`✅ API call successful with URL: ${url}`);
+        return response;
+      } else {
+        console.warn(`⚠️ API call failed with status ${response.status} for URL: ${url}`);
+        if (i === urls.length - 1) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+      }
+    } catch (error: any) {
+      console.error(`❌ API call error for URL ${url}:`, error.message);
+      if (i === urls.length - 1) {
+        throw error;
+      }
+    }
+  }
+  
+  throw new Error('All API endpoints failed');
 };
 
 // Export for debugging

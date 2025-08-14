@@ -20,6 +20,8 @@ interface ChatScreenProps {
 }
 
 export default function ChatScreen({ date, onBack }: ChatScreenProps) {
+  console.log('🚀 ChatScreen mounted with date:', date);
+  
   const { user, profile } = useAuthContext();
   const { isDarkMode } = useTheme();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -29,6 +31,14 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
   const [isIncognito, setIsIncognito] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  console.log('📱 ChatScreen state:', { 
+    user: !!user, 
+    profile: !!profile, 
+    messagesCount: messages.length, 
+    isLoading, 
+    isStreaming 
+  });
 
   useEffect(() => {
     loadExistingReflection();
@@ -43,14 +53,24 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
   };
 
   const loadExistingReflection = async () => {
-    if (!user) return;
+    console.log('📖 Loading existing reflection for user:', !!user, 'date:', date);
+    
+    if (!user) {
+      console.log('❌ No user found, cannot load reflection');
+      return;
+    }
 
     try {
+      console.log('🔍 Getting reflection from Firebase...');
       const reflection = await getReflection(user.uid, date);
+      console.log('📄 Reflection loaded:', !!reflection, reflection?.content?.length || 0, 'chars');
+      
       if (reflection && reflection.content) {
         const initialMessages = parseMessagesFromContent(reflection.content);
+        console.log('💬 Parsed messages:', initialMessages.length);
         setMessages(initialMessages);
       } else {
+        console.log('💬 No existing reflection, setting default message');
         setMessages([
           {
             id: "1",
@@ -61,7 +81,8 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
         ]);
       }
     } catch (error) {
-      console.error("Error loading reflection:", error);
+      console.error("❌ Error loading reflection:", error);
+      console.log('💬 Setting default message due to error');
       setMessages([
         {
           id: "1",
@@ -342,6 +363,27 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
   const getUserInitial = () => {
     return profile?.name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || "U";
   };
+
+  // Add a safety check to prevent blank screen
+  if (!user) {
+    console.log('❌ ChatScreen: No user found, showing login message');
+    return (
+      <div className="flex items-center justify-center h-screen max-w-md mx-auto bg-gray-100 dark:bg-gray-900">
+        <div className="text-center p-6">
+          <h2 className="text-xl font-semibold mb-4">Please log in</h2>
+          <p className="text-gray-600 dark:text-gray-400">You need to be logged in to chat with Deite.</p>
+          <button 
+            onClick={onBack}
+            className="mt-4 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  console.log('✅ ChatScreen: Rendering main component');
 
   return (
     <div className={`flex flex-col h-screen max-w-md mx-auto transition-colors duration-300 ${

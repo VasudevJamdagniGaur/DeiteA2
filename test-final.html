@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APK Test - Deite Backend</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section { 
+            background: white; 
+            padding: 20px; 
+            margin: 10px 0; 
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status { 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .loading { background: #fff3cd; color: #856404; }
+        button {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #5855eb; }
+        button:disabled { 
+            background: #d1d5db; 
+            cursor: not-allowed; 
+        }
+        pre { 
+            background: #f8f9fa; 
+            padding: 10px; 
+            border-radius: 4px;
+            overflow: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 APK Backend Test Suite</h1>
+    <p>This test simulates APK requests to verify backend functionality.</p>
+
+    <div class="test-section">
+        <h2>📱 Mobile User Agent Detection</h2>
+        <div id="mobile-info"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔗 API Connectivity Tests</h2>
+        <button onclick="testHealth()">Test Health Endpoint</button>
+        <button onclick="testRunPod()">Test RunPod Connection</button>
+        <button onclick="testChatRoutes()">Test Chat Routes</button>
+        <button onclick="testAllEndpoints()">Run All Tests</button>
+        
+        <div id="test-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>💬 Chat Functionality Test</h2>
+        <button onclick="testChatMessage()">Send Test Message</button>
+        <div id="chat-results"></div>
+    </div>
+
+    <script>
+        const BASE_URL = 'https://deite-a2-vasudevjamdagnigaur.repl.co';
+        const MOBILE_UA = 'Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36';
+
+        // Show mobile detection info
+        document.getElementById('mobile-info').innerHTML = `
+            <div><strong>Current User Agent:</strong> ${navigator.userAgent}</div>
+            <div><strong>Test Mobile UA:</strong> ${MOBILE_UA}</div>
+            <div><strong>Screen Width:</strong> ${window.screen.width}px</div>
+            <div><strong>Is Touch Device:</strong> ${'ontouchstart' in window ? 'Yes' : 'No'}</div>
+        `;
+
+        function addResult(containerId, status, message, details = null) {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = `status ${status}`;
+            div.innerHTML = `
+                <div>${message}</div>
+                ${details ? `<pre>${JSON.stringify(details, null, 2)}</pre>` : ''}
+            `;
+            container.appendChild(div);
+        }
+
+        async function testHealth() {
+            addResult('test-results', 'loading', '🔄 Testing health endpoint...');
+            
+            try {
+                const response = await fetch(`${BASE_URL}/api/health`, {
+                    headers: { 'User-Agent': MOBILE_UA }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addResult('test-results', 'success', '✅ Health check passed', data);
+                } else {
+                    addResult('test-results', 'error', `❌ Health check failed: ${response.status} ${response.statusText}`);
+                }
+            } catch (error) {
+                addResult('test-results', 'error', `❌ Health check error: ${error.message}`);
+            }
+        }
+
+        async function testRunPod() {
+            addResult('test-results', 'loading', '🔄 Testing RunPod connection...');
+            
+            try {
+                const response = await fetch(`${BASE_URL}/api/test-runpod`, {
+                    headers: { 'User-Agent': MOBILE_UA }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addResult('test-results', 'success', '✅ RunPod test passed', data);
+                } else {
+                    addResult('test-results', 'error', `❌ RunPod test failed: ${response.status} ${response.statusText}`);
+                }
+            } catch (error) {
+                addResult('test-results', 'error', `❌ RunPod test error: ${error.message}`);
+            }
+        }
+
+        async function testChatRoutes() {
+            addResult('test-results', 'loading', '🔄 Testing chat routes...');
+            
+            const routes = ['/api/chat/ping', '/api/chat/test-simple', '/api/chat/test'];
+            
+            for (const route of routes) {
+                try {
+                    const response = await fetch(`${BASE_URL}${route}`, {
+                        headers: { 'User-Agent': MOBILE_UA }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        addResult('test-results', 'success', `✅ ${route} passed`, data);
+                    } else {
+                        addResult('test-results', 'error', `❌ ${route} failed: ${response.status}`);
+                    }
+                } catch (error) {
+                    addResult('test-results', 'error', `❌ ${route} error: ${error.message}`);
+                }
+            }
+        }
+
+        async function testChatMessage() {
+            addResult('chat-results', 'loading', '🔄 Sending test chat message...');
+            
+            try {
+                const response = await fetch(`${BASE_URL}/api/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'User-Agent': MOBILE_UA
+                    },
+                    body: JSON.stringify({
+                        messages: [
+                            { sender: 'user', content: 'Hello! This is a test message from the APK test suite.' }
+                        ],
+                        userId: 'test-user-' + Date.now()
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addResult('chat-results', 'success', '✅ Chat message test passed', data);
+                } else {
+                    const errorText = await response.text();
+                    addResult('chat-results', 'error', `❌ Chat message failed: ${response.status}`, errorText);
+                }
+            } catch (error) {
+                addResult('chat-results', 'error', `❌ Chat message error: ${error.message}`);
+            }
+        }
+
+        async function testAllEndpoints() {
+            document.getElementById('test-results').innerHTML = '';
+            await testHealth();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            await testRunPod();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            await testChatRoutes();
+        }
+
+        // Auto-run basic tests on load
+        window.onload = () => {
+            setTimeout(testHealth, 1000);
+        };
+    </script>
+</body>
+</html>

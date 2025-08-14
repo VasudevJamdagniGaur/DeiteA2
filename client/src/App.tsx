@@ -11,9 +11,12 @@ import AuthScreen from "./pages/AuthScreen";
 import ProfileSetupScreen from "./pages/ProfileSetupScreen";
 import DashboardScreen from "./pages/DashboardScreen";
 import ChatScreen from "./pages/ChatScreen";
+import SimpleChatScreen from "./pages/SimpleChatScreen";
 import UserProfileScreen from "./pages/UserProfileScreen";
 import CustomerSupportScreen from "./pages/CustomerSupportScreen";
 import NotFound from "@/pages/not-found";
+import { DebugInfo } from "./components/DebugInfo";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { useState, useEffect } from "react";
 import { Brain, Heart, Sparkles, Star } from "lucide-react";
 
@@ -154,7 +157,7 @@ function AppContent() {
       />
     ),
     chat: (
-      <ChatScreen 
+      <SimpleChatScreen 
         date={chatDate}
         onBack={() => setCurrentScreen("dashboard")} 
       />
@@ -176,18 +179,21 @@ function AppContent() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <ThemeProvider>
-          <AuthProvider>
-            <div className="max-w-md mx-auto bg-white dark:bg-slate-900 shadow-2xl min-h-screen relative overflow-hidden transition-colors duration-300">
-              <AppContent />
-            </div>
-            <Toaster />
-          </AuthProvider>
-        </ThemeProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              <div className="max-w-md mx-auto bg-white dark:bg-slate-900 shadow-2xl min-h-screen relative overflow-hidden transition-colors duration-300">
+                <DebugInfo />
+                <AppContent />
+              </div>
+              <Toaster />
+            </AuthProvider>
+          </ThemeProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
