@@ -13,6 +13,8 @@ router.post("/", async (req, res) => {
     console.log("Origin:", req.headers.origin);
     console.log("Remote IP:", req.ip);
     console.log("Request URL:", req.originalUrl);
+    console.log("Request method:", req.method);
+    console.log("Content-Type:", req.headers['content-type']);
 
     const { messages, userId } = req.body;
 
@@ -26,6 +28,8 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "User ID is required" });
     }
 
+    console.log("✅ Valid request received - messages:", messages.length, "userId:", userId);
+
     // Get the latest user message
     const userMessages = messages.filter(msg => msg.sender === "user");
     const latestUserMessage = userMessages[userMessages.length - 1];
@@ -34,11 +38,15 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "No user message found" });
     }
 
+    console.log("✅ Latest user message:", latestUserMessage.content);
+
     // Save user message first
     await saveMessage(userId, "user", latestUserMessage.content);
+    console.log("✅ User message saved to database");
 
     // Build prompt with conversation context
     const fullPrompt = await buildPrompt(userId, latestUserMessage.content);
+    console.log("✅ Prompt built successfully");
 
     console.log(
       "Making request to RunPod with prompt:",
@@ -46,6 +54,9 @@ router.post("/", async (req, res) => {
     );
 
     console.log("RunPod URL:", "https://kn8ufll4a3omqi-11434.proxy.runpod.net:11434/api/generate");
+
+    console.log("🚀 SENDING REQUEST TO RUNPOD...");
+    const startTime = Date.now();
 
     const response = await axios.post(
       "https://kn8ufll4a3omqi-11434.proxy.runpod.net:11434/api/generate",
@@ -62,6 +73,8 @@ router.post("/", async (req, res) => {
       },
     );
 
+    const endTime = Date.now();
+    console.log("✅ RunPod response received in", endTime - startTime, "ms");
     console.log("RunPod response status:", response.status);
     console.log("RunPod response data:", response.data);
 
@@ -69,6 +82,7 @@ router.post("/", async (req, res) => {
 
     // Save AI response
     await saveMessage(userId, "ai", aiResponse);
+    console.log("✅ AI response saved to database");
 
     // Auto-generate day reflection if enough messages
     const today = getCurrentDateString();
@@ -79,6 +93,8 @@ router.post("/", async (req, res) => {
     }, 1000);
 
     console.log("=== SUCCESSFULLY SENT RESPONSE TO APK ===");
+    console.log("Response being sent:", { reply: aiResponse });
+    
     return res.json({
       reply: aiResponse,
     });
@@ -360,10 +376,13 @@ Write a short, factual journal entry (2-3 sentences maximum):`;
 // Add a test endpoint to verify the router is working
 router.get("/test", async (req, res) => {
   try {
+    console.log("=== CHAT ROUTE TEST ENDPOINT ===");
+    console.log("Testing RunPod connectivity...");
+    
     const response = await axios.post(
       "https://kn8ufll4a3omqi-11434.proxy.runpod.net:11434/api/generate",
       {
-        model: "llama3:65b",
+        model: "llama3:70b",
         prompt:
           "Hello, this is a test message. Please respond with 'Test successful!'",
         stream: false,
@@ -380,14 +399,16 @@ router.get("/test", async (req, res) => {
       response.data.response &&
       response.data.response.includes("Test successful!")
     ) {
+      console.log("✅ Chat route test successful!");
       return res.json({
         status: "Chat router is working",
         test: "Test successful!",
         runpod_response: response.data.response,
+        timestamp: new Date().toISOString()
       });
     } else {
       console.error(
-        "Test endpoint failed, unexpected response:",
+        "❌ Test endpoint failed, unexpected response:",
         response.data,
       );
       return res.status(500).json({
@@ -397,13 +418,24 @@ router.get("/test", async (req, res) => {
       });
     }
   } catch (error: any) {
-    console.error("Test endpoint error:", error);
+    console.error("❌ Test endpoint error:", error);
     return res.status(500).json({
       status: "Chat router test failed",
       error: "Failed to connect to RunPod",
       details: error.message,
+      timestamp: new Date().toISOString()
     });
   }
+});
+
+// Simple ping endpoint for basic connectivity test
+router.get("/ping", (req, res) => {
+  console.log("=== CHAT ROUTE PING ===");
+  res.json({
+    status: "Chat route is accessible",
+    timestamp: new Date().toISOString(),
+    message: "Chat route ping successful"
+  });
 });
 
 // Add summary endpoint for end-of-day processing

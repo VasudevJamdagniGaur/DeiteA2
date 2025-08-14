@@ -14,7 +14,12 @@ interface ChatMessage {
 export const Chat = () => {
   const { user } = useAuthContext();
   const [input, setInput] = useState('');
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      sender: 'bot',
+      content: "Hi there! How are you feeling today? I'm here to listen and help you reflect. 💜"
+    }
+  ]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
