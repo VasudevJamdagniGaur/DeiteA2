@@ -77,42 +77,17 @@ app.get("/api/health", async (req, res) => {
     console.log("Testing RunPod URL:", runpodUrl);
     
     const axios = require('axios');
-<<<<<<< HEAD
     const response = await axios.post(runpodUrl, {
       model: "llama3:70b",
       prompt: "Health check - respond with 'OK'",
-      stream: false
-    }, {
-      timeout: 10000,
-      headers: { "Content-Type": "application/json" }
-=======
-    const response = await axios.post(
-      "https://kn8ufll4a3omqi-11434.proxy.runpod.net/api/generate",
-      {
-        model: "llama3:70b",
-        prompt: "Hello, this is a test. Please respond with 'RunPod is working!'",
-        stream: false,
-        options: {
-          keep_alive: -1,
-          num_predict: 50
-        }
-      },
-      {
-        timeout: 30000,
-        headers: {
-          "Content-Type": "application/json",
-        },
+      stream: false,
+      options: {
+        keep_alive: -1,
+        num_predict: 10
       }
-    );
-
-    console.log("RunPod test successful:", response.data);
-    
-    res.json({
-      success: true,
-      message: "RunPod is working!",
-      runpodResponse: response.data.response,
-      timestamp: new Date().toISOString()
->>>>>>> f8b4a70977603d37ccac73860f6165538ee34e39
+    }, {
+      timeout: 15000,
+      headers: { "Content-Type": "application/json" }
     });
     
     if (response.data && response.data.response) {
@@ -153,7 +128,11 @@ app.get("/api/test-runpod", async (req, res) => {
     const response = await axios.post(runpodUrl, {
       model: "llama3:70b",
       prompt: "This is a test message. Please respond with 'Hello from RunPod!'",
-      stream: false
+      stream: false,
+      options: {
+        keep_alive: -1,
+        num_predict: 50
+      }
     }, {
       timeout: 30000,
       headers: { "Content-Type": "application/json" }

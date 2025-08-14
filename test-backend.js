@@ -27,7 +27,13 @@ async function testBackend() {
     const chatSimpleResponse = await axios.get(`${BASE_URL}/api/chat/test-simple`);
     console.log('✅ Chat Route Simple Test:', chatSimpleResponse.data);
     
+    // Test 5: Chat route test with RunPod
+    console.log('\n5️⃣ Testing Chat Route with RunPod...');
+    const chatTestResponse = await axios.get(`${BASE_URL}/api/chat/test`);
+    console.log('✅ Chat Route RunPod Test:', chatTestResponse.data);
+    
     console.log('\n🎉 All tests passed! Backend is working correctly.');
+    console.log('\n📱 Your APK should now work with RunPod!');
     
   } catch (error) {
     console.error('\n❌ Test failed:', error.message);
