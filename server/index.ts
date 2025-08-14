@@ -131,6 +131,7 @@ app.get("/api/health", async (req, res) => {
 app.get("/api/test-runpod", async (req, res) => {
   try {
     console.log("=== TEST RUNPOD ENDPOINT ===");
+
     console.log("From:", req.isMobileApp ? "MOBILE APP" : "WEB");
 
     const runpodUrl =
