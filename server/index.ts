@@ -2,6 +2,15 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
+// Extend Express Request interface to include mobile app detection
+declare global {
+  namespace Express {
+    interface Request {
+      isMobileApp?: boolean;
+    }
+  }
+}
+
 const app = express();
 
 // Middleware for parsing JSON and URL-encoded bodies
@@ -9,7 +18,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Add CORS headers for development and mobile app
-app.use((req, res, next) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
   // Allow all origins for mobile apps
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -31,7 +40,7 @@ app.use((req, res, next) => {
 });
 
 // Add mobile app detection middleware
-app.use((req, res, next) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
   const userAgent = req.headers['user-agent'] || '';
   const isMobileApp = userAgent.includes('Capacitor') || 
                      userAgent.includes('ionic') || 
@@ -58,7 +67,7 @@ app.use((req, res, next) => {
    - /ping: simple JSON endpoint to confirm device reachability
    - POST body logger: logs JSON bodies for POST requests (remove in production)
 */
-app.use((req, res, next) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
   console.log(">>> INCOMING REQUEST:", {
     method: req.method,
     originalUrl: req.originalUrl,
@@ -70,7 +79,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get('/ping', (req, res) => {
+app.get('/ping', (req: Request, res: Response) => {
   res.json({
     ok: true,
     time: new Date().toISOString(),
@@ -80,7 +89,7 @@ app.get('/ping', (req, res) => {
 });
 
 // TEMP: log JSON bodies for debugging (remove after diagnosing)
-app.use((req, res, next) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
   if (req.method === 'POST') {
     try {
       // limit length to avoid huge logs
@@ -96,14 +105,14 @@ app.use((req, res, next) => {
 /* -------------------
    Existing logging middleware (keeps your previous behavior)
    ------------------- */
-app.use((req, res, next) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
   const start = Date.now();
   const path = req.path;
   let capturedJsonResponse: Record<string, any> | undefined = undefined;
 
   const originalResJson = res.json;
   // @ts-ignore - we intentionally override for logging
-  res.json = function (bodyJson, ...args) {
+  res.json = function (bodyJson: any, ...args: any[]) {
     capturedJsonResponse = bodyJson;
     return originalResJson.apply(res, [bodyJson, ...args]);
   };
@@ -128,7 +137,7 @@ app.use((req, res, next) => {
 });
 
 // Health check specifically for APK
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (req: Request, res: Response) => {
   res.json({
     status: 'healthy',
     time: new Date().toISOString(),
@@ -141,7 +150,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Test endpoint specifically for APK
-app.get('/api/test-connection', async (req, res) => {
+app.get('/api/test-connection', async (req: Request, res: Response) => {
   try {
     console.log("=== APK CONNECTION TEST ===");
     console.log("Headers:", req.headers);
@@ -161,7 +170,7 @@ app.get('/api/test-connection', async (req, res) => {
 });
 
 // Test RunPod connectivity directly
-app.get('/api/test-runpod', async (req, res) => {
+app.get('/api/test-runpod', async (req: Request, res: Response) => {
   try {
     console.log("=== TESTING RUNPOD CONNECTIVITY ===");
     
