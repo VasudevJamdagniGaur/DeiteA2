@@ -437,7 +437,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
                     ? "bg-gray-800 border border-gray-700 text-gray-100 rounded-tl-md"
                     : "bg-gray-100 border border-gray-200 text-gray-900 rounded-tl-md"
               }`}>
-                <p className="text-sm leading-relaxed">
+                <p className="text-base leading-relaxed">
                   {msg.content}
                 </p>
               </div>
@@ -471,7 +471,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
                   <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
                   <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
                 </div>
-                <span className={`text-sm ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>
+                <span className={`text-base ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>
                   Deite is thinking...
                 </span>
               </div>
@@ -481,7 +481,7 @@ export default function ChatScreen({ date, onBack }: ChatScreenProps) {
 
         {isStreaming && (
           <div className="flex items-center justify-center space-x-2 py-2">
-            <span className={`text-sm ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>
+            <span className={`text-base ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>
               Deite is typing...
             </span>
           </div>

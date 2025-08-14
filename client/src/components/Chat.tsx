@@ -323,8 +323,8 @@ export const Chat = () => {
               borderRadius: 16,
               maxWidth: '80%',
               wordBreak: 'break-word',
-              fontSize: '16px', // Increased font size for better readability
-              lineHeight: '1.4', // Better line spacing for readability
+              fontSize: '18px', // Increased font size for better readability
+              lineHeight: '1.5', // Better line spacing for readability
             }}>
               {msg.content}
               {msg.isStreaming && (
@@ -341,17 +341,17 @@ export const Chat = () => {
           </div>
         ))}
         {loading && !isStreaming && (
-          <div style={{ color: '#888', textAlign: 'center', fontSize: '16px' }}>Deite is thinking...</div>
+          <div style={{ color: '#888', textAlign: 'center', fontSize: '18px' }}>Deite is thinking...</div>
         )}
         {isStreaming && (
-          <div style={{ color: '#888', textAlign: 'center', fontSize: '16px' }}>
+          <div style={{ color: '#888', textAlign: 'center', fontSize: '18px' }}>
             Deite is typing...
             <button 
               onClick={stopStreaming}
               style={{ 
                 marginLeft: '8px', 
                 padding: '2px 6px', 
-                fontSize: '14px', // Increased font size for button
+                fontSize: '16px', // Increased font size for button
                 background: '#ff4444',
                 color: 'white',
                 border: 'none',
@@ -371,7 +371,7 @@ export const Chat = () => {
             padding: '8px',
             borderRadius: '4px',
             margin: '8px 0',
-            fontSize: '16px' // Increased font size for error messages
+            fontSize: '18px' // Increased font size for error messages
           }}>
             {error}
           </div>
