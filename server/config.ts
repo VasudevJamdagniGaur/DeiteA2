@@ -1,7 +1,7 @@
 // Server configuration
 export const SERVER_CONFIG = {
-  // RunPod configuration
-  RUNPOD_URL: "https://giy3d1ylj8dr8b-11434.proxy.runpod.net:11434/api/generate",
+  // RunPod configuration - Direct connection with authentication
+  RUNPOD_URL: "https://vbpxyhouli5bmjw6cve0:40u3src5k8wrj4vf8b0u@giy3d1ylj8dr8b-19123-vbpxyhouli5bmjw6cve0.proxy.runpod.net/api/generate",
   RUNPOD_MODEL: "llama3:70b",
   RUNPOD_TIMEOUT: 60000,
   
