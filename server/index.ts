@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import axios from "axios"; // Import axios at the top
 import { registerRoutes } from "./routes";
 
 const app = express();
@@ -85,7 +86,6 @@ app.get("/api/health", async (req, res) => {
       "https://giy3d1ylj8dr8b-11434.proxy.runpod.net:11434/api/generate";
     console.log("Testing RunPod URL:", runpodUrl);
 
-    const axios = require("axios");
     const response = await axios.post(
       runpodUrl,
       {
@@ -138,7 +138,6 @@ app.get("/api/test-runpod", async (req, res) => {
       "https://giy3d1ylj8dr8b-11434.proxy.runpod.net:11434/api/generate";
     console.log("Testing RunPod URL:", runpodUrl);
 
-    const axios = require("axios");
     const response = await axios.post(
       runpodUrl,
       {
