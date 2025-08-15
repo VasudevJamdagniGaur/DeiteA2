@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { apiUrl } from '../lib/config';
 import { useAuthContext } from './AuthProvider';
+import { mobileStreamRequest, mobileHealthCheck, mobileNetworkConfig } from '../lib/mobile-network';
 
 const API_URL = apiUrl("/api/chat");
 const STREAM_URL = apiUrl("/api/chat/stream");
@@ -45,19 +46,15 @@ export const Chat = () => {
       console.log('User ID:', user.uid);
       console.log('Config debug info:', apiUrl('/api/health'));
       
-      // Test the health endpoint
-      fetch(apiUrl('/api/health'))
-        .then(response => {
-          console.log('Health check response status:', response.status);
-          if (response.ok) {
+      // Test the health endpoint with mobile optimization
+      mobileHealthCheck(apiUrl('/api/health'))
+        .then(isHealthy => {
+          console.log('Health check result:', isHealthy);
+          if (isHealthy) {
             setConnectionStatus('connected');
           } else {
             setConnectionStatus('failed');
           }
-          return response.json();
-        })
-        .then(data => {
-          console.log('Health check response data:', data);
         })
         .catch(error => {
           console.error('Health check failed:', error);
@@ -109,7 +106,8 @@ export const Chat = () => {
       // Create abort controller for this request
       abortControllerRef.current = new AbortController();
       
-      const response = await fetch(STREAM_URL, {
+      // Try mobile-optimized streaming first
+      const streamResponse = await mobileStreamRequest(STREAM_URL, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -125,8 +123,14 @@ export const Chat = () => {
         signal: abortControllerRef.current.signal
       });
 
+      if (!streamResponse) {
+        throw new Error('Failed to establish stream connection');
+      }
+
+      const response = { body: streamResponse, ok: true, status: 200 };
+
       console.log('Stream response status:', response.status);
-      console.log('Stream response headers:', Object.fromEntries(response.headers.entries()));
+      console.log('Mobile stream established successfully');
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -286,10 +290,10 @@ export const Chat = () => {
           <button
             onClick={() => {
               setConnectionStatus('checking');
-              // Retry connection
-              fetch(apiUrl('/api/health'))
-                .then(response => {
-                  if (response.ok) {
+              // Retry connection with mobile optimization
+              mobileHealthCheck(apiUrl('/api/health'))
+                .then(isHealthy => {
+                  if (isHealthy) {
                     setConnectionStatus('connected');
                   } else {
                     setConnectionStatus('failed');

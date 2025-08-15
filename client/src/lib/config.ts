@@ -1,3 +1,5 @@
+import { mobileHttpRequest, isMobileApp as isMobileAppUtil } from './mobile-network';
+
 // Configuration for different environments
 const config = {
   development: {
@@ -14,29 +16,8 @@ const fallbackUrls = [
   // Add any additional fallback URLs here if needed
 ];
 
-// Detect if we're in a mobile app (Capacitor)
-const isMobileApp = () => {
-  // Check for Capacitor environment
-  if (typeof window !== 'undefined') {
-    // Check for Capacitor object
-    if ((window as any).Capacitor !== undefined) {
-      return true;
-    }
-    
-    // Check for Capacitor protocol
-    if (window.location.protocol === 'capacitor:' || window.location.protocol === 'ionic:') {
-      return true;
-    }
-    
-    // Check for mobile user agent
-    const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
-    if (/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase())) {
-      return true;
-    }
-  }
-  
-  return false;
-};
+// Use the mobile utility for consistent mobile detection
+const isMobileApp = isMobileAppUtil;
 
 // Get the appropriate API base URL
 export const getApiBaseUrl = () => {
@@ -58,7 +39,7 @@ export const apiUrl = (endpoint: string) => {
   return fullUrl;
 };
 
-// Enhanced API call with retry logic
+// Enhanced API call with mobile-optimized networking
 export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
   console.log(`🚀 Making API call to: ${endpoint}`);
   
@@ -69,13 +50,8 @@ export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
     console.log(`📡 Trying URL ${i + 1}/${urls.length}: ${url}`);
     
     try {
-      const response = await fetch(url, {
-        ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          ...options.headers,
-        },
-      });
+      // Use the enhanced mobile HTTP request
+      const response = await mobileHttpRequest(url, options);
       
       if (response.ok) {
         console.log(`✅ API call successful with URL: ${url}`);

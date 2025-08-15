@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import axios from "axios";
 import { buildPrompt, saveMessage } from "./memory";
+import { getRunPodConfig } from "./config";
 
 /*
 <important_code_snippet_instructions>
@@ -39,10 +40,11 @@ Provide a summary in 2-3 sentences that captures the essential emotional and the
 
   // Try RunPod/Llama3 first
   try {
+    const runpodConfig = getRunPodConfig();
     const response = await axios.post(
-      "https://kn8ufll4a3omqi-11434.proxy.runpod.net/api/generate",
+      runpodConfig.url,
       {
-        model: "llama3:70b",
+        model: runpodConfig.model,
         prompt: summaryPrompt,
         stream: false,
         options: {
@@ -52,7 +54,7 @@ Provide a summary in 2-3 sentences that captures the essential emotional and the
         }
       },
       {
-        timeout: 30000,
+        timeout: runpodConfig.timeout,
         headers: {
           'Content-Type': 'application/json',
         }
@@ -91,10 +93,11 @@ Provide a summary in 2-3 sentences that captures the essential emotional and the
 export async function generateAIResponse(prompt: string): Promise<string> {
   // Try RunPod/Llama3 first
   try {
+    const runpodConfig = getRunPodConfig();
     const response = await axios.post(
-      "https://kn8ufll4a3omqi-11434.proxy.runpod.net/api/generate",
+      runpodConfig.url,
       {
-        model: "llama3:70b",
+        model: runpodConfig.model,
         prompt: prompt,
         stream: false,
         options: {
@@ -104,7 +107,7 @@ export async function generateAIResponse(prompt: string): Promise<string> {
         }
       },
       {
-        timeout: 30000,
+        timeout: runpodConfig.timeout,
         headers: {
           'Content-Type': 'application/json',
         }

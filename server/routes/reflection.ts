@@ -1,6 +1,7 @@
 
 import express from "express";
 import axios from "axios";
+import { getRunPodConfig } from "../config";
 
 const router = express.Router();
 
@@ -27,10 +28,11 @@ Write a short, factual journal entry (2-3 sentences maximum):`;
 
     console.log("Making request to RunPod with prompt:", reflectionPrompt.substring(0, 200) + "...");
 
+    const runpodConfig = getRunPodConfig();
     const response = await axios.post(
-      "https://kn8ufll4a3omqi-11434.proxy.runpod.net/api/generate",
+      runpodConfig.url,
       {
-        model: "llama3:70b",
+        model: runpodConfig.model,
         prompt: reflectionPrompt,
         stream: false,
       },

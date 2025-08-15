@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import axios from "axios"; // Import axios at the top
 import { registerRoutes } from "./routes";
+import { getRunPodConfig } from "./config";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -82,14 +83,13 @@ app.get("/api/health", async (req, res) => {
     console.log("Remote IP:", req.ip);
 
     // Test RunPod connectivity
-    const runpodUrl =
-      "https://giy3d1ylj8dr8b-11434.proxy.runpod.net:11434/api/generate";
-    console.log("Testing RunPod URL:", runpodUrl);
+    const runpodConfig = getRunPodConfig();
+    console.log("Testing RunPod URL:", runpodConfig.url);
 
     const response = await axios.post(
-      runpodUrl,
+      runpodConfig.url,
       {
-        model: "llama3:70b",
+        model: runpodConfig.model,
         prompt: "Health check - respond with 'OK'",
         stream: false,
         options: {
@@ -98,7 +98,7 @@ app.get("/api/health", async (req, res) => {
         },
       },
       {
-        timeout: 30000,
+        timeout: runpodConfig.timeout,
         headers: { "Content-Type": "application/json" },
       },
     );
@@ -134,14 +134,13 @@ app.get("/api/test-runpod", async (req, res) => {
 
     console.log("From:", req.isMobileApp ? "MOBILE APP" : "WEB");
 
-    const runpodUrl =
-      "https://giy3d1ylj8dr8b-11434.proxy.runpod.net:11434/api/generate";
-    console.log("Testing RunPod URL:", runpodUrl);
+    const runpodConfig = getRunPodConfig();
+    console.log("Testing RunPod URL:", runpodConfig.url);
 
     const response = await axios.post(
-      runpodUrl,
+      runpodConfig.url,
       {
-        model: "llama3:70b",
+        model: runpodConfig.model,
         prompt:
           "This is a test message. Please respond with 'Hello from RunPod!'",
         stream: false,
@@ -151,7 +150,7 @@ app.get("/api/test-runpod", async (req, res) => {
         },
       },
       {
-        timeout: 30000,
+        timeout: runpodConfig.timeout,
         headers: { "Content-Type": "application/json" },
       },
     );
@@ -160,7 +159,7 @@ app.get("/api/test-runpod", async (req, res) => {
     res.json({
       status: "success",
       message: "RunPod is working correctly",
-      runpod_url: runpodUrl,
+      runpod_url: runpodConfig.url,
       response: response.data.response,
       timestamp: new Date().toISOString(),
       isMobileApp: req.isMobileApp || false,
@@ -212,9 +211,7 @@ async function startServer() {
   httpServer.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📱 Mobile app detection: ENABLED`);
-    console.log(
-      `🔗 RunPod URL: https://giy3d1ylj8dr8b-11434.proxy.runpod.net:11434/api/generate`,
-    );
+    console.log(`🔗 RunPod URL: ${getRunPodConfig().url}`);
     console.log(`🌐 Health check: http://localhost:${PORT}/api/health`);
     console.log(`🧪 Test RunPod: http://localhost:${PORT}/api/test-runpod`);
   });
