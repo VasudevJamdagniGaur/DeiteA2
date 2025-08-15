@@ -15,8 +15,8 @@ import {
 } from "firebase/firestore";
 import { generateSummary } from "./ai";
 
-// PostgreSQL connection
-const sql = neon(process.env.DATABASE_URL!);
+// PostgreSQL connection - optional for testing
+const sql = process.env.DATABASE_URL ? neon(process.env.DATABASE_URL) : null;
 
 // ---- Interfaces ----
 export interface ChatMessage {
@@ -382,13 +382,16 @@ export async function getDailySummary(
     }
 
     // Fallback to PostgreSQL
-    const results = await sql`
-      SELECT summary
-      FROM user_summaries
-      WHERE user_id = ${userId} AND date = ${date}
-      LIMIT 1
-    `;
-    return results.length > 0 ? results[0].summary : null;
+    if (sql) {
+      const results = await sql`
+        SELECT summary
+        FROM user_summaries
+        WHERE user_id = ${userId} AND date = ${date}
+        LIMIT 1
+      `;
+      return results.length > 0 ? results[0].summary : null;
+    }
+    return null;
   } catch (error) {
     console.error("Error getting daily summary:", error);
     return null;
@@ -410,14 +413,16 @@ export async function hasUserHistory(userId: string): Promise<boolean> {
     }
 
     // Fallback to PostgreSQL
-    const results = await sql`
-      SELECT COUNT(*) as count
-      FROM user_summaries
-      WHERE user_id = ${userId}
-      LIMIT 1
-    `;
-
-    return parseInt(results[0].count as string) > 0;
+    if (sql) {
+      const results = await sql`
+        SELECT COUNT(*) as count
+        FROM user_summaries
+        WHERE user_id = ${userId}
+        LIMIT 1
+      `;
+      return parseInt(results[0].count as string) > 0;
+    }
+    return false;
   } catch (error) {
     console.error("Error checking user history:", error);
     return false; // Return false if data not found
@@ -549,15 +554,17 @@ export async function getLongTermMemory(
     }
 
     // Fallback to PostgreSQL
-    const results = await sql`
-      SELECT summary
-      FROM user_summaries
-      WHERE user_id = ${userId}
-      ORDER BY date DESC
-      LIMIT ${limitCount}
-    `;
-
-    return results.map((row) => row.summary as string);
+    if (sql) {
+      const results = await sql`
+        SELECT summary
+        FROM user_summaries
+        WHERE user_id = ${userId}
+        ORDER BY date DESC
+        LIMIT ${limitCount}
+      `;
+      return results.map((row) => row.summary as string);
+    }
+    return [];
   } catch (error) {
     console.error("Error fetching long-term memory:", error);
     return []; // Return empty array if data not found
