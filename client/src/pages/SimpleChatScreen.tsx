@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useAuthContext } from "../components/AuthProvider";
 import { apiUrl, apiCall } from "../lib/config";
+import { isMobileApp } from "../lib/mobile-network";
+import { mobileDirectChat, mobileDirectHealthCheck } from "../lib/mobile-direct";
 
 interface SimpleChatScreenProps {
   date: string;
@@ -70,35 +72,58 @@ export default function SimpleChatScreen({ date, onBack }: SimpleChatScreenProps
     setInput("");
     
     try {
-      console.log('🚀 Making API request to chat endpoint');
-      
-      const response = await apiCall('/api/chat', {
-        method: 'POST',
-        body: JSON.stringify({
-          messages: [...messages, userMessage].map(msg => ({
-            sender: msg.sender === "user" ? "user" : "deite",
-            content: msg.content
-          })),
-          userId: user.uid
-        })
-      });
+      // Check if mobile app - use direct RunPod call
+      if (isMobileApp()) {
+        console.log('📱 SimpleChatScreen: Using direct mobile RunPod call');
+        
+        const messagesForChat = [...messages, userMessage].map(msg => ({
+          sender: msg.sender === "user" ? "user" : "deite",
+          content: msg.content
+        }));
+        
+        const response = await mobileDirectChat(messagesForChat, user.uid);
+        
+        const botMessage = {
+          id: `bot-${Date.now()}`,
+          sender: "deite",
+          content: response.reply
+        };
 
-      console.log('📡 API response status:', response.status);
+        setMessages(prev => [...prev, botMessage]);
+        console.log(`📱 Direct mobile response from: ${response.source}`);
+        
+      } else {
+        // Web - use server API
+        console.log('🌐 SimpleChatScreen: Using server API call');
+        
+        const response = await apiCall('/api/chat', {
+          method: 'POST',
+          body: JSON.stringify({
+            messages: [...messages, userMessage].map(msg => ({
+              sender: msg.sender === "user" ? "user" : "deite",
+              content: msg.content
+            })),
+            userId: user.uid
+          })
+        });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        console.log('📡 API response status:', response.status);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('✅ API response data:', data);
+
+        const botMessage = {
+          id: `bot-${Date.now()}`,
+          sender: "deite",
+          content: data.reply || "I'm sorry, I couldn't generate a response."
+        };
+
+        setMessages(prev => [...prev, botMessage]);
       }
-
-      const data = await response.json();
-      console.log('✅ API response data:', data);
-
-      const botMessage = {
-        id: `bot-${Date.now()}`,
-        sender: "deite",
-        content: data.reply || "I'm sorry, I couldn't generate a response."
-      };
-
-      setMessages(prev => [...prev, botMessage]);
 
     } catch (err: any) {
       console.error('❌ API request failed:', err);

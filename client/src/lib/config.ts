@@ -3,17 +3,19 @@ import { mobileHttpRequest, isMobileApp as isMobileAppUtil } from './mobile-netw
 // Configuration for different environments
 const config = {
   development: {
-    apiBaseUrl: '', // Empty string for relative URLs in development
+    apiBaseUrl: '', // Empty string for relative URLs in development (web only)
   },
   production: {
-    apiBaseUrl: 'https://deite-a2-vasudevjamdagnigaur.repl.co', // Your actual Replit deployment URL
+    apiBaseUrl: '', // For web deployment
   }
 };
 
-// Fallback URLs in case the primary URL fails
-const fallbackUrls = [
-  'https://deite-a2-vasudevjamdagnigaur.repl.co',
-  // Add any additional fallback URLs here if needed
+// For mobile apps, we'll use direct RunPod connection (no local server needed)
+const MOBILE_DIRECT_RUNPOD_URL = "https://vbpxyhouli5bmjw6cve0:40u3src5k8wrj4vf8b0u@giy3d1ylj8dr8b-19123-vbpxyhouli5bmjw6cve0.proxy.runpod.net/api/generate";
+
+// Fallback URLs for web only
+const webFallbackUrls = [
+  '', // Current domain fallback for web
 ];
 
 // Use the mobile utility for consistent mobile detection
@@ -21,14 +23,14 @@ const isMobileApp = isMobileAppUtil;
 
 // Get the appropriate API base URL
 export const getApiBaseUrl = () => {
-  // Always use production URL for mobile apps
+  // Always use local server (no external Replit dependency)
   if (isMobileApp()) {
-    console.log('Mobile app detected, using production API URL');
+    console.log('Mobile app detected, using local server API');
     return config.production.apiBaseUrl;
   }
   
-  // Use development URL for web
-  console.log('Web environment detected, using development API URL');
+  // Use local server for web as well
+  console.log('Web environment detected, using local server API');
   return config.development.apiBaseUrl;
 };
 
@@ -43,7 +45,10 @@ export const apiUrl = (endpoint: string) => {
 export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
   console.log(`🚀 Making API call to: ${endpoint}`);
   
-  const urls = isMobileApp() ? fallbackUrls.map(url => url + endpoint) : [apiUrl(endpoint)];
+  // For mobile apps, try fallback URLs; for web, use direct endpoint
+  const urls = isMobileApp() 
+    ? fallbackUrls.filter(url => url).map(url => url + endpoint).concat([apiUrl(endpoint)])
+    : [apiUrl(endpoint)];
   
   for (let i = 0; i < urls.length; i++) {
     const url = urls[i];

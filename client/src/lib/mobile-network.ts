@@ -96,7 +96,7 @@ export const mobileHttpRequest = async (
         console.log('📱 Using Capacitor HTTP');
         const { CapacitorHttp } = (window as any).Capacitor.Plugins;
         
-        const capacitorOptions = {
+        const capacitorOptions: any = {
           url: url,
           headers: {
             'Content-Type': 'application/json',
@@ -111,11 +111,11 @@ export const mobileHttpRequest = async (
         
         if (options.body) {
           try {
-            capacitorOptions['data'] = typeof options.body === 'string' 
+            capacitorOptions.data = typeof options.body === 'string' 
               ? JSON.parse(options.body) 
               : options.body;
           } catch (e) {
-            capacitorOptions['data'] = options.body;
+            capacitorOptions.data = options.body;
           }
         }
         

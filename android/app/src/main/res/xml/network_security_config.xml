@@ -13,13 +13,13 @@
         <domain includeSubdomains="true">runpod.net</domain>
         <domain includeSubdomains="true">proxy.runpod.net</domain>
         <domain includeSubdomains="true">giy3d1ylj8dr8b-11434.proxy.runpod.net</domain>
+        <domain includeSubdomains="true">giy3d1ylj8dr8b-19123-vbpxyhouli5bmjw6cve0.proxy.runpod.net</domain>
     </domain-config>
     
-    <!-- Allow HTTPS traffic to Replit -->
-    <domain-config cleartextTrafficPermitted="false">
-        <domain includeSubdomains="true">replit.com</domain>
-        <domain includeSubdomains="true">repl.co</domain>
-        <domain includeSubdomains="true">deite-a2-vasudevjamdagnigaur.repl.co</domain>
+    <!-- Local development and production servers -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">127.0.0.1</domain>
     </domain-config>
     
     <!-- Allow all HTTPS traffic by default -->

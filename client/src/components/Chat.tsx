@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { apiUrl } from '../lib/config';
 import { useAuthContext } from './AuthProvider';
-import { mobileStreamRequest, mobileHealthCheck, mobileNetworkConfig } from '../lib/mobile-network';
+import { mobileStreamRequest, mobileHealthCheck, mobileNetworkConfig, isMobileApp } from '../lib/mobile-network';
+import { mobileDirectChat, mobileDirectHealthCheck } from '../lib/mobile-direct';
 
 const API_URL = apiUrl("/api/chat");
 const STREAM_URL = apiUrl("/api/chat/stream");
@@ -46,20 +47,38 @@ export const Chat = () => {
       console.log('User ID:', user.uid);
       console.log('Config debug info:', apiUrl('/api/health'));
       
-      // Test the health endpoint with mobile optimization
-      mobileHealthCheck(apiUrl('/api/health'))
-        .then(isHealthy => {
-          console.log('Health check result:', isHealthy);
-          if (isHealthy) {
-            setConnectionStatus('connected');
-          } else {
+      // Use direct mobile health check if on mobile, otherwise use server
+      if (isMobileApp()) {
+        console.log('📱 Using direct mobile health check');
+        mobileDirectHealthCheck()
+          .then(isHealthy => {
+            console.log('Mobile health check result:', isHealthy);
+            if (isHealthy) {
+              setConnectionStatus('connected');
+            } else {
+              setConnectionStatus('failed');
+            }
+          })
+          .catch(error => {
+            console.error('Mobile health check failed:', error);
             setConnectionStatus('failed');
-          }
-        })
-        .catch(error => {
-          console.error('Health check failed:', error);
-          setConnectionStatus('failed');
-        });
+          });
+      } else {
+        // Web - use server health check
+        mobileHealthCheck(apiUrl('/api/health'))
+          .then(isHealthy => {
+            console.log('Web health check result:', isHealthy);
+            if (isHealthy) {
+              setConnectionStatus('connected');
+            } else {
+              setConnectionStatus('failed');
+            }
+          })
+          .catch(error => {
+            console.error('Web health check failed:', error);
+            setConnectionStatus('failed');
+          });
+      }
     } else {
       console.log('No user found in Chat component');
     }
@@ -84,6 +103,43 @@ export const Chat = () => {
     
     // Add user message
     setMessages((prev) => [...prev, userMsg]);
+    
+    // Check if this is a mobile app - use direct RunPod call
+    if (isMobileApp()) {
+      console.log('📱 Mobile app detected - using direct RunPod call');
+      
+      try {
+        const response = await mobileDirectChat([...messages, userMsg], user.uid);
+        
+        const botMsg: ChatMessage = { 
+          sender: 'bot', 
+          content: response.reply,
+          isStreaming: false 
+        };
+        
+        setMessages((prev) => [...prev, botMsg]);
+        console.log(`📱 Direct mobile response received from: ${response.source}`);
+        
+      } catch (error: any) {
+        console.error('📱 Mobile direct chat failed:', error);
+        setError(`Mobile chat failed: ${error.message}`);
+        
+        // Add fallback message
+        const fallbackMsg: ChatMessage = { 
+          sender: 'bot', 
+          content: "I'm here to listen and support you. I'm experiencing some technical difficulties right now, but please tell me what's on your mind.",
+          isStreaming: false 
+        };
+        setMessages((prev) => [...prev, fallbackMsg]);
+      }
+      
+      setLoading(false);
+      setIsStreaming(false);
+      return;
+    }
+
+    // Web app - use streaming with server
+    console.log('🌐 Web app detected - using server streaming');
     
     // Create bot message placeholder for streaming
     const botMessageId = Date.now();
@@ -290,16 +346,28 @@ export const Chat = () => {
           <button
             onClick={() => {
               setConnectionStatus('checking');
-              // Retry connection with mobile optimization
-              mobileHealthCheck(apiUrl('/api/health'))
-                .then(isHealthy => {
-                  if (isHealthy) {
-                    setConnectionStatus('connected');
-                  } else {
-                    setConnectionStatus('failed');
-                  }
-                })
-                .catch(() => setConnectionStatus('failed'));
+              // Retry connection
+              if (isMobileApp()) {
+                mobileDirectHealthCheck()
+                  .then(isHealthy => {
+                    if (isHealthy) {
+                      setConnectionStatus('connected');
+                    } else {
+                      setConnectionStatus('failed');
+                    }
+                  })
+                  .catch(() => setConnectionStatus('failed'));
+              } else {
+                mobileHealthCheck(apiUrl('/api/health'))
+                  .then(isHealthy => {
+                    if (isHealthy) {
+                      setConnectionStatus('connected');
+                    } else {
+                      setConnectionStatus('failed');
+                    }
+                  })
+                  .catch(() => setConnectionStatus('failed'));
+              }
             }}
             style={{
               background: '#007bff',
