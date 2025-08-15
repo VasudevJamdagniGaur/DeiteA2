@@ -107,6 +107,7 @@ Deite is a mental health companion application that combines therapy and reflect
 Changelog:
 - June 24, 2025. Initial setup
 - June 24, 2025. Implemented AI Memory System with short-term (Firestore) and long-term (PostgreSQL) memory
+- August 15, 2025. Fixed deployment CORS dependency issue - added 'cors' package to production dependencies
 ```
 
 ## User Preferences

@@ -63,12 +63,12 @@ app.use((req, res, next) => {
 // Override res.json to log responses
 app.use((req, res, next) => {
   const originalJson = res.json;
-  res.json = function (bodyJson: any, ...args: any[]) {
+  res.json = function (bodyJson: any) {
     console.log(
       `Response sent to ${req.isMobileApp ? "MOBILE APP" : "WEB"}:`,
       JSON.stringify(bodyJson, null, 2),
     );
-    return originalJson.call(this, bodyJson, ...args);
+    return originalJson.call(this, bodyJson);
   };
   next();
 });
@@ -183,39 +183,42 @@ app.get("/api/test-runpod", async (req, res) => {
   }
 });
 
-// Register all routes
-registerRoutes(app);
+// Setup server function
+async function startServer() {
+  // Register all routes
+  const httpServer = await registerRoutes(app);
 
-// Error handling middleware
-app.use((err: any, req: any, res: any, next: any) => {
-  console.error("Global error handler:", err);
-  res.status(500).json({
-    error: "Internal server error",
-    message: err.message,
-    timestamp: new Date().toISOString(),
-    isMobileApp: req.isMobileApp || false,
+  // Setup Vite for development or serve static files for production
+  if (process.env.NODE_ENV === "development") {
+    const { setupVite } = await import("./vite");
+    await setupVite(app, httpServer);
+  } else {
+    const { serveStatic } = await import("./vite");
+    serveStatic(app);
+  }
+
+  // Error handling middleware
+  app.use((err: any, req: any, res: any, next: any) => {
+    console.error("Global error handler:", err);
+    res.status(500).json({
+      error: "Internal server error",
+      message: err.message,
+      timestamp: new Date().toISOString(),
+      isMobileApp: req.isMobileApp || false,
+    });
   });
-});
 
-// 404 handler
-app.use((req, res) => {
-  console.log("404 - Route not found:", req.method, req.url);
-  res.status(404).json({
-    error: "Route not found",
-    method: req.method,
-    url: req.url,
-    timestamp: new Date().toISOString(),
-    isMobileApp: req.isMobileApp || false,
+  // Start server
+  httpServer.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📱 Mobile app detection: ENABLED`);
+    console.log(
+      `🔗 RunPod URL: https://giy3d1ylj8dr8b-11434.proxy.runpod.net:11434/api/generate`,
+    );
+    console.log(`🌐 Health check: http://localhost:${PORT}/api/health`);
+    console.log(`🧪 Test RunPod: http://localhost:${PORT}/api/test-runpod`);
   });
-});
+}
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📱 Mobile app detection: ENABLED`);
-  console.log(
-    `🔗 RunPod URL: https://giy3d1ylj8dr8b-11434.proxy.runpod.net:11434/api/generate`,
-  );
-  console.log(`🌐 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`🧪 Test RunPod: http://localhost:${PORT}/api/test-runpod`);
-});
+// Start the server
+startServer().catch(console.error);
