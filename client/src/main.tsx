@@ -11,10 +11,11 @@ window.addEventListener('unhandledrejection', (event) => {
   console.error('Unhandled promise rejection:', event.reason);
 });
 
-// Add console log for mobile debugging
-console.log('🚀 App starting...');
-console.log('🌍 Environment:', typeof window !== 'undefined' ? 'browser' : 'server');
+// Add console log for APK debugging
+console.log('📱 APK App starting...');
+console.log('🌍 Environment: APK/Capacitor Mobile App');
 console.log('📱 User agent:', navigator.userAgent);
+console.log('📱 RunPod Mode: Direct connection enabled');
 
 try {
   const rootElement = document.getElementById("root");
@@ -22,13 +23,13 @@ try {
     throw new Error('Root element not found');
   }
   
-  console.log('✅ Root element found, creating React root...');
+  console.log('📱 Root element found, creating React root for APK...');
   const root = createRoot(rootElement);
   
-  console.log('✅ React root created, rendering app...');
+  console.log('📱 React root created, rendering APK app...');
   root.render(<App />);
   
-  console.log('✅ App rendered successfully');
+  console.log('📱 APK App rendered successfully');
 } catch (error) {
   console.error('❌ Failed to start app:', error);
   

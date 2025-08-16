@@ -4,7 +4,7 @@ import { mobileHttpRequest, isMobileApp } from './mobile-network';
 
 // RunPod configuration for direct mobile access
 const MOBILE_RUNPOD_CONFIG = {
-  url: "https://vbpxyhouli5bmjw6cve0:40u3src5k8wrj4vf8b0u@giy3d1ylj8dr8b-19123-vbpxyhouli5bmjw6cve0.proxy.runpod.net/api/generate",
+  url: "https://g0r8vprssr0m80-11434.proxy.runpod.net/api/generate",
   model: "llama3:70b",
   timeout: 60000,
 };

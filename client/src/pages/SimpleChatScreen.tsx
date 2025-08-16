@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useAuthContext } from "../components/AuthProvider";
-import { apiUrl, apiCall } from "../lib/config";
-import { isMobileApp } from "../lib/mobile-network";
+import { getMobileConfig } from "../lib/config";
 import { mobileDirectChat, mobileDirectHealthCheck } from "../lib/mobile-direct";
+import { mobileHealthCheck } from "../lib/mobile-network";
 
 interface SimpleChatScreenProps {
   date: string;
@@ -10,7 +10,7 @@ interface SimpleChatScreenProps {
 }
 
 export default function SimpleChatScreen({ date, onBack }: SimpleChatScreenProps) {
-  console.log('🚀 SimpleChatScreen mounted');
+  console.log('📱 SimpleChatScreen mounted - APK Mode');
   
   const { user } = useAuthContext();
   const [messages, setMessages] = useState<any[]>([]);
@@ -19,12 +19,15 @@ export default function SimpleChatScreen({ date, onBack }: SimpleChatScreenProps
   const [error, setError] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'failed'>('checking');
 
-  // Mobile-safe error handling
+  // APK-optimized error handling
   const handleError = (err: any, context: string) => {
-    console.error(`❌ ${context}:`, err);
+    console.error(`📱 APK ${context}:`, err);
     const errorMessage = err?.message || err?.toString() || 'Unknown error';
     setError(`${context}: ${errorMessage}`);
   };
+
+  // Get mobile configuration
+  const mobileConfig = getMobileConfig();
 
   console.log('📱 SimpleChatScreen state:', { 
     user: !!user, 
@@ -34,7 +37,7 @@ export default function SimpleChatScreen({ date, onBack }: SimpleChatScreenProps
   });
 
   useEffect(() => {
-    console.log('🔧 SimpleChatScreen useEffect triggered');
+    console.log('📱 SimpleChatScreen useEffect triggered - APK Mode');
     
     try {
       // Set initial message
@@ -44,29 +47,25 @@ export default function SimpleChatScreen({ date, onBack }: SimpleChatScreenProps
         content: "Hi there! How are you feeling today? I'm here to listen and help you reflect. 💜"
       }]);
 
-      // Test API connectivity
+      // Test RunPod connectivity directly
       if (user) {
-        console.log('🔍 Testing API connectivity...');
-        apiCall('/api/health')
-          .then(response => {
-            console.log('📡 Health check response status:', response.status);
-            setConnectionStatus('connected');
-            return response.json();
-          })
-          .then(data => {
-            console.log('✅ Health check response:', data);
+        console.log('📱 Testing direct RunPod connectivity...');
+        mobileHealthCheck(mobileConfig.healthUrl)
+          .then(isHealthy => {
+            console.log(`📱 RunPod health check result: ${isHealthy}`);
+            setConnectionStatus(isHealthy ? 'connected' : 'failed');
           })
           .catch(error => {
-            console.error('❌ Health check failed:', error);
+            console.error('📱 RunPod health check failed:', error);
             setConnectionStatus('failed');
             // Don't show error for health check failure, just mark as failed
           });
       }
     } catch (error) {
-      handleError(error, 'SimpleChatScreen initialization failed');
+      handleError(error, 'APK SimpleChatScreen initialization failed');
       setConnectionStatus('failed');
     }
-  }, [user]);
+  }, [user, mobileConfig]);
 
   const handleSendMessage = async () => {
     if (!input.trim() || loading || !user) return;
@@ -85,58 +84,24 @@ export default function SimpleChatScreen({ date, onBack }: SimpleChatScreenProps
     setInput("");
     
     try {
-      // Check if mobile app - use direct RunPod call
-      if (isMobileApp()) {
-        console.log('📱 SimpleChatScreen: Using direct mobile RunPod call');
-        
-        const messagesForChat = [...messages, userMessage].map(msg => ({
-          sender: msg.sender === "user" ? "user" : "deite",
-          content: msg.content
-        }));
-        
-        const response = await mobileDirectChat(messagesForChat, user.uid);
-        
-        const botMessage = {
-          id: `bot-${Date.now()}`,
-          sender: "deite",
-          content: response.reply
-        };
+      // APK Mode - Always use direct RunPod connection
+      console.log('📱 APK Mode: Using direct RunPod call');
+      
+      const messagesForChat = [...messages, userMessage].map(msg => ({
+        sender: msg.sender === "user" ? "user" : "deite",
+        content: msg.content
+      }));
+      
+      const response = await mobileDirectChat(messagesForChat, user.uid);
+      
+      const botMessage = {
+        id: `bot-${Date.now()}`,
+        sender: "deite",
+        content: response.reply
+      };
 
-        setMessages(prev => [...prev, botMessage]);
-        console.log(`📱 Direct mobile response from: ${response.source}`);
-        
-      } else {
-        // Web - use server API
-        console.log('🌐 SimpleChatScreen: Using server API call');
-        
-        const response = await apiCall('/api/chat', {
-          method: 'POST',
-          body: JSON.stringify({
-            messages: [...messages, userMessage].map(msg => ({
-              sender: msg.sender === "user" ? "user" : "deite",
-              content: msg.content
-            })),
-            userId: user.uid
-          })
-        });
-
-        console.log('📡 API response status:', response.status);
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('✅ API response data:', data);
-
-        const botMessage = {
-          id: `bot-${Date.now()}`,
-          sender: "deite",
-          content: data.reply || "I'm sorry, I couldn't generate a response."
-        };
-
-        setMessages(prev => [...prev, botMessage]);
-      }
+      setMessages(prev => [...prev, botMessage]);
+      console.log(`📱 APK response from: ${response.source}`);
 
     } catch (err: any) {
       handleError(err, 'Message sending failed');
@@ -224,7 +189,7 @@ export default function SimpleChatScreen({ date, onBack }: SimpleChatScreenProps
         <div style={{ width: '32px' }}></div>
       </div>
 
-      {/* Connection Status */}
+      {/* Connection Status - APK Mode */}
       <div style={{ 
         padding: '8px 16px', 
         backgroundColor: connectionStatus === 'connected' ? '#d4edda' : 
@@ -234,9 +199,9 @@ export default function SimpleChatScreen({ date, onBack }: SimpleChatScreenProps
         fontSize: '14px',
         textAlign: 'center'
       }}>
-        {connectionStatus === 'checking' && '🔄 Checking connection...'}
-        {connectionStatus === 'connected' && '✅ Connected to Deite'}
-        {connectionStatus === 'failed' && '❌ Connection failed'}
+        {connectionStatus === 'checking' && '🔄 Connecting to RunPod...'}
+        {connectionStatus === 'connected' && '✅ Connected to RunPod AI'}
+        {connectionStatus === 'failed' && '❌ RunPod connection failed'}
       </div>
 
       {/* Messages */}

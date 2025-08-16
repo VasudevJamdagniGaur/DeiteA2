@@ -1,86 +1,87 @@
 import { mobileHttpRequest, isMobileApp as isMobileAppUtil } from './mobile-network';
 
-// Configuration for different environments
-const config = {
-  development: {
-    apiBaseUrl: '', // Empty string for relative URLs in development (web only)
-  },
-  production: {
-    apiBaseUrl: '', // For web deployment
-  }
+// Mobile-first configuration - optimized for APK deployment
+const MOBILE_CONFIG = {
+  // Primary RunPod endpoint for all mobile operations
+  runpodUrl: "https://g0r8vprssr0m80-11434.proxy.runpod.net/api/generate",
+  
+  // Backup endpoints (can be added if needed)
+  fallbackUrls: [
+    "https://g0r8vprssr0m80-11434.proxy.runpod.net/api/generate"
+  ],
+  
+  // Mobile-specific settings
+  model: "llama3:70b",
+  timeout: 60000,
+  retries: 3,
+  
+  // Health check endpoint
+  healthUrl: "https://g0r8vprssr0m80-11434.proxy.runpod.net/"
 };
 
-// For mobile apps, we'll use direct RunPod connection (no local server needed)
-const MOBILE_DIRECT_RUNPOD_URL = "https://vbpxyhouli5bmjw6cve0:40u3src5k8wrj4vf8b0u@giy3d1ylj8dr8b-19123-vbpxyhouli5bmjw6cve0.proxy.runpod.net/api/generate";
+// Force mobile app detection for APK builds
+const isMobileApp = () => {
+  // Always return true for APK builds - this ensures mobile-optimized behavior
+  return true;
+};
 
-// Fallback URLs for mobile apps
-const fallbackUrls = [
-  '', // Current domain fallback
-];
-
-// Use the mobile utility for consistent mobile detection
-const isMobileApp = isMobileAppUtil;
-
-// Get the appropriate API base URL
+// Get the appropriate API base URL - mobile-first approach
 export const getApiBaseUrl = () => {
-  // Always use local server (no external Replit dependency)
-  if (isMobileApp()) {
-    console.log('Mobile app detected, using local server API');
-    return config.production.apiBaseUrl;
-  }
-  
-  // Use local server for web as well
-  console.log('Web environment detected, using local server API');
-  return config.development.apiBaseUrl;
+  // For APK builds, we don't use a local server - everything goes direct to RunPod
+  console.log('📱 APK mode: Using direct RunPod connection');
+  return MOBILE_CONFIG.runpodUrl;
 };
 
+// Mobile-first API URL construction - bypasses local server entirely
 export const apiUrl = (endpoint: string) => {
-  const baseUrl = getApiBaseUrl();
-  const fullUrl = baseUrl + endpoint;
-  console.log(`API URL constructed: ${fullUrl}`);
-  return fullUrl;
+  // For APK builds, ignore endpoints and go directly to RunPod
+  console.log(`📱 APK mode: Ignoring endpoint '${endpoint}', using direct RunPod`);
+  return MOBILE_CONFIG.runpodUrl;
 };
 
-// Enhanced API call with mobile-optimized networking
+// Mobile-optimized API call - designed specifically for APK deployment
 export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
-  console.log(`🚀 Making API call to: ${endpoint}`);
+  console.log(`📱 APK API call - endpoint '${endpoint}' -> direct RunPod`);
   
-  // For mobile apps, try fallback URLs; for web, use direct endpoint
-  const urls = isMobileApp() 
-    ? fallbackUrls.filter(url => url).map(url => url + endpoint).concat([apiUrl(endpoint)])
-    : [apiUrl(endpoint)];
+  // For APK builds, we bypass traditional endpoints and go straight to RunPod
+  const urls = MOBILE_CONFIG.fallbackUrls;
   
   for (let i = 0; i < urls.length; i++) {
     const url = urls[i];
-    console.log(`📡 Trying URL ${i + 1}/${urls.length}: ${url}`);
+    console.log(`📡 Trying RunPod URL ${i + 1}/${urls.length}: ${url}`);
     
     try {
       // Use the enhanced mobile HTTP request
       const response = await mobileHttpRequest(url, options);
       
       if (response.ok) {
-        console.log(`✅ API call successful with URL: ${url}`);
+        console.log(`✅ RunPod API call successful`);
         return response;
       } else {
-        console.warn(`⚠️ API call failed with status ${response.status} for URL: ${url}`);
+        console.warn(`⚠️ RunPod API call failed with status ${response.status}`);
         if (i === urls.length - 1) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
       }
     } catch (error: any) {
-      console.error(`❌ API call error for URL ${url}:`, error.message);
+      console.error(`❌ RunPod API call error:`, error.message);
       if (i === urls.length - 1) {
         throw error;
       }
     }
   }
   
-  throw new Error('All API endpoints failed');
+  throw new Error('All RunPod endpoints failed');
 };
 
-// Export for debugging
+// Export mobile configuration for other modules
+export const getMobileConfig = () => MOBILE_CONFIG;
+
+// Export for debugging - mobile-optimized
 export const debugInfo = {
   isMobile: isMobileApp(),
-  apiBaseUrl: getApiBaseUrl(),
-  userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown'
+  runpodUrl: MOBILE_CONFIG.runpodUrl,
+  healthUrl: MOBILE_CONFIG.healthUrl,
+  model: MOBILE_CONFIG.model,
+  userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'APK-Environment'
 };

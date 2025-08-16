@@ -1,23 +1,10 @@
 // Mobile network utilities for better APK connectivity
 
-// Check if we're in a Capacitor mobile app
+// APK-optimized mobile app detection
 export const isMobileApp = (): boolean => {
-  if (typeof window === 'undefined') return false;
-  
-  // Check for Capacitor environment
-  const capacitor = (window as any).Capacitor;
-  if (capacitor && capacitor.isNativePlatform && capacitor.isNativePlatform()) {
-    return true;
-  }
-  
-  // Fallback checks
-  if (window.location.protocol === 'capacitor:' || window.location.protocol === 'ionic:') {
-    return true;
-  }
-  
-  // Check user agent as last resort
-  const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
-  return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
+  // For APK builds, always return true to ensure mobile-first behavior
+  console.log('📱 APK mode: Forcing mobile app detection = true');
+  return true;
 };
 
 // Check if Capacitor HTTP plugin is available
@@ -244,19 +231,19 @@ export const mobileNetworkConfig = {
   userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
 };
 
-// Health check function specifically for mobile
-export const mobileHealthCheck = async (healthUrl: string): Promise<boolean> => {
+// Health check function specifically for APK builds
+export const mobileHealthCheck = async (healthUrl: string = "https://g0r8vprssr0m80-11434.proxy.runpod.net/"): Promise<boolean> => {
   try {
-    console.log('📱 Performing mobile health check...');
+    console.log('📱 Performing APK health check on RunPod...');
     const response = await mobileHttpRequest(healthUrl, {
       method: 'GET',
     });
     
     const isHealthy = response.ok;
-    console.log(`📱 Health check result: ${isHealthy ? '✅ Healthy' : '❌ Unhealthy'}`);
+    console.log(`📱 RunPod health check result: ${isHealthy ? '✅ Healthy' : '❌ Unhealthy'}`);
     return isHealthy;
   } catch (error) {
-    console.error('📱 Health check failed:', error);
+    console.error('📱 RunPod health check failed:', error);
     return false;
   }
 };
