@@ -12,8 +12,7 @@
     <domain-config cleartextTrafficPermitted="false">
         <domain includeSubdomains="true">runpod.net</domain>
         <domain includeSubdomains="true">proxy.runpod.net</domain>
-        <domain includeSubdomains="true">giy3d1ylj8dr8b-11434.proxy.runpod.net</domain>
-        <domain includeSubdomains="true">giy3d1ylj8dr8b-19123-vbpxyhouli5bmjw6cve0.proxy.runpod.net</domain>
+        <domain includeSubdomains="true">g0r8vprssr0m80-11434.proxy.runpod.net</domain>
     </domain-config>
     
     <!-- Local development and production servers -->
