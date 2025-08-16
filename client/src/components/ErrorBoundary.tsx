@@ -1,77 +1,50 @@
-import React from 'react';
 
-interface ErrorBoundaryState {
+import React, { Component, ErrorInfo, ReactNode } from 'react';
+
+interface Props {
+  children: ReactNode;
+}
+
+interface State {
   hasError: boolean;
   error?: Error;
 }
 
-interface ErrorBoundaryProps {
-  children: React.ReactNode;
-}
+export class ErrorBoundary extends Component<Props, State> {
+  public state: State = {
+    hasError: false
+  };
 
-export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    console.error('🚨 ErrorBoundary caught error:', error);
+  public static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('🚨 ErrorBoundary componentDidCatch:', error, errorInfo);
+  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('Error boundary caught an error:', error, errorInfo);
   }
 
-  render() {
+  public render() {
     if (this.state.hasError) {
       return (
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: '100vh',
-          padding: '20px',
-          textAlign: 'center',
-          backgroundColor: '#fee2e2'
-        }}>
-          <h1 style={{ color: '#dc2626', marginBottom: '16px' }}>Something went wrong!</h1>
-          <p style={{ color: '#7f1d1d', marginBottom: '16px' }}>
-            The app encountered an error and couldn't render properly.
-          </p>
-          <details style={{ marginBottom: '16px', textAlign: 'left' }}>
-            <summary style={{ cursor: 'pointer', color: '#7f1d1d' }}>Error Details</summary>
-            <pre style={{ 
-              backgroundColor: '#fecaca', 
-              padding: '10px', 
-              borderRadius: '4px',
-              fontSize: '12px',
-              overflow: 'auto',
-              maxWidth: '100%'
-            }}>
-              {this.state.error?.message || 'Unknown error'}
-              {this.state.error?.stack && '\n\nStack trace:\n' + this.state.error.stack}
-            </pre>
-          </details>
-          <button
-            onClick={() => {
-              this.setState({ hasError: false, error: undefined });
-              window.location.reload();
-            }}
-            style={{
-              padding: '12px 24px',
-              backgroundColor: '#dc2626',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '16px'
-            }}
-          >
-            Reload App
-          </button>
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
+          <div className="text-center space-y-4">
+            <h1 className="text-2xl font-bold text-destructive">Something went wrong</h1>
+            <p className="text-muted-foreground">The app encountered an unexpected error.</p>
+            <button
+              onClick={() => this.setState({ hasError: false, error: undefined })}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg"
+            >
+              Try Again
+            </button>
+            {this.state.error && (
+              <details className="mt-4 text-sm text-left">
+                <summary className="cursor-pointer">Error Details</summary>
+                <pre className="mt-2 p-2 bg-muted rounded overflow-auto">
+                  {this.state.error.message}
+                </pre>
+              </details>
+            )}
+          </div>
         </div>
       );
     }

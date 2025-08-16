@@ -1,27 +1,39 @@
-// Simple configuration for mobile app
-const RUNPOD_URL = "https://g0r8vprssr0m80-11434.proxy.runpod.net/api/generate";
 
-// Simple mobile detection
+// Configuration for mobile app
+const BACKEND_URL = "https://deite-a2-vasudevjamdagnigaur.repl.co";
+
+// Mobile detection
 export const isMobileApp = () => {
-  return true; // Always mobile for APK
+  return window.location.protocol === 'capacitor:' || 
+         window.location.protocol === 'file:' ||
+         navigator.userAgent.includes('Capacitor');
 };
 
-// Simple API base URL
+// API base URL
 export const getApiBaseUrl = () => {
-  return "";
+  return BACKEND_URL;
 };
 
-// Simple API URL
+// API URL builder
 export const apiUrl = (endpoint: string) => {
-  return "";
+  const baseUrl = getApiBaseUrl();
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  return `${baseUrl}${cleanEndpoint}`;
 };
 
-// Simple API call
+// API call function
 export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
-  console.log(`Making API call to: ${endpoint}`);
+  const url = apiUrl(endpoint);
+  console.log(`Making API call to: ${url}`);
   
   try {
-    const response = await fetch(endpoint, options);
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    });
     return response;
   } catch (error) {
     console.error('API call failed:', error);
@@ -29,13 +41,15 @@ export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
   }
 };
 
-// Export simple config
+// Export mobile config
 export const getMobileConfig = () => ({
-  runpodUrl: RUNPOD_URL,
-  healthUrl: "https://g0r8vprssr0m80-11434.proxy.runpod.net/"
+  backendUrl: BACKEND_URL,
+  apiUrl: apiUrl,
+  isMobile: isMobileApp()
 });
 
 export const debugInfo = {
-  isMobile: true,
-  userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'mobile'
+  isMobile: isMobileApp(),
+  userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'mobile',
+  protocol: typeof window !== 'undefined' ? window.location.protocol : 'unknown'
 };

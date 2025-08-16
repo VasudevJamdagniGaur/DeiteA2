@@ -1,203 +1,118 @@
-import { Switch, Route } from "wouter";
-import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider, useAuthContext } from "./components/AuthProvider";
-import { ThemeProvider } from "./components/ThemeProvider";
-import SplashScreen from "./pages/SplashScreen";
-import OnboardingScreen from "./pages/OnboardingScreen";
-import AuthScreen from "./pages/AuthScreen";
-import ProfileSetupScreen from "./pages/ProfileSetupScreen";
-import DashboardScreen from "./pages/DashboardScreen";
-import ChatScreen from "./pages/ChatScreen";
-import SimpleChatScreen from "./pages/SimpleChatScreen";
-import UserProfileScreen from "./pages/UserProfileScreen";
-import CustomerSupportScreen from "./pages/CustomerSupportScreen";
-import NotFound from "@/pages/not-found";
-import { DebugInfo } from "./components/DebugInfo";
-import { ErrorBoundary } from "./components/ErrorBoundary";
-import { useState, useEffect } from "react";
-import { Brain, Heart, Sparkles, Star } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider } from './components/ThemeProvider';
+import { AuthProvider } from './components/AuthProvider';
+import { Toaster } from './components/ui/toaster';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import SplashScreen from './pages/SplashScreen';
+import AuthScreen from './pages/AuthScreen';
+import OnboardingScreen from './pages/OnboardingScreen';
+import ChatScreen from './pages/ChatScreen';
+import DashboardScreen from './pages/DashboardScreen';
+import UserProfileScreen from './pages/UserProfileScreen';
+import CustomerSupportScreen from './pages/CustomerSupportScreen';
+import ProfileSetupScreen from './pages/ProfileSetupScreen';
+import { useAuth } from './hooks/useAuth';
+import { isMobileApp, debugInfo } from './lib/config';
+import './index.css';
 
-// Simple console logging
-const simpleLog = (message: string, ...args: any[]) => {
-  console.log(message, ...args);
-};
+// Create a stable query client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
+
+type Screen = 
+  | 'splash'
+  | 'auth'
+  | 'onboarding'
+  | 'profile-setup'
+  | 'chat'
+  | 'dashboard'
+  | 'profile'
+  | 'support';
 
 function AppContent() {
-  const { user, profile, loading } = useAuthContext();
-  const [currentScreen, setCurrentScreen] = useState("splash");
-  const [chatDate, setChatDate] = useState("");
+  const [currentScreen, setCurrentScreen] = useState<Screen>('splash');
+  const [isLoading, setIsLoading] = useState(true);
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    if (!loading) {
-      simpleLog("Navigation logic - User:", !!user, "Profile:", !!profile, "Current screen:", currentScreen);
+    console.log('App starting...', debugInfo);
 
-      if (!user) {
-        // Not authenticated - show splash/onboarding/auth flow
-        if (currentScreen === "splash" || currentScreen === "onboarding" || currentScreen === "auth") {
-          // Keep current screen
+    // Initialize app
+    const initializeApp = async () => {
+      try {
+        // Simulate initial loading
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        setIsLoading(false);
+
+        // Navigate based on auth state
+        if (!user) {
+          setCurrentScreen('auth');
         } else {
-          setCurrentScreen("splash");
+          setCurrentScreen('chat');
         }
-      } else if (user && !profile) {
-        // Authenticated but no profile - always show profile setup
-        simpleLog("User authenticated but no profile, showing profile setup");
-        setCurrentScreen("profile");
-      } else if (user && profile) {
-        // Fully set up - show dashboard or chat
-        if (currentScreen === "splash" || currentScreen === "onboarding" || currentScreen === "auth" || currentScreen === "profile") {
-          simpleLog("User has profile, navigating to dashboard");
-          setCurrentScreen("dashboard");
-        }
+      } catch (error) {
+        console.error('App initialization failed:', error);
+        setIsLoading(false);
+        setCurrentScreen('auth');
       }
-    }
-  }, [user, profile, loading]);
+    };
 
-  if (loading) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-800 overflow-hidden">
-        {/* Floating cute elements */}
-        <div className="absolute top-16 left-8 animate-bounce">
-          <Heart className="w-8 h-8 text-pink-400 drop-shadow-lg" />
-        </div>
-        <div className="absolute top-24 right-12 animate-bounce delay-300">
-          <Sparkles className="w-6 h-6 text-purple-400 drop-shadow-lg" />
-        </div>
-        <div className="absolute bottom-32 left-16 animate-bounce delay-500">
-          <Star className="w-7 h-7 text-blue-400 drop-shadow-lg" />
-        </div>
-        <div className="absolute bottom-40 right-8 animate-bounce delay-700">
-          <Heart className="w-5 h-5 text-pink-300 drop-shadow-lg" />
-        </div>
-        <div className="absolute top-1/3 left-4 animate-bounce delay-1000">
-          <Sparkles className="w-4 h-4 text-yellow-400 drop-shadow-lg" />
-        </div>
-        <div className="absolute top-1/2 right-6 animate-bounce delay-1200">
-          <Star className="w-6 h-6 text-purple-300 drop-shadow-lg" />
-        </div>
+    initializeApp();
+  }, [user]);
 
-        {/* Main content */}
-        <div className="text-center relative z-10">
-          {/* Brain icon at the top */}
-          <div className="mb-8 flex justify-center">
-            <div className="relative">
-              <div className="w-24 h-24 bg-gradient-to-br from-purple-400 via-pink-400 to-blue-400 rounded-full flex items-center justify-center shadow-2xl shadow-purple-500/50 animate-pulse">
-                <Brain className="w-12 h-12 text-white drop-shadow-lg" />
-              </div>
-              {/* Glowing ring effect */}
-              <div className="absolute inset-0 w-24 h-24 bg-gradient-to-br from-purple-400 via-pink-400 to-blue-400 rounded-full animate-ping opacity-20"></div>
-              {/* Secondary glow */}
-              <div className="absolute -inset-2 w-28 h-28 bg-gradient-to-br from-purple-400/30 via-pink-400/30 to-blue-400/30 rounded-full animate-pulse blur-md"></div>
-            </div>
-          </div>
-
-          {/* App name */}
-          <div className="mb-6">
-            <h1 className="text-6xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent mb-2 drop-shadow-2xl animate-pulse">
-              Deite
-            </h1>
-            <div className="flex items-center justify-center gap-2 mt-4">
-              <Sparkles className="w-5 h-5 text-yellow-400 animate-spin-slow" />
-              <p className="text-gray-300 text-lg font-medium">Your brain buddy</p>
-              <Sparkles className="w-5 h-5 text-yellow-400 animate-spin-slow" />
-            </div>
-          </div>
-
-          {/* Loading indicator */}
-          <div className="flex justify-center items-center space-x-2 mt-8">
-            <div className="w-3 h-3 bg-purple-400 rounded-full animate-bounce shadow-lg shadow-purple-400/50"></div>
-            <div className="w-3 h-3 bg-pink-400 rounded-full animate-bounce delay-100 shadow-lg shadow-pink-400/50"></div>
-            <div className="w-3 h-3 bg-blue-400 rounded-full animate-bounce delay-200 shadow-lg shadow-blue-400/50"></div>
-          </div>
-
-          {/* Subtitle */}
-          <p className="text-gray-400 text-sm mt-6 font-medium">Loading your wellness journey...</p>
-        </div>
-
-        {/* Background decorative elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-pink-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl animate-pulse delay-500"></div>
-        </div>
-      </div>
-    );
+  if (isLoading || authLoading) {
+    return <SplashScreen />;
   }
 
-  const screens = {
-    splash: (
-      <SplashScreen 
-        onGetStarted={() => setCurrentScreen("onboarding")} 
-      />
-    ),
-    onboarding: (
-      <OnboardingScreen 
-        onContinue={() => setCurrentScreen("auth")} 
-      />
-    ),
-    auth: (
-      <AuthScreen 
-        onSuccess={() => {
-          // Will be handled by useEffect when user/profile state changes
-        }} 
-      />
-    ),
-    profile: (
-      <ProfileSetupScreen 
-        onComplete={() => {
-          // Will be handled by useEffect when profile is created
-        }} 
-      />
-    ),
-    dashboard: (
-      <DashboardScreen 
-        onStartReflection={(date) => {
-          setChatDate(date);
-          setCurrentScreen("chat");
-        }}
-        onUserProfile={() => setCurrentScreen("userProfile")}
-        onCustomerSupport={() => setCurrentScreen("customerSupport")}
-      />
-    ),
-    chat: (
-      <SimpleChatScreen 
-        date={chatDate}
-        onBack={() => setCurrentScreen("dashboard")} 
-      />
-    ),
-    userProfile: (
-      <UserProfileScreen 
-        onBack={() => setCurrentScreen("dashboard")} 
-      />
-    ),
-    customerSupport: (
-      <CustomerSupportScreen 
-        onBack={() => setCurrentScreen("dashboard")} 
-      />
-    ),
+  const renderScreen = () => {
+    switch (currentScreen) {
+      case 'splash':
+        return <SplashScreen />;
+      case 'auth':
+        return <AuthScreen onNext={() => setCurrentScreen('onboarding')} />;
+      case 'onboarding':
+        return <OnboardingScreen onNext={() => setCurrentScreen('profile-setup')} />;
+      case 'profile-setup':
+        return <ProfileSetupScreen onNext={() => setCurrentScreen('chat')} />;
+      case 'chat':
+        return <ChatScreen onNavigate={setCurrentScreen} />;
+      case 'dashboard':
+        return <DashboardScreen onNavigate={setCurrentScreen} />;
+      case 'profile':
+        return <UserProfileScreen onNavigate={setCurrentScreen} />;
+      case 'support':
+        return <CustomerSupportScreen onNavigate={setCurrentScreen} />;
+      default:
+        return <ChatScreen onNavigate={setCurrentScreen} />;
+    }
   };
 
-  return screens[currentScreen as keyof typeof screens] || <NotFound />;
+  return (
+    <div className="min-h-screen bg-background">
+      {renderScreen()}
+      <Toaster />
+    </div>
+  );
 }
 
 function App() {
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <ThemeProvider>
-            <AuthProvider>
-              <div className="max-w-md mx-auto bg-white dark:bg-slate-900 shadow-2xl min-h-screen relative overflow-hidden transition-colors duration-300">
-                <DebugInfo />
-                <AppContent />
-              </div>
-              <Toaster />
-            </AuthProvider>
-          </ThemeProvider>
-        </TooltipProvider>
-      </QueryClientProvider>
+      <ThemeProvider defaultTheme="dark" storageKey="deite-ui-theme">
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <AppContent />
+          </AuthProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }

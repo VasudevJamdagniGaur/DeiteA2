@@ -1,12 +1,15 @@
+
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
   appId: "com.Deite.app",
   appName: "Deite - AI Companion",
-  webDir: "dist/public",
+  webDir: "dist",
   server: {
     androidScheme: "https",
     allowNavigation: [
+      "deite-a2-vasudevjamdagnigaur.repl.co",
+      "*.repl.co",
       "g0r8vprssr0m80-11434.proxy.runpod.net",
       "*.runpod.net"
     ]
