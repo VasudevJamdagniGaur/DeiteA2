@@ -18,5 +18,17 @@ const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-export const analytics = getAnalytics(app);
+
+// Initialize analytics safely for mobile apps
+let analytics: any = null;
+try {
+  // Only initialize analytics in browser environment
+  if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
+    analytics = getAnalytics(app);
+  }
+} catch (error) {
+  console.warn('Analytics initialization failed:', error);
+}
+
+export { analytics };
 export default app;

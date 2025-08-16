@@ -20,33 +20,48 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { useState, useEffect } from "react";
 import { Brain, Heart, Sparkles, Star } from "lucide-react";
 
+// Mobile-safe console logging
+const mobileLog = (message: string, ...args: any[]) => {
+  try {
+    console.log(`📱 ${message}`, ...args);
+  } catch (e) {
+    // Fallback for environments where console.log might fail
+  }
+};
+
 function AppContent() {
   const { user, profile, loading } = useAuthContext();
   const [currentScreen, setCurrentScreen] = useState("splash");
   const [chatDate, setChatDate] = useState("");
 
   useEffect(() => {
-    if (!loading) {
-      console.log("Navigation logic - User:", !!user, "Profile:", !!profile, "Current screen:", currentScreen);
+    try {
+      if (!loading) {
+        mobileLog("Navigation logic - User:", !!user, "Profile:", !!profile, "Current screen:", currentScreen);
 
-      if (!user) {
-        // Not authenticated - show splash/onboarding/auth flow
-        if (currentScreen === "splash" || currentScreen === "onboarding" || currentScreen === "auth") {
-          // Keep current screen
-        } else {
-          setCurrentScreen("splash");
-        }
-      } else if (user && !profile) {
-        // Authenticated but no profile - always show profile setup
-        console.log("User authenticated but no profile, showing profile setup");
-        setCurrentScreen("profile");
-      } else if (user && profile) {
-        // Fully set up - show dashboard or chat
-        if (currentScreen === "splash" || currentScreen === "onboarding" || currentScreen === "auth" || currentScreen === "profile") {
-          console.log("User has profile, navigating to dashboard");
-          setCurrentScreen("dashboard");
+        if (!user) {
+          // Not authenticated - show splash/onboarding/auth flow
+          if (currentScreen === "splash" || currentScreen === "onboarding" || currentScreen === "auth") {
+            // Keep current screen
+          } else {
+            setCurrentScreen("splash");
+          }
+        } else if (user && !profile) {
+          // Authenticated but no profile - always show profile setup
+          mobileLog("User authenticated but no profile, showing profile setup");
+          setCurrentScreen("profile");
+        } else if (user && profile) {
+          // Fully set up - show dashboard or chat
+          if (currentScreen === "splash" || currentScreen === "onboarding" || currentScreen === "auth" || currentScreen === "profile") {
+            mobileLog("User has profile, navigating to dashboard");
+            setCurrentScreen("dashboard");
+          }
         }
       }
+    } catch (error) {
+      mobileLog("Error in navigation logic:", error);
+      // Fallback to splash screen on error
+      setCurrentScreen("splash");
     }
   }, [user, profile, loading]);
 

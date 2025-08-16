@@ -19,13 +19,31 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const auth = useAuth();
+  try {
+    const auth = useAuth();
 
-  return (
-    <AuthContext.Provider value={auth}>
-      {children}
-    </AuthContext.Provider>
-  );
+    return (
+      <AuthContext.Provider value={auth}>
+        {children}
+      </AuthContext.Provider>
+    );
+  } catch (error) {
+    console.error('AuthProvider error:', error);
+    
+    // Fallback loading state if auth initialization fails
+    return (
+      <AuthContext.Provider value={{
+        user: null,
+        profile: null,
+        loading: true,
+        isAuthenticated: false,
+        hasProfile: false,
+        refreshProfile: async () => {},
+      }}>
+        {children}
+      </AuthContext.Provider>
+    );
+  }
 };
 
 export const useAuthContext = () => {

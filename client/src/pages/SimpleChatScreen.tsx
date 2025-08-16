@@ -19,6 +19,13 @@ export default function SimpleChatScreen({ date, onBack }: SimpleChatScreenProps
   const [error, setError] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'failed'>('checking');
 
+  // Mobile-safe error handling
+  const handleError = (err: any, context: string) => {
+    console.error(`❌ ${context}:`, err);
+    const errorMessage = err?.message || err?.toString() || 'Unknown error';
+    setError(`${context}: ${errorMessage}`);
+  };
+
   console.log('📱 SimpleChatScreen state:', { 
     user: !!user, 
     messagesCount: messages.length, 
@@ -29,29 +36,35 @@ export default function SimpleChatScreen({ date, onBack }: SimpleChatScreenProps
   useEffect(() => {
     console.log('🔧 SimpleChatScreen useEffect triggered');
     
-    // Set initial message
-    setMessages([{
-      id: "1",
-      sender: "deite",
-      content: "Hi there! How are you feeling today? I'm here to listen and help you reflect. 💜"
-    }]);
+    try {
+      // Set initial message
+      setMessages([{
+        id: "1",
+        sender: "deite",
+        content: "Hi there! How are you feeling today? I'm here to listen and help you reflect. 💜"
+      }]);
 
-    // Test API connectivity
-    if (user) {
-      console.log('🔍 Testing API connectivity...');
-      apiCall('/api/health')
-        .then(response => {
-          console.log('📡 Health check response status:', response.status);
-          setConnectionStatus('connected');
-          return response.json();
-        })
-        .then(data => {
-          console.log('✅ Health check response:', data);
-        })
-        .catch(error => {
-          console.error('❌ Health check failed:', error);
-          setConnectionStatus('failed');
-        });
+      // Test API connectivity
+      if (user) {
+        console.log('🔍 Testing API connectivity...');
+        apiCall('/api/health')
+          .then(response => {
+            console.log('📡 Health check response status:', response.status);
+            setConnectionStatus('connected');
+            return response.json();
+          })
+          .then(data => {
+            console.log('✅ Health check response:', data);
+          })
+          .catch(error => {
+            console.error('❌ Health check failed:', error);
+            setConnectionStatus('failed');
+            // Don't show error for health check failure, just mark as failed
+          });
+      }
+    } catch (error) {
+      handleError(error, 'SimpleChatScreen initialization failed');
+      setConnectionStatus('failed');
     }
   }, [user]);
 
@@ -126,8 +139,7 @@ export default function SimpleChatScreen({ date, onBack }: SimpleChatScreenProps
       }
 
     } catch (err: any) {
-      console.error('❌ API request failed:', err);
-      setError(`Failed to get response: ${err.message}`);
+      handleError(err, 'Message sending failed');
     } finally {
       setLoading(false);
     }

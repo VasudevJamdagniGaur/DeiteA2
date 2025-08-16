@@ -13,9 +13,9 @@ const config = {
 // For mobile apps, we'll use direct RunPod connection (no local server needed)
 const MOBILE_DIRECT_RUNPOD_URL = "https://vbpxyhouli5bmjw6cve0:40u3src5k8wrj4vf8b0u@giy3d1ylj8dr8b-19123-vbpxyhouli5bmjw6cve0.proxy.runpod.net/api/generate";
 
-// Fallback URLs for web only
-const webFallbackUrls = [
-  '', // Current domain fallback for web
+// Fallback URLs for mobile apps
+const fallbackUrls = [
+  '', // Current domain fallback
 ];
 
 // Use the mobile utility for consistent mobile detection
