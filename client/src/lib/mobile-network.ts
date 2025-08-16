@@ -1,9 +1,7 @@
 // Mobile network utilities for better APK connectivity
 
-// APK-optimized mobile app detection
+// Simple mobile app detection
 export const isMobileApp = (): boolean => {
-  // For APK builds, always return true to ensure mobile-first behavior
-  console.log('📱 APK mode: Forcing mobile app detection = true');
   return true;
 };
 
@@ -231,19 +229,16 @@ export const mobileNetworkConfig = {
   userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
 };
 
-// Health check function specifically for APK builds
+// Simple health check
 export const mobileHealthCheck = async (healthUrl: string = "https://g0r8vprssr0m80-11434.proxy.runpod.net/"): Promise<boolean> => {
   try {
-    console.log('📱 Performing APK health check on RunPod...');
-    const response = await mobileHttpRequest(healthUrl, {
-      method: 'GET',
-    });
-    
+    console.log('Performing health check...');
+    const response = await fetch(healthUrl);
     const isHealthy = response.ok;
-    console.log(`📱 RunPod health check result: ${isHealthy ? '✅ Healthy' : '❌ Unhealthy'}`);
+    console.log(`Health check result: ${isHealthy ? 'Healthy' : 'Unhealthy'}`);
     return isHealthy;
   } catch (error) {
-    console.error('📱 RunPod health check failed:', error);
+    console.error('Health check failed:', error);
     return false;
   }
 };

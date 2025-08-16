@@ -20,13 +20,9 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { useState, useEffect } from "react";
 import { Brain, Heart, Sparkles, Star } from "lucide-react";
 
-// APK-optimized console logging
-const apkLog = (message: string, ...args: any[]) => {
-  try {
-    console.log(`📱 APK: ${message}`, ...args);
-  } catch (e) {
-    // Fallback for environments where console.log might fail
-  }
+// Simple console logging
+const simpleLog = (message: string, ...args: any[]) => {
+  console.log(message, ...args);
 };
 
 function AppContent() {
@@ -35,33 +31,27 @@ function AppContent() {
   const [chatDate, setChatDate] = useState("");
 
   useEffect(() => {
-    try {
-      if (!loading) {
-        apkLog("Navigation logic - User:", !!user, "Profile:", !!profile, "Current screen:", currentScreen);
+    if (!loading) {
+      simpleLog("Navigation logic - User:", !!user, "Profile:", !!profile, "Current screen:", currentScreen);
 
-        if (!user) {
-          // Not authenticated - show splash/onboarding/auth flow
-          if (currentScreen === "splash" || currentScreen === "onboarding" || currentScreen === "auth") {
-            // Keep current screen
-          } else {
-            setCurrentScreen("splash");
-          }
-        } else if (user && !profile) {
-          // Authenticated but no profile - always show profile setup
-          apkLog("User authenticated but no profile, showing profile setup");
-          setCurrentScreen("profile");
-        } else if (user && profile) {
-          // Fully set up - show dashboard or chat
-          if (currentScreen === "splash" || currentScreen === "onboarding" || currentScreen === "auth" || currentScreen === "profile") {
-            apkLog("User has profile, navigating to dashboard");
-            setCurrentScreen("dashboard");
-          }
+      if (!user) {
+        // Not authenticated - show splash/onboarding/auth flow
+        if (currentScreen === "splash" || currentScreen === "onboarding" || currentScreen === "auth") {
+          // Keep current screen
+        } else {
+          setCurrentScreen("splash");
+        }
+      } else if (user && !profile) {
+        // Authenticated but no profile - always show profile setup
+        simpleLog("User authenticated but no profile, showing profile setup");
+        setCurrentScreen("profile");
+      } else if (user && profile) {
+        // Fully set up - show dashboard or chat
+        if (currentScreen === "splash" || currentScreen === "onboarding" || currentScreen === "auth" || currentScreen === "profile") {
+          simpleLog("User has profile, navigating to dashboard");
+          setCurrentScreen("dashboard");
         }
       }
-    } catch (error) {
-      apkLog("Error in navigation logic:", error);
-      // Fallback to splash screen on error
-      setCurrentScreen("splash");
     }
   }, [user, profile, loading]);
 
