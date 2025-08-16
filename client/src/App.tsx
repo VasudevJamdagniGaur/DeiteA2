@@ -20,10 +20,10 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { useState, useEffect } from "react";
 import { Brain, Heart, Sparkles, Star } from "lucide-react";
 
-// Mobile-safe console logging
-const mobileLog = (message: string, ...args: any[]) => {
+// APK-optimized console logging
+const apkLog = (message: string, ...args: any[]) => {
   try {
-    console.log(`📱 ${message}`, ...args);
+    console.log(`📱 APK: ${message}`, ...args);
   } catch (e) {
     // Fallback for environments where console.log might fail
   }
@@ -37,7 +37,7 @@ function AppContent() {
   useEffect(() => {
     try {
       if (!loading) {
-        mobileLog("Navigation logic - User:", !!user, "Profile:", !!profile, "Current screen:", currentScreen);
+        apkLog("Navigation logic - User:", !!user, "Profile:", !!profile, "Current screen:", currentScreen);
 
         if (!user) {
           // Not authenticated - show splash/onboarding/auth flow
@@ -48,18 +48,18 @@ function AppContent() {
           }
         } else if (user && !profile) {
           // Authenticated but no profile - always show profile setup
-          mobileLog("User authenticated but no profile, showing profile setup");
+          apkLog("User authenticated but no profile, showing profile setup");
           setCurrentScreen("profile");
         } else if (user && profile) {
           // Fully set up - show dashboard or chat
           if (currentScreen === "splash" || currentScreen === "onboarding" || currentScreen === "auth" || currentScreen === "profile") {
-            mobileLog("User has profile, navigating to dashboard");
+            apkLog("User has profile, navigating to dashboard");
             setCurrentScreen("dashboard");
           }
         }
       }
     } catch (error) {
-      mobileLog("Error in navigation logic:", error);
+      apkLog("Error in navigation logic:", error);
       // Fallback to splash screen on error
       setCurrentScreen("splash");
     }
